@@ -4,13 +4,24 @@ Ext.Loader.setConfig({
 
 Ext.application({
     name: "MobileOxford",
+    controllers: ['home'],
     
     launch: function() {
         console.log('app launch');
-        
         var home = Ext.create("Ext.Panel", {
             fullscreen: true,
-            html: 'Hello Mobile Oxford!',
+            items: [
+                {
+                    xtype: 'toolbar',
+                    docked: 'top',
+                    title: 'Mobile Oxford',
+                },
+                {
+                    xtype: 'home',
+                },
+            ]
+            
         });
+        console.log('created the panel');
     }
 })

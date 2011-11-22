@@ -1,0 +1,134 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<html>
+    <head>
+        <title>
+            Sencha Touch 2 Release Notes
+        </title>
+        <link rel="stylesheet" type="text/css" href="examples/resources/shared/css/style.css" media="all">
+    </head>
+    <body>
+        <p>
+            <a href="http://www.sencha.com/" id="logo" name="logo">Sencha Touch 2 - JavaScript Framework</a>
+        </p>
+        <div id="releases">
+            <div class="release">
+                <h1>
+                    Release Notes for Sencha Touch 2.0.pr2
+                </h1>
+                <p class="notes">
+                    Release Notes: Release Notes: November 10, 2011<br>
+                    Version Number: 2.0.0.pr2
+                </p>
+                <h2>
+                    New In This Release
+                </h2>
+                <ul>
+                    <li>Enhancements
+                        <ul>
+                            <li>Forms have been refactored to be less component heavy for better performance</li>
+                            <li>Added Android native packaging guide</li>
+                            <li>contentEl has been re-implemented on Components</li>
+                            <li>Updated documentation for autoCreateViewport to clarify how it works</li>
+                            <li>listeners and bubbleEvents config options and now guarenteed run prior to other configurations</li>
+                            <li>[TOUCH-930] DataView and List now use proper getters when retrieving data from their Store</li>
+                            <li>[TOUCH-775] Developer calls to Store.loadRecords will now fire 'clear' and 'add' events when appropriate</li>
+                            <li>[TOUCH-831] Added a 'sort' event to Store</li>
+                            <li>[TOUCH-842] Added a 'filter' event to Store</li>
+                            <li>[TOUCH-908] Added emptyText support to DataView/List</li>
+                            <li>[TOUCH-792] Completed Map class refactor</li>
+                            <li>[TOUCH-793] Completed Geolocation class refactor</li>
+                            <li>[TOUCH-928] Include jsb3 file in the distribution</li>
+                            <li>[TOUCH-22] If a component's 'html' property is set, it will default 'styleHtmlContent' to true</li>
+                            <li>[TOUCH-802] TextArea icon is now top aligned</li>
+                            <li>[TOUCH-859] readOnly attribute added to fields</li>
+                            <li>[TOUCH-927] Deprecate html in Button in favor of badgeText</li>
+                        </ul>
+                    </li>
+                    <li>Bugs Fixes
+                        <ul>
+                            <li>[TOUCH-763] Fix issue where SegmentedButton was not firing painted events</li>
+                            <li>[TOUCH-763] Fix issue where TabBar was not firing painted events</li>
+                            <li>[TOUCH-845] Fix persistent scrollbar issue in Safari 5.x desktop</li>
+                            <li>[TOUCH-849] Fix issue with activeItem configuration not being respected</li>
+                            <li>[TOUCH-468] Fix the inability to pull attributes out of XML nodes</li>
+                            <li>[TOUCH-841] Fix issue when inserting data into a store where List would throw an error</li>
+                            <li>[TOUCH-931] Fix issues with multiselect and deselect within Selectable</li>
+                            <li>[TOUCH-831] Fix issue when sorting a DataView/List by using the new 'sort' event on Store</li>
+                            <li>[TOUCH-842] Fix issue when filtering a DataView/List by using the new 'filter' event on Store</li>
+                            <li>[TOUCH-543] Fix issue where beforeselect event was not being fired on Selectable</li>
+                            <li>[TOUCH-961] Fix issue with group headers not updating properly when the store changes</li>
+                            <li>[TOUCH-893] Fix issue with multiple fields with the name inside a formpanel</li>
+                            <li>[TOUCH-992] Fix setValue issue with numberfield and selectfield</li>
+                            <li>[TOUCH-932] Fix issues with Ext.select</li>
+                            <li>[TOUCH-836] Fix issue with Picker overflow which was causing alignment problems</li>
+                            <li>[TOUCH-920] Aliased Ext.log to Ext.Logger.log to fix issues with shared platform code</li>
+                            <li>[TOUCH-977] Fix segmented button styling issues</li>
+                            <li>[TOUCH-982] Fix incorrect return type in setGroupValue for radio fields</li>
+                            <li>[TOUCH-974] Fix Container.getComponent to use itemId</li>
+                            <li>[TOUCH-986] Fix textfield focus</li>
+                            <li>[TOUCH-903] Add documentation for the painted and erased events</li>
+                            <li>[TOUCH-832] Allow Carousel to be destroyed without throwing errors</li>
+                            <li>[TOUCH-996] Fix issues related to dynamically adding items to an empty carousel</li>
+                            <li>[TOUCH-987] Fix issues related to List headers when sorting or otherwise updating data</li>
+                            <li>[TOUCH-567] Fix form layout issue</li>
+                            <li>[TOUCH-592] Fix issue with scrubber on Android 3</li>
+                            <li>[TOUCH-654] Fix not being able to tap on a dropdown icon/arrow</li>
+                            <li>[TOUCH-768] Fix issue when entering non-numeric values in numberfield</li>
+                            <li>[TOUCH-800] Fix issue where the clearIcon was not properly centered on an iPad</li>
+                            <li>[TOUCH-803] Fix issues with numberfield.reset()</li>
+                            <li>[TOUCH-860] Fix listener return signature</li>
+                            <li>[TOUCH-881] Fix issue with Form submission</li>
+                            <li>[TOUCH-889] Fix issue with removing FieldSets</li>
+                            <li>[TOUCH-890] Fix selectfield 'default' configuration</li>
+                            <li>[TOUCH-893] Fix form.getValues() when inner content has been modified</li>
+                            <li>[TOUCH-896] Fix problem with Checkbox/Radio event firing</li>
+                            <li>[TOUCH-922] Fix formPanel.setRecord() selectfield and numberfield</li>
+                            <li>[TOUCH-924] Fix form submission callback</li>
+                            <li>[TOUCH-929] Fix innverted check/uncheck event firing</li>
+                            <li>[TOUCH-936] Fix firing of the togglefield change event</li>
+                            <li>[TOUCH-940] Fix incorrect event signature on SegmentedButton</li>
+                            <li>[TOUCH-958] Fix radiofield getValue</li>
+                            <li>[TOUCH-963] Fix focus of textarea when enter is pressed</li>
+                            <li>[TOUCH-964] Fix Model field truthy defaultValue to allow reading non-truthy value</li>
+                            <li>[TOUCH-974] Allow setPressed to work with itemId</li>
+                            <li>[TOUCH-976] Fix Form.disable() crash on sliderfields</li>
+                            <li>[TOUCH-977] Fix SegmentedButton rounding when segments are hidden</li>
+                            <li>[TOUCH-978] Fix formPanel submission exception</li>
+                            <li>[TOUCH-805] Fix issue in SegmentedButton where you could use two fingers to select multiple buttons when allowMultiple was false</li>
+                            <li>[TOUCH-1006] Fix disabled SegmentedButton</li>
+                            <li>[TOUCH-887] Fix iconAlign in Button</li>
+                            <li>[TOUCH-874] Fix issue of a Button loosing listener if another button is created after it</li>
+                            <li>Fix documented types of Ext.Component#html and #contentEl</li>
+                            <li>Add missing constructor to example in class system guide</li>
+                            <li>Fix Ext.Msg.alert call in class system guide</li>
+                            <li>Fix error when destroying SizeMonitor detectors if the monitored element had already been removed</li>
+                        </ul>
+                    </li>
+                    <li>Known Issues
+                        <ul>
+                            <li>Updated MVC with Routing/History/Deep Linking/Profiles will be in a forthcoming release</li>
+                            <li>The Data package currently cannot yet be configured by passing 'config' parameters. This will be fixed in an forthcoming release.</li>
+                            <li>Draggable is not yet implemented yet, this affects carousel scrolling and animations</li>
+                            <li>Some animations are still not in place and will be added in a forthcoming release</li>
+                            <li>Android 3 and Blackberry optimizations are not yet in place</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+            <hr>
+            <div class="release">
+                <h1>
+                    Release Notes for Sencha Touch 2.0.pr1
+                </h1>
+                <p class="notes">
+                    Release Notes: Release Notes: October 10, 2011<br>
+                    Version Number: 2.0.0.pr1
+                </p>
+                <h2>
+                    Initial release
+                </h2>
+            </div>
+            <hr>
+        </div>
+    </body>
+</html>

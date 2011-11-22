@@ -1,0 +1,1360 @@
+{
+    "projectName": "Sencha Touch",
+    "licenseText": "\nThis file is part of Sencha Touch 2\n\nCopyright (c) 2011 Sencha Inc\n\nContact:  http://www.sencha.com/contact\n\nCommercial Usage\nLicensees holding valid commercial licenses may use this file in accordance with the Commercial Software License Agreement provided with the Software or, alternatively, in accordance with the terms contained in a written agreement between you and Sencha.\n\nIf you are unsure which license is appropriate for your use, please contact the sales department at http://www.sencha.com/contact.\n",
+    "packages": [
+        {
+            "name": "Foundation",
+            "target": "pkgs/foundation.js",
+            "id": "foundation",
+            "files": [
+                {
+                    "path": "../platform/core/src/",
+                    "name": "Ext.js"
+                },
+                {
+                    "path": "../platform/core/src/version/",
+                    "name": "Version.js"
+                },
+                {
+                    "path": "../platform/core/src/lang/",
+                    "name": "String.js"
+                },
+                {
+                    "path": "../platform/core/src/lang/",
+                    "name": "Array.js"
+                },
+                {
+                    "path": "../platform/core/src/lang/",
+                    "name": "Number.js"
+                },
+                {
+                    "path": "../platform/core/src/lang/",
+                    "name": "Object.js"
+                },
+                {
+                    "path": "../platform/core/src/lang/",
+                    "name": "Function.js"
+                },
+                {
+                    "path": "../platform/core/src/misc/",
+                    "name": "JSON.js"
+                },
+                {
+                    "path": "src/core/lang/",
+                    "name": "Date.js"
+                },
+                {
+                    "path": "src/core/lang/",
+                    "name": "Error.js"
+                },
+                {
+                    "path": "../platform/core/src/class/",
+                    "name": "Base.js"
+                },
+                {
+                    "path": "../platform/core/src/class/",
+                    "name": "Class.js"
+                },
+                {
+                    "path": "../platform/core/src/class/",
+                    "name": "ClassManager.js"
+                },
+                {
+                    "path": "../platform/core/src/class/",
+                    "name": "Loader.js"
+                }
+            ]
+        },
+        {
+            "name": "DOM",
+            "target": "pkgs/dom.js",
+            "id": "dom",
+            "files": [
+                {
+                    "path": "src/core/",
+                    "name": "EventManager.js"
+                },
+                {
+                    "path": "src/core/",
+                    "name": "Ext-more.js"
+                },
+                {
+                    "path": "src/env/",
+                    "name": "Browser.js"
+                },
+                {
+                    "path": "src/env/",
+                    "name": "OS.js"
+                },
+                {
+                    "path": "src/env/",
+                    "name": "Feature.js"
+                },
+                {
+                    "path": "../platform/core/src/dom/",
+                    "name": "AbstractQuery.js"
+                },
+                {
+                    "path": "../platform/core/src/dom/",
+                    "name": "AbstractHelper.js"
+                },
+                {
+                    "path": "../platform/core/src/dom/",
+                    "name": "AbstractElement.js"
+                },
+                {
+                    "path": "../platform/core/src/dom/",
+                    "name": "AbstractElement.static.js"
+                },
+                {
+                    "path": "../platform/core/src/dom/",
+                    "name": "AbstractElement.alignment.js"
+                },
+                {
+                    "path": "../platform/core/src/dom/",
+                    "name": "AbstractElement.insertion.js"
+                },
+                {
+                    "path": "../platform/core/src/dom/",
+                    "name": "AbstractElement.position.js"
+                },
+                {
+                    "path": "../platform/core/src/dom/",
+                    "name": "AbstractElement.style.js"
+                },
+                {
+                    "path": "../platform/core/src/dom/",
+                    "name": "AbstractElement.traversal.js"
+                }
+            ]
+        },
+        {
+            "name": "Manifest",
+            "target": "pkgs/manifest.js",
+            "id": "manifest",
+            "files": [
+                {
+                    "path": "bootstrap/",
+                    "name": "data-release.js"
+                },
+                {
+                    "path": "",
+                    "name": "sencha-touch-release.js"
+                }
+            ]
+        },
+        {
+            "name": "Classes",
+            "target": "pkgs/classes.js",
+            "id": "classes",
+            "files": [
+                {
+                    "path": "../platform/src/",
+                    "name": "AbstractPlugin.js"
+                },
+                {
+                    "path": "src/",
+                    "name": "ComponentManager.js"
+                },
+                {
+                    "path": "../platform/src/",
+                    "name": "ComponentQuery.js"
+                },
+                {
+                    "path": "../platform/src/",
+                    "name": "XTemplateParser.js"
+                },
+                {
+                    "path": "../platform/src/data/",
+                    "name": "IdGenerator.js"
+                },
+                {
+                    "path": "../platform/src/data/",
+                    "name": "JsonP.js"
+                },
+                {
+                    "path": "../platform/src/data/",
+                    "name": "Operation.js"
+                },
+                {
+                    "path": "../platform/src/data/",
+                    "name": "Request.js"
+                },
+                {
+                    "path": "../platform/src/data/",
+                    "name": "ResultSet.js"
+                },
+                {
+                    "path": "../platform/src/data/",
+                    "name": "SequentialIdGenerator.js"
+                },
+                {
+                    "path": "../platform/src/data/",
+                    "name": "SortTypes.js"
+                },
+                {
+                    "path": "../platform/src/data/",
+                    "name": "Types.js"
+                },
+                {
+                    "path": "../platform/src/data/",
+                    "name": "UuidGenerator.js"
+                },
+                {
+                    "path": "../platform/src/data/",
+                    "name": "validations.js"
+                },
+                {
+                    "path": "../platform/src/data/association/",
+                    "name": "Association.js"
+                },
+                {
+                    "path": "../platform/src/data/association/",
+                    "name": "BelongsTo.js"
+                },
+                {
+                    "path": "../platform/src/data/association/",
+                    "name": "HasOne.js"
+                },
+                {
+                    "path": "../platform/src/data/reader/",
+                    "name": "Reader.js"
+                },
+                {
+                    "path": "../platform/src/data/reader/",
+                    "name": "Xml.js"
+                },
+                {
+                    "path": "../platform/src/data/writer/",
+                    "name": "Writer.js"
+                },
+                {
+                    "path": "../platform/src/data/writer/",
+                    "name": "Xml.js"
+                },
+                {
+                    "path": "../platform/src/direct/",
+                    "name": "RemotingMethod.js"
+                },
+                {
+                    "path": "../platform/src/direct/",
+                    "name": "Transaction.js"
+                },
+                {
+                    "path": "../platform/src/util/",
+                    "name": "Bindable.js"
+                },
+                {
+                    "path": "src/util/",
+                    "name": "Filter.js"
+                },
+                {
+                    "path": "src/util/",
+                    "name": "Inflector.js"
+                },
+                {
+                    "path": "src/util/",
+                    "name": "Offset.js"
+                },
+                {
+                    "path": "src/util/",
+                    "name": "Region.js"
+                },
+                {
+                    "path": "src/util/",
+                    "name": "Sorter.js"
+                },
+                {
+                    "path": "src/",
+                    "name": "TaskQueue.js"
+                },
+                {
+                    "path": "src/",
+                    "name": "Validator.js"
+                },
+                {
+                    "path": "src/behavior/",
+                    "name": "Behavior.js"
+                },
+                {
+                    "path": "src/dom/",
+                    "name": "Helper.js"
+                },
+                {
+                    "path": "src/dom/",
+                    "name": "Query.js"
+                },
+                {
+                    "path": "src/event/",
+                    "name": "Controller.js"
+                },
+                {
+                    "path": "src/event/",
+                    "name": "Event.js"
+                },
+                {
+                    "path": "src/event/",
+                    "name": "ListenerStack.js"
+                },
+                {
+                    "path": "src/event/publisher/",
+                    "name": "Publisher.js"
+                },
+                {
+                    "path": "src/fx/",
+                    "name": "State.js"
+                },
+                {
+                    "path": "src/fx/animation/",
+                    "name": "Abstract.js"
+                },
+                {
+                    "path": "src/fx/animation/",
+                    "name": "Cube.js"
+                },
+                {
+                    "path": "src/fx/animation/",
+                    "name": "Fade.js"
+                },
+                {
+                    "path": "src/fx/animation/",
+                    "name": "FadeOut.js"
+                },
+                {
+                    "path": "src/fx/animation/",
+                    "name": "Flip.js"
+                },
+                {
+                    "path": "src/fx/animation/",
+                    "name": "Pop.js"
+                },
+                {
+                    "path": "src/fx/animation/",
+                    "name": "PopOut.js"
+                },
+                {
+                    "path": "src/fx/animation/",
+                    "name": "Slide.js"
+                },
+                {
+                    "path": "src/fx/animation/",
+                    "name": "SlideOut.js"
+                },
+                {
+                    "path": "src/fx/layout/card/",
+                    "name": "Abstract.js"
+                },
+                {
+                    "path": "src/log/",
+                    "name": "Base.js"
+                },
+                {
+                    "path": "src/log/",
+                    "name": "Logger.js"
+                },
+                {
+                    "path": "src/log/filter/",
+                    "name": "Filter.js"
+                },
+                {
+                    "path": "src/log/filter/",
+                    "name": "Priority.js"
+                },
+                {
+                    "path": "src/log/formatter/",
+                    "name": "Formatter.js"
+                },
+                {
+                    "path": "src/log/writer/",
+                    "name": "Writer.js"
+                },
+                {
+                    "path": "src/mixin/",
+                    "name": "Identifiable.js"
+                },
+                {
+                    "path": "src/mixin/",
+                    "name": "Mixin.js"
+                },
+                {
+                    "path": "src/mixin/",
+                    "name": "Selectable.js"
+                },
+                {
+                    "path": "src/mixin/",
+                    "name": "Traversable.js"
+                },
+                {
+                    "path": "src/scroll/easing/",
+                    "name": "Easing.js"
+                },
+                {
+                    "path": "src/scroll/easing/",
+                    "name": "Linear.js"
+                },
+                {
+                    "path": "src/scroll/easing/",
+                    "name": "Momentum.js"
+                },
+                {
+                    "path": "src/util/",
+                    "name": "Format.js"
+                },
+                {
+                    "path": "src/util/",
+                    "name": "JSONP.js"
+                },
+                {
+                    "path": "src/util/",
+                    "name": "OffsetConstraint.js"
+                },
+                {
+                    "path": "src/",
+                    "name": "Anim.js"
+                },
+                {
+                    "path": "src/util/",
+                    "name": "Timeline.js"
+                },
+                {
+                    "path": "../platform/src/",
+                    "name": "Template.js"
+                },
+                {
+                    "path": "../platform/src/",
+                    "name": "XTemplateCompiler.js"
+                },
+                {
+                    "path": "../platform/src/",
+                    "name": "XTemplate.js"
+                },
+                {
+                    "path": "../platform/src/data/",
+                    "name": "Field.js"
+                },
+                {
+                    "path": "../platform/src/data/",
+                    "name": "NodeInterface.js"
+                },
+                {
+                    "path": "../platform/src/data/association/",
+                    "name": "HasMany.js"
+                },
+                {
+                    "path": "../platform/src/data/reader/",
+                    "name": "Json.js"
+                },
+                {
+                    "path": "../platform/src/data/reader/",
+                    "name": "Array.js"
+                },
+                {
+                    "path": "../platform/src/data/writer/",
+                    "name": "Json.js"
+                },
+                {
+                    "path": "src/util/",
+                    "name": "DelayedTask.js"
+                },
+                {
+                    "path": "src/util/",
+                    "name": "Grouper.js"
+                },
+                {
+                    "path": "src/util/",
+                    "name": "Point.js"
+                },
+                {
+                    "path": "src/util/",
+                    "name": "Sortable.js"
+                },
+                {
+                    "path": "src/event/",
+                    "name": "Dispatcher.js"
+                },
+                {
+                    "path": "src/event/",
+                    "name": "Dom.js"
+                },
+                {
+                    "path": "src/event/",
+                    "name": "Touch.js"
+                },
+                {
+                    "path": "src/event/publisher/",
+                    "name": "ComponentPaint.js"
+                },
+                {
+                    "path": "src/event/recognizer/",
+                    "name": "Recognizer.js"
+                },
+                {
+                    "path": "src/event/recognizer/",
+                    "name": "Touch.js"
+                },
+                {
+                    "path": "src/event/recognizer/",
+                    "name": "MultiTouch.js"
+                },
+                {
+                    "path": "src/event/recognizer/",
+                    "name": "Pinch.js"
+                },
+                {
+                    "path": "src/event/recognizer/",
+                    "name": "Rotate.js"
+                },
+                {
+                    "path": "src/event/recognizer/",
+                    "name": "SingleTouch.js"
+                },
+                {
+                    "path": "src/event/recognizer/",
+                    "name": "DoubleTap.js"
+                },
+                {
+                    "path": "src/event/recognizer/",
+                    "name": "Drag.js"
+                },
+                {
+                    "path": "src/event/recognizer/",
+                    "name": "LongPress.js"
+                },
+                {
+                    "path": "src/event/recognizer/",
+                    "name": "Swipe.js"
+                },
+                {
+                    "path": "src/event/recognizer/",
+                    "name": "HorizontalSwipe.js"
+                },
+                {
+                    "path": "src/event/recognizer/",
+                    "name": "Tap.js"
+                },
+                {
+                    "path": "src/event/recognizer/",
+                    "name": "VerticalSwipe.js"
+                },
+                {
+                    "path": "src/",
+                    "name": "DateExtras.js"
+                },
+                {
+                    "path": "src/fx/",
+                    "name": "Animation.js"
+                },
+                {
+                    "path": "src/fx/animation/",
+                    "name": "Wipe.js"
+                },
+                {
+                    "path": "src/fx/animation/",
+                    "name": "WipeOut.js"
+                },
+                {
+                    "path": "src/fx/layout/card/",
+                    "name": "Style.js"
+                },
+                {
+                    "path": "src/fx/layout/card/",
+                    "name": "Cube.js"
+                },
+                {
+                    "path": "src/fx/layout/card/",
+                    "name": "Fade.js"
+                },
+                {
+                    "path": "src/fx/layout/card/",
+                    "name": "Flip.js"
+                },
+                {
+                    "path": "src/fx/layout/card/",
+                    "name": "Pop.js"
+                },
+                {
+                    "path": "src/fx/layout/card/",
+                    "name": "Slide.js"
+                },
+                {
+                    "path": "src/log/formatter/",
+                    "name": "Default.js"
+                },
+                {
+                    "path": "src/log/formatter/",
+                    "name": "Identity.js"
+                },
+                {
+                    "path": "src/log/writer/",
+                    "name": "Console.js"
+                },
+                {
+                    "path": "src/log/writer/",
+                    "name": "DocumentTitle.js"
+                },
+                {
+                    "path": "src/mixin/",
+                    "name": "Observable.js"
+                },
+                {
+                    "path": "../platform/src/data/",
+                    "name": "Batch.js"
+                },
+                {
+                    "path": "../platform/src/data/",
+                    "name": "Connection.js"
+                },
+                {
+                    "path": "src/",
+                    "name": "Ajax.js"
+                },
+                {
+                    "path": "../platform/src/data/",
+                    "name": "Tree.js"
+                },
+                {
+                    "path": "../platform/src/data/proxy/",
+                    "name": "Proxy.js"
+                },
+                {
+                    "path": "../platform/src/data/proxy/",
+                    "name": "Client.js"
+                },
+                {
+                    "path": "../platform/src/data/proxy/",
+                    "name": "Memory.js"
+                },
+                {
+                    "path": "../platform/src/data/proxy/",
+                    "name": "Server.js"
+                },
+                {
+                    "path": "../platform/src/data/proxy/",
+                    "name": "JsonP.js"
+                },
+                {
+                    "path": "../platform/src/data/proxy/",
+                    "name": "WebStorage.js"
+                },
+                {
+                    "path": "../platform/src/data/proxy/",
+                    "name": "LocalStorage.js"
+                },
+                {
+                    "path": "../platform/src/data/proxy/",
+                    "name": "SessionStorage.js"
+                },
+                {
+                    "path": "../platform/src/direct/",
+                    "name": "Provider.js"
+                },
+                {
+                    "path": "../platform/src/direct/",
+                    "name": "JsonProvider.js"
+                },
+                {
+                    "path": "../platform/src/direct/",
+                    "name": "PollingProvider.js"
+                },
+                {
+                    "path": "src/util/",
+                    "name": "AbstractMixedCollection.js"
+                },
+                {
+                    "path": "src/util/",
+                    "name": "HashMap.js"
+                },
+                {
+                    "path": "../platform/src/",
+                    "name": "AbstractManager.js"
+                },
+                {
+                    "path": "../platform/src/",
+                    "name": "ModelManager.js"
+                },
+                {
+                    "path": "../platform/src/",
+                    "name": "PluginManager.js"
+                },
+                {
+                    "path": "src/util/",
+                    "name": "MixedCollection.js"
+                },
+                {
+                    "path": "../platform/src/data/",
+                    "name": "AbstractStore.js"
+                },
+                {
+                    "path": "../platform/src/data/",
+                    "name": "Errors.js"
+                },
+                {
+                    "path": "../platform/src/data/",
+                    "name": "StoreManager.js"
+                },
+                {
+                    "path": "../platform/src/data/proxy/",
+                    "name": "Ajax.js"
+                },
+                {
+                    "path": "../platform/src/data/",
+                    "name": "Model.js"
+                },
+                {
+                    "path": "../platform/src/data/",
+                    "name": "Store.js"
+                },
+                {
+                    "path": "../platform/src/data/",
+                    "name": "ArrayStore.js"
+                },
+                {
+                    "path": "../platform/src/data/",
+                    "name": "BufferStore.js"
+                },
+                {
+                    "path": "../platform/src/data/",
+                    "name": "JsonPStore.js"
+                },
+                {
+                    "path": "../platform/src/data/",
+                    "name": "JsonStore.js"
+                },
+                {
+                    "path": "../platform/src/data/",
+                    "name": "NodeStore.js"
+                },
+                {
+                    "path": "../platform/src/data/",
+                    "name": "TreeStore.js"
+                },
+                {
+                    "path": "../platform/src/data/",
+                    "name": "XmlStore.js"
+                },
+                {
+                    "path": "../platform/src/data/proxy/",
+                    "name": "Rest.js"
+                },
+                {
+                    "path": "../platform/src/direct/",
+                    "name": "Manager.js"
+                },
+                {
+                    "path": "../platform/src/data/proxy/",
+                    "name": "Direct.js"
+                },
+                {
+                    "path": "../platform/src/data/",
+                    "name": "DirectStore.js"
+                },
+                {
+                    "path": "../platform/src/direct/",
+                    "name": "Event.js"
+                },
+                {
+                    "path": "../platform/src/direct/",
+                    "name": "RemotingEvent.js"
+                },
+                {
+                    "path": "../platform/src/direct/",
+                    "name": "ExceptionEvent.js"
+                },
+                {
+                    "path": "../platform/src/direct/",
+                    "name": "RemotingProvider.js"
+                },
+                {
+                    "path": "src/",
+                    "name": "EventedBase.js"
+                },
+                {
+                    "path": "src/",
+                    "name": "ItemCollection.js"
+                },
+                {
+                    "path": "src/",
+                    "name": "LoadMask.js"
+                },
+                {
+                    "path": "src/app/",
+                    "name": "Controller.js"
+                },
+                {
+                    "path": "src/app/",
+                    "name": "Application.js"
+                },
+                {
+                    "path": "src/dom/",
+                    "name": "Element.js"
+                },
+                {
+                    "path": "src/dom/",
+                    "name": "CompositeElementLite.js"
+                },
+                {
+                    "path": "src/event/publisher/",
+                    "name": "Dom.js"
+                },
+                {
+                    "path": "src/event/publisher/",
+                    "name": "TouchGesture.js"
+                },
+                {
+                    "path": "src/fx/runner/",
+                    "name": "Css.js"
+                },
+                {
+                    "path": "src/fx/runner/",
+                    "name": "CssAnimation.js"
+                },
+                {
+                    "path": "src/fx/runner/",
+                    "name": "CssTransition.js"
+                },
+                {
+                    "path": "src/fx/",
+                    "name": "Runner.js"
+                },
+                {
+                    "path": "src/layout/",
+                    "name": "Default.js"
+                },
+                {
+                    "path": "src/layout/",
+                    "name": "AbstractBox.js"
+                },
+                {
+                    "path": "src/layout/",
+                    "name": "Fit.js"
+                },
+                {
+                    "path": "src/layout/",
+                    "name": "HBox.js"
+                },
+                {
+                    "path": "src/layout/",
+                    "name": "VBox.js"
+                },
+                {
+                    "path": "src/log/writer/",
+                    "name": "Remote.js"
+                },
+                {
+                    "path": "src/scroll/easing/",
+                    "name": "Bounce.js"
+                },
+                {
+                    "path": "src/scroll/easing/",
+                    "name": "BoundMomentum.js"
+                },
+                {
+                    "path": "src/scroll/easing/",
+                    "name": "EaseOut.js"
+                },
+                {
+                    "path": "src/fx/layout/card/",
+                    "name": "Scroll.js"
+                },
+                {
+                    "path": "src/fx/layout/",
+                    "name": "Card.js"
+                },
+                {
+                    "path": "src/layout/",
+                    "name": "Card.js"
+                },
+                {
+                    "path": "src/layout/",
+                    "name": "Layout.js"
+                },
+                {
+                    "path": "src/util/",
+                    "name": "Draggable.js"
+                },
+                {
+                    "path": "src/",
+                    "name": "Sortable.js"
+                },
+                {
+                    "path": "src/behavior/",
+                    "name": "Draggable.js"
+                },
+                {
+                    "path": "src/util/",
+                    "name": "Droppable.js"
+                },
+                {
+                    "path": "src/util/",
+                    "name": "GeoLocation.js"
+                },
+                {
+                    "path": "src/util/",
+                    "name": "SizeMonitor.js"
+                },
+                {
+                    "path": "src/scroll/scroller/",
+                    "name": "Abstract.js"
+                },
+                {
+                    "path": "src/scroll/scroller/",
+                    "name": "CssPosition.js"
+                },
+                {
+                    "path": "src/scroll/scroller/",
+                    "name": "CssTransform.js"
+                },
+                {
+                    "path": "src/scroll/scroller/",
+                    "name": "Infinite.js"
+                },
+                {
+                    "path": "src/scroll/scroller/",
+                    "name": "ScrollPosition.js"
+                },
+                {
+                    "path": "src/scroll/",
+                    "name": "Scroller.js"
+                },
+                {
+                    "path": "src/util/",
+                    "name": "TapRepeater.js"
+                },
+                {
+                    "path": "src/",
+                    "name": "AbstractComponent.js"
+                },
+                {
+                    "path": "src/",
+                    "name": "Component.js"
+                },
+                {
+                    "path": "src/",
+                    "name": "Button.js"
+                },
+                {
+                    "path": "src/",
+                    "name": "Img.js"
+                },
+                {
+                    "path": "src/",
+                    "name": "Label.js"
+                },
+                {
+                    "path": "src/",
+                    "name": "Map.js"
+                },
+                {
+                    "path": "src/",
+                    "name": "Mask.js"
+                },
+                {
+                    "path": "src/",
+                    "name": "Media.js"
+                },
+                {
+                    "path": "src/",
+                    "name": "Audio.js"
+                },
+                {
+                    "path": "src/",
+                    "name": "Spacer.js"
+                },
+                {
+                    "path": "src/",
+                    "name": "Title.js"
+                },
+                {
+                    "path": "src/",
+                    "name": "Video.js"
+                },
+                {
+                    "path": "src/carousel/",
+                    "name": "Indicator.js"
+                },
+                {
+                    "path": "src/dataview/",
+                    "name": "IndexBar.js"
+                },
+                {
+                    "path": "src/dataview/",
+                    "name": "ListDisclosure.js"
+                },
+                {
+                    "path": "src/dataview/",
+                    "name": "ListIcon.js"
+                },
+                {
+                    "path": "src/dataview/",
+                    "name": "ListItemHeader.js"
+                },
+                {
+                    "path": "src/event/publisher/",
+                    "name": "ComponentDelegation.js"
+                },
+                {
+                    "path": "src/field/",
+                    "name": "Input.js"
+                },
+                {
+                    "path": "src/field/",
+                    "name": "Field.js"
+                },
+                {
+                    "path": "src/field/",
+                    "name": "Checkbox.js"
+                },
+                {
+                    "path": "src/field/",
+                    "name": "Hidden.js"
+                },
+                {
+                    "path": "src/field/",
+                    "name": "Radio.js"
+                },
+                {
+                    "path": "src/field/",
+                    "name": "Text.js"
+                },
+                {
+                    "path": "src/field/",
+                    "name": "Email.js"
+                },
+                {
+                    "path": "src/field/",
+                    "name": "Number.js"
+                },
+                {
+                    "path": "src/field/",
+                    "name": "Password.js"
+                },
+                {
+                    "path": "src/field/",
+                    "name": "Search.js"
+                },
+                {
+                    "path": "src/field/",
+                    "name": "Spinner.js"
+                },
+                {
+                    "path": "src/field/",
+                    "name": "TextAreaInput.js"
+                },
+                {
+                    "path": "src/field/",
+                    "name": "TextArea.js"
+                },
+                {
+                    "path": "src/field/",
+                    "name": "Url.js"
+                },
+                {
+                    "path": "src/scroll/indicator/",
+                    "name": "Abstract.js"
+                },
+                {
+                    "path": "src/scroll/indicator/",
+                    "name": "CssTransform.js"
+                },
+                {
+                    "path": "src/scroll/indicator/",
+                    "name": "ScrollPosition.js"
+                },
+                {
+                    "path": "src/scroll/",
+                    "name": "Indicator.js"
+                },
+                {
+                    "path": "src/scroll/",
+                    "name": "View.js"
+                },
+                {
+                    "path": "src/behavior/",
+                    "name": "Scrollable.js"
+                },
+                {
+                    "path": "src/",
+                    "name": "Container.js"
+                },
+                {
+                    "path": "src/",
+                    "name": "NavigationBar.js"
+                },
+                {
+                    "path": "src/",
+                    "name": "Panel.js"
+                },
+                {
+                    "path": "src/",
+                    "name": "SegmentedButton.js"
+                },
+                {
+                    "path": "src/",
+                    "name": "Sheet.js"
+                },
+                {
+                    "path": "src/",
+                    "name": "ActionSheet.js"
+                },
+                {
+                    "path": "src/",
+                    "name": "Toolbar.js"
+                },
+                {
+                    "path": "src/",
+                    "name": "MessageBox.js"
+                },
+                {
+                    "path": "src/dataview/",
+                    "name": "DataItem.js"
+                },
+                {
+                    "path": "src/dataview/",
+                    "name": "DataView.js"
+                },
+                {
+                    "path": "src/dataview/",
+                    "name": "ComponentView.js"
+                },
+                {
+                    "path": "src/carousel/",
+                    "name": "Carousel.js"
+                },
+                {
+                    "path": "src/dataview/",
+                    "name": "List.js"
+                },
+                {
+                    "path": "src/dataview/",
+                    "name": "ListItem.js"
+                },
+                {
+                    "path": "src/dataview/",
+                    "name": "ComponentList.js"
+                },
+                {
+                    "path": "src/dataview/",
+                    "name": "NestedList.js"
+                },
+                {
+                    "path": "src/form/",
+                    "name": "FieldSet.js"
+                },
+                {
+                    "path": "src/form/",
+                    "name": "Panel.js"
+                },
+                {
+                    "path": "src/picker/",
+                    "name": "Slot.js"
+                },
+                {
+                    "path": "src/picker/",
+                    "name": "Picker.js"
+                },
+                {
+                    "path": "src/field/",
+                    "name": "Select.js"
+                },
+                {
+                    "path": "src/picker/",
+                    "name": "Date.js"
+                },
+                {
+                    "path": "src/field/",
+                    "name": "DatePicker.js"
+                },
+                {
+                    "path": "src/slider/",
+                    "name": "Thumb.js"
+                },
+                {
+                    "path": "src/slider/",
+                    "name": "Slider.js"
+                },
+                {
+                    "path": "src/field/",
+                    "name": "Slider.js"
+                },
+                {
+                    "path": "src/field/",
+                    "name": "Toggle.js"
+                },
+                {
+                    "path": "src/tab/",
+                    "name": "Tab.js"
+                },
+                {
+                    "path": "src/tab/",
+                    "name": "Bar.js"
+                },
+                {
+                    "path": "src/tab/",
+                    "name": "Panel.js"
+                },
+                {
+                    "path": "src/viewport/",
+                    "name": "Default.js"
+                },
+                {
+                    "path": "src/viewport/",
+                    "name": "Android.js"
+                },
+                {
+                    "path": "src/viewport/",
+                    "name": "Ios.js"
+                },
+                {
+                    "path": "src/viewport/",
+                    "name": "Viewport.js"
+                }
+            ]
+        }
+    ],
+    "builds": [
+        {
+            "name": "All - Debug",
+            "target": "sencha-touch-all-debug.js",
+            "compress": false,
+            "options": {
+                "product": "touch",
+                "minVersion": 2,
+                "debug": true
+            },
+            "packages": [
+                "foundation",
+                "dom",
+                "classes"
+            ]
+        },
+        {
+            "name": "All - Uncompressed",
+            "target": "sencha-touch-all-uncompressed.js",
+            "compress": false,
+            "options": {
+                "product": "touch",
+                "minVersion": 2,
+                "debug": false,
+                "logger": "no"
+            },
+            "packages": [
+                "foundation",
+                "dom",
+                "classes"
+            ]
+        },
+        {
+            "name": "All",
+            "target": "sencha-touch-all.js",
+            "compress": true,
+            "options": {
+                "product": "touch",
+                "minVersion": 2,
+                "debug": false,
+                "logger": "no"
+            },
+            "packages": [
+                "foundation",
+                "dom",
+                "classes"
+            ]
+        },
+        {
+            "name": "All without Compatibility - Uncompressed",
+            "target": "sencha-touch-all-no-compat-uncompressed.js",
+            "options": {
+                "product": "touch",
+                "minVersion": 3,
+                "debug": false,
+                "logger": "no"
+            },
+            "packages": [
+                "foundation",
+                "dom",
+                "classes"
+            ]
+        },
+        {
+            "name": "All without Compatibility",
+            "target": "sencha-touch-all-no-compat.js",
+            "compress": true,
+            "options": {
+                "product": "touch",
+                "minVersion": 3,
+                "debug": false,
+                "logger": "no"
+            },
+            "packages": [
+                "foundation",
+                "dom",
+                "classes"
+            ]
+        },
+        {
+            "name": "Bootstrap Development",
+            "target": "sencha-touch-debug.js",
+            "options": {
+                "product": "touch",
+                "minVersion": 2
+            },
+            "packages": [
+                "foundation",
+                "dom",
+                "manifest"
+            ]
+        },
+        {
+            "name": "Bootstrap Production",
+            "target": "sencha-touch.js",
+            "compress": true,
+            "options": {
+                "product": "touch",
+                "minVersion": 2,
+                "debug": false,
+                "logger": "no"
+            },
+            "packages": [
+                "foundation",
+                "dom"
+            ]
+        }
+    ],
+    "resources": [
+        {
+            "src": "src/",
+            "dest": "src"
+        },
+        {
+            "src": "../platform/src/",
+            "dest": "src"
+        },
+        {
+            "src": "index.html",
+            "dest": "index.html"
+        },
+        {
+            "src": "examples/",
+            "dest": "examples/"
+        },
+        {
+            "src": "resources/",
+            "dest": "resources/"
+        },
+        {
+            "src": "touch.jsb3",
+            "dest": "touch.jsb3"
+        },
+        {
+            "src": "license.txt",
+            "dest": "license.txt"
+        },
+        {
+            "src": "release-notes.html",
+            "dest": "release-notes.html"
+        },
+        {
+            "src": "getting-started.html",
+            "dest": "getting-started.html"
+        }
+    ]
+}

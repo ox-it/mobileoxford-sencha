@@ -4,13 +4,21 @@ Ext.define('MobileOxford.view.home', {
     title: 'App list',
     layout: 'vbox',
     config: {
+	title: 'Homepage',
         items: [
+		{
+		    html: '<h2>Welcome to the future</h2>'
+		},
                 {
-                    html: 'one',
+                    xtype: 'button',
+		    text: 'Places',
+		    id: 'placesButton'
                 },
                 {
-                    html: 'two',
-                },
+                    xtype: 'button',
+		    text: 'Webcams',
+		    id: 'webcamsButton'
+                }
             ],
     },
     

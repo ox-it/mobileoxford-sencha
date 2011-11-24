@@ -5,23 +5,14 @@ Ext.Loader.setConfig({
 Ext.application({
     name: "MobileOxford",
     controllers: ['home'],
-    
+    stores: ['webcams'],
+    appFolder: 'app',
+
     launch: function() {
         console.log('app launch');
-        var home = Ext.create("Ext.Panel", {
-            fullscreen: true,
-            items: [
-                {
-                    xtype: 'toolbar',
-                    docked: 'top',
-                    title: 'Mobile Oxford',
-                },
-                {
-                    xtype: 'home',
-                },
-            ]
-            
-        });
+
+	Ext.create('MobileOxford.view.viewport');
+
         console.log('created the panel');
     }
 })

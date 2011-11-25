@@ -1,6 +1,6 @@
 Ext.define('MobileOxford.controller.home', {
     extend: 'Ext.app.Controller',
-    views: ['home', 'webcams'],
+    views: ['home', 'webcams', 'webcam'],
 
     init: function() {
         console.log("init home controller");
@@ -19,7 +19,6 @@ Ext.define('MobileOxford.controller.home', {
 		'#webcamsList': {
 					'itemtap': function(list, index, item, evt) {
 						var w = list.getStore().getAt(index);
-						Ext.getCmp('xyz').setHtml(w.get('description'));
 						var url = 'http://m.ox.ac.uk/webcams/' + w.get('slug') + '/';
 
 					    Ext.util.JSONP.request({
@@ -32,14 +31,18 @@ Ext.define('MobileOxford.controller.home', {
 						    if (result.eis) {
 							    var u = result.eis._url;
 							    var src = 'http://m.ox.ac.uk' + u;
+							Ext.Viewport.setActiveItem({xtype:'webcam'});
+						    	Ext.getCmp('webcamTitle').updateHtml(w.get('title'));
+						    	Ext.getCmp('webcamDescription').updateHtml(w.get('description'));
+						    	Ext.getCmp('webcamCredit').updateHtml(w.get('credit'));
+						    	Ext.getCmp('webcamImage').updateSrc(src);
 						    }
 						    else {
 							alert('There was an error retrieving the webcam details.');
 						    }
-						    
-						    Ext.getCmp('super').updateSrc(src);
 						}
 					    });
+
 					}
 				}
 	});

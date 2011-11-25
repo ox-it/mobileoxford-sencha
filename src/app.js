@@ -7,12 +7,9 @@ Ext.application({
     controllers: ['home'],
     stores: ['webcams'],
     appFolder: 'app',
+    autoCreateViewport: true,
 
     launch: function() {
         console.log('app launch');
-
-	Ext.create('MobileOxford.view.viewport');
-
-        console.log('created the panel');
     }
 })

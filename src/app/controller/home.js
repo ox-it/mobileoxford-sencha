@@ -16,6 +16,32 @@ Ext.define('MobileOxford.controller.home', {
 						alert('Display places');
 					  }
 				  },
+		'#webcamsList': {
+					'itemtap': function(list, index, item, evt) {
+						var w = list.getStore().getAt(index);
+						Ext.getCmp('xyz').setHtml(w.get('description'));
+						var url = 'http://m.ox.ac.uk/webcams/' + w.get('slug') + '/';
+
+					    Ext.util.JSONP.request({
+						url: url,
+						callbackKey: 'callback',
+						params: {
+						    format: 'js',
+						},
+						callback: function(result) {
+						    if (result.eis) {
+							    var u = result.eis._url;
+							    var src = 'http://m.ox.ac.uk' + u;
+						    }
+						    else {
+							alert('There was an error retrieving the webcam details.');
+						    }
+						    
+						    Ext.getCmp('super').updateSrc(src);
+						}
+					    });
+					}
+				}
 	});
 
         //this.callParent();

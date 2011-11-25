@@ -8,7 +8,8 @@ Ext.define('MobileOxford.view.viewport', {
 				xtype: 'home'
 			},
 			{
-				xtype: 'webcams'
+				xtype: 'webcams',
+				id: 'webcamsView'
 			}
 		]
 	}

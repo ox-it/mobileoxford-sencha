@@ -7,11 +7,9 @@ Ext.define('MobileOxford.controller.home', {
 
 	this.control({
 		'#webcamsButton': { 'tap': function() {
-					alert('Display webcams');
-					Ext.Viewport.add({
-						xtype: 'webcams'					
-					});
-					alert('Done adding to viewport');
+					console.log("Tap called")
+					Ext.Viewport.setActiveItem({xtype:'webcams'});
+					console.log('Tap done');
 					   }
 				  },
 		'#placesButton': { 'tap': function() {

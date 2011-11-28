@@ -7,7 +7,12 @@ Ext.define('MobileOxford.view.home', {
 	title: 'Homepage',
         items: [
 		{
-		    html: '<h2>Welcome to the future</h2>'
+			xtype: 'toolbar',
+			docked: 'top',
+			title: 'Mobile Oxford',
+			layout: {
+				type: 'hbox',
+			},
 		},
                 {
                     xtype: 'button',

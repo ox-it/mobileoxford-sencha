@@ -36,7 +36,9 @@ Ext.define('MobileOxford.controller.home', {
 								viewport = Ext.ComponentQuery.query('my-viewport');
 								target = Ext.ComponentQuery.query('webcam');
 								viewport[0].setActiveItem(target[0]);
-							    	Ext.getCmp('webcamTitle').updateHtml(w.get('title'));
+								var toolbar = Ext.getCmp('webcamToolbar');
+								toolbar.setTitle(w.get('title'));
+							    	//Ext.getCmp('webcamTitle').updateHtml(w.get('title'));
 							    	Ext.getCmp('webcamDescription').updateHtml(w.get('description'));
 							    	Ext.getCmp('webcamCredit').updateHtml(w.get('credit'));
 							    	Ext.getCmp('webcamImage').updateSrc(src);

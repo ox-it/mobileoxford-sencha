@@ -7,8 +7,19 @@ Ext.define('MobileOxford.view.webcams', {
 		title: 'Webcams',
 		items: [
 			{
-				xtype: 'label',
-				html: '<strong>Webcams</strong>'
+				xtype: 'toolbar',
+				docked: 'top',
+				title: 'Webcams',
+				layout: {
+					type: 'hbox',
+				},
+				items: [
+					{
+						xtype: 'button',
+						text: 'Home',
+						go: 'home'
+					}
+				]
 			},
 			{
 				xtype: 'list',
@@ -18,6 +29,9 @@ Ext.define('MobileOxford.view.webcams', {
 				flex: 1,
 				layout: 'fit',
 				height: 400,
+				//itemConfig: {
+				//	tpl: 'AH AH AH'
+				//}
 			}
 			]
 	},

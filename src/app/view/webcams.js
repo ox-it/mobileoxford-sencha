@@ -23,14 +23,20 @@ Ext.define('MobileOxford.view.webcams', {
 			},
 			{
 				xtype: 'list',
+				//xtype: 'componentview',
 				id: 'webcamsList',			
 				store: 'webcams',
 				itemTpl: '<div>{title}</div>',
 				flex: 1,
 				layout: 'fit',
-				height: 400,
+				//layout: {
+				//	type: 'vbox',
+				//	align: 'middle',
+				//},				
+				height: 400,	// TODO fix hard-coded height
 				//itemConfig: {
-				//	tpl: 'AH AH AH'
+				//	tpl: '{title}',
+				//	xtype: 'button'
 				//}
 			}
 			]

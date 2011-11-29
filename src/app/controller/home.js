@@ -23,40 +23,48 @@ Ext.define('MobileOxford.controller.home', {
 		},
 		'#webcamsList': {
 			'itemtap': function(list, index, item, evt) {
-				var myMask = new Ext.LoadMask(Ext.getBody(), {msg:"Wait!"});
-				myMask.show();
-				var w = list.getStore().getAt(index);
-				var url = 'http://m.ox.ac.uk/webcams/' + w.get('slug') + '/';
-				Ext.util.JSONP.request({
-					url: url,
-					callbackKey: 'callback',
-					params: {
-					    format: 'js',
-					},
-					callback: function(result) {
-						if (result.eis) {
-							var src = 'http://m.ox.ac.uk' + result.eis._url;
-							viewport = Ext.ComponentQuery.query('my-viewport');
-							target = Ext.ComponentQuery.query('webcam');
-							viewport[0].setActiveItem(target[0]);
-							var toolbar = Ext.getCmp('webcamToolbar');
-							toolbar.setTitle(w.get('title'));
-							Ext.getCmp('webcamDescription').updateHtml(w.get('description'));
-							Ext.getCmp('webcamCredit').updateHtml(w.get('credit'));
-							Ext.getCmp('webcamImage').updateSrc(src);
-						}
-							else {
-								alert('There was an error retrieving the webcam details.');
-							}
-							myMask.hide();
-						}
-					});
-				}
+				var webcam = list.getStore().getAt(index);
+				this.showWebcam(webcam);
 			}
+		}
 		});
     	},
 
 	onLaunch: function() {
 		console.log("Controller home, onLaunch called");
 	},
+
+	/**
+	 * AJAX call to find webcam details and generate view
+	 * @param webcam webcam object
+	 */
+	showWebcam: function(webcam) {
+		var myMask = new Ext.LoadMask(Ext.getBody(), {msg:"Wait!"});
+		myMask.show();
+		var url = 'http://m.ox.ac.uk/webcams/' + webcam.get('slug') + '/';
+		Ext.util.JSONP.request({
+			url: url,
+			callbackKey: 'callback',
+			params: {
+			    format: 'js',
+			},
+			callback: function(result) {
+				if (result.eis) {
+					var src = 'http://m.ox.ac.uk' + result.eis._url;
+					viewport = Ext.ComponentQuery.query('my-viewport');
+					target = Ext.ComponentQuery.query('webcam');
+					viewport[0].setActiveItem(target[0]);
+					var toolbar = Ext.getCmp('webcamToolbar');
+					toolbar.setTitle(webcam.get('title'));
+					Ext.getCmp('webcamDescription').updateHtml(webcam.get('description'));
+					Ext.getCmp('webcamCredit').updateHtml(webcam.get('credit'));
+					Ext.getCmp('webcamImage').updateSrc(src);
+				}
+				else {
+					alert('There was an error retrieving the webcam details.');
+				}
+				myMask.hide();
+			}
+		});	
+	}
 })

@@ -4,3 +4,8 @@ Add the following line to your Apache configuration file:
 
 AddType text/cache-manifest .manifest
 
+Dear developer, in order to be able to debug offline caching issues correctly, you should enable the "expires" module and set on your vhost conf file:
+
+ExpiresActive On
+ExpiresDefault "access"
+

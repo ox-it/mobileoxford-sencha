@@ -1,0 +1,13 @@
+CACHE MANIFEST
+
+# version 0.14
+
+index.html
+app.js
+
+lib/sencha2_preview/sencha-touch-all-debug-w-comments.js
+lib/sencha2_preview/resources/css/sencha-touch.css
+
+NETWORK:
+*
+

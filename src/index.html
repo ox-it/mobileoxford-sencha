@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html manifest="app.manifest">
 <head>
 	<meta charset="utf-8">
 	<title>Mobile Oxford</title>
@@ -8,6 +8,15 @@
 	<script type="text/javascript" src="app.js"></script>
 </head>
 <body>
-	
+	<script type="text/javascript">
+		// event application updated then refresh should go here
+		window.addEventListener('load', function (e) {
+		    window.applicationCache.addEventListener('updateready', function (e) {
+			window.applicationCache.swapCache();
+			window.location.reload(); 	// force the load of the new version
+			alert("re");
+		    }, false);
+		}, false);
+	</script>
 </body>
 </html>

@@ -1,0 +1,6 @@
+In order to use offline cache, .manifest files need to be served with a special mime type.
+
+Add the following line to your Apache configuration file:
+
+AddType text/cache-manifest .manifest
+

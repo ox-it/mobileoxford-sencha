@@ -17,7 +17,8 @@ Ext.define('MobileOxford.view.webcams', {
 					{
 						xtype: 'button',
 						text: 'Home',
-						go: 'home'
+						go: 'home',
+						ui: 'back'
 					}
 				]
 			},

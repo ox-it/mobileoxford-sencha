@@ -57,7 +57,8 @@ Ext.define('MobileOxford.controller.home', {
 					toolbar.setTitle(webcam.get('title'));
 					Ext.getCmp('webcamDescription').updateHtml(webcam.get('description'));
 					Ext.getCmp('webcamCredit').updateHtml(webcam.get('credit'));
-					Ext.getCmp('webcamImage').updateSrc(src);
+					Ext.getCmp('webcamImage').setHtml("<img src=\"" + src + "\" />");	// temp ugly fix
+					//Ext.getCmp('webcamImage').updateSrc(src);
 				}
 				else {
 					alert('There was an error retrieving the webcam details.');

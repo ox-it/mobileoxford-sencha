@@ -27,7 +27,7 @@ Ext.define('MobileOxford.view.webcam', {
 			{
 				xtype: 'image',
 				id: 'webcamImage',
-				height: 300,
+				//height: '100%',
 			},
 			{
 				xtype: 'label',

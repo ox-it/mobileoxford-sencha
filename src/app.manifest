@@ -1,9 +1,16 @@
 CACHE MANIFEST
 
-# version 0.14
+# version 0.20
 
 index.html
 app.js
+app/controller/home.js
+app/model/webcam.js
+app/store/webcams.js
+app/view/home.js
+app/view/Viewport.js
+app/view/webcam.js
+app/view/webcams.js
 
 lib/sencha2_preview/sencha-touch-all-debug-w-comments.js
 lib/sencha2_preview/resources/css/sencha-touch.css

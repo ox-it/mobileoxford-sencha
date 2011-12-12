@@ -13,7 +13,6 @@ Ext.define('MobileOxford.controller.home', {
 				viewport = Ext.ComponentQuery.query('my-viewport');
 				target = Ext.ComponentQuery.query(btn.go);
 				viewport[0].setActiveItem(target[0]);
-				console.log('Going to ' + btn.go);
 			}
 		},
 		'#placesButton': { 

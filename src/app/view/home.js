@@ -24,7 +24,11 @@ Ext.define('MobileOxford.view.home', {
 		    text: 'Webcams',
 		    id: 'webcamsButton',
 		    go: 'webcams',
-                }
+                },
+		{
+			xtype: 'label',
+			html: 'Online:' + navigator.onLine
+		}
             ],
     },
     

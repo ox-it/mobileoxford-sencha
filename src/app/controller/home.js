@@ -39,8 +39,7 @@ Ext.define('MobileOxford.controller.home', {
 	 * @param webcam webcam object
 	 */
 	showWebcam: function(webcam) {
-		var myMask = new Ext.LoadMask(Ext.getBody(), {msg:"Wait!"});
-		myMask.show();
+		Ext.Viewport.setMask({message:"Wait!"});
 		var url = 'http://m.ox.ac.uk/webcams/' + webcam.get('slug') + '/';
 		Ext.util.JSONP.request({
 			url: url,
@@ -63,7 +62,7 @@ Ext.define('MobileOxford.controller.home', {
 				else {
 					alert('There was an error retrieving the webcam details.');
 				}
-				myMask.hide();
+				Ext.Viewport.setMask(false);
 			}
 		});	
 	}

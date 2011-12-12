@@ -3,26 +3,52 @@
  * @private
  */
 Ext.define('Ext.slider.Slider', {
-    extend  : 'Ext.Container',
-    alias   : 'widget.slider',
-    requires: ['Ext.slider.Thumb'],
+    extend: 'Ext.Container',
+    xtype: 'slider',
+
+    requires: [
+        'Ext.util.SizeMonitor',
+        'Ext.slider.Thumb',
+        'Ext.fx.easing.EaseOut'
+    ],
+
+    /**
+    * @event change
+    * Fires when the value changes
+    * @param {Ext.field.Slider} me
+    * @param {Array} value
+    */
 
     config: {
-        // @inherit
-        layout: null,
+        baseCls: 'x-slider',
 
         /**
-         * @cfg {Array} thumbs An array of {@link Ext.slider.Thumb}'s to be used in this slider.
+         * @cfg {Object} thumbConfig The config object to factory {@link Ext.slider.Thumb} instances
          * @accessor
          */
-        thumbs: [],
+        thumbConfig: {
+            draggable: {
+                translatable: {
+                    easingX: {
+                        duration: 300,
+                        type: 'ease-out'
+                    }
+                }
+            }
+        },
 
         /**
-         * @cfg {Number/String/Number[]/String[]} value The value(s) of the sliders {@link #thumbs}. If you pass
-         * a number or a string, it will assume you have just 1 thumb.
+         * @cfg {Number/Number[]} value The value(s) of this slider's thumbs. If you pass
+         * a number, it will assume you have just 1 thumb.
          * @accessor
          */
         value: 0,
+
+        /**
+         * @cfg {Number/Number[]} values Alias to {@link #value}
+         * @accessor
+         */
+        values: 0,
 
         /**
          * @cfg {Number} tabIndex
@@ -45,169 +71,358 @@ Ext.define('Ext.slider.Slider', {
 
         /**
          * @cfg {Number} increment The increment by which to snap each thumb when its value changes. Defaults to 1. Any thumb movement
-         * will be snapped to the nearest value that is a multiple of the increment (e.g. if increment is 10 and the user tries to move
-         * the thumb to 67, it will be snapped to 70 instead)
+         * will be snapped to the nearest value that is a multiple of the increment (e.g. if increment is 10 and the user
+         * tries to move the thumb to 67, it will be snapped to 70 instead)
          * @accessor
          */
-        increment: 1
+        increment: 1,
+
+        /**
+         * @cfg {Boolean} allowThumbsOverlapping Whether or not to allow multiple thumbs to overlap each other.
+         * Setting this to true guarantees the ability to select every possible value in between {@link #minValue}
+         * and {@link #maxValue} that satisfies {@link #increment}
+         * @accessor
+         */
+        allowThumbsOverlapping: false,
+
+        /**
+         * @cfg {Boolean/Object} animation
+         * @accessor
+         */
+        animation: true
     },
 
-    // @private
-    constructor: function(config) {
-        config = config || {};
+    elementWidth: 0,
 
-        if (config.hasOwnProperty('values')) {
-            config.value = config.values;
-        }
+    offsetValueRatio: 0,
 
-        this.callParent([config]);
-    },
+    activeThumb: null,
 
     // @private
     initialize: function() {
-        var me = this;
+        var element = this.element;
 
-        me.callParent(arguments);
+        this.callParent();
 
-        me.on({
+        element.on({
             scope: this,
-            delegate: 'thumb',
+            tap: 'onTap'
+        });
 
-            change: 'onChange'
+        this.on({
+            scope: this,
+            delegate: '> thumb',
+            dragstart: 'onThumbDragStart',
+            drag: 'onThumbDrag',
+            dragend: 'onThumbDragEnd'
+        });
+
+        this.on('painted', 'onPainted');
+
+        this.sizeMonitor = new Ext.util.SizeMonitor({
+            element: element,
+            callback: this.onSizeChange,
+            scope: this
         });
     },
 
-    // @private
-    refreshThumbs: function() {
-        var me = this;
+    onPainted: function() {
+        this.sizeMonitor.refresh();
+        this.refreshElementWidth();
+        this.refreshValue();
+    },
 
-        //loop through each of the thumbs and refresh their values
-        var thumbs = this.getThumbs(),
-            ln = thumbs.length,
-            i;
+    onSizeChange: function() {
+        this.refreshElementWidth();
+        this.refreshValue();
+    },
 
-        for (i = ln - 1; i >= 0; i--) {
-            thumbs[i].refreshValue();
+    /**
+     * @private
+     */
+    factoryThumb: function() {
+        return Ext.factory(this.getThumbConfig(), Ext.slider.Thumb);
+    },
+
+    /**
+     * @private
+     */
+    getThumbs: function() {
+        return this.innerItems;
+    },
+
+    /**
+     * @private
+     */
+    getThumb: function(index) {
+        if (typeof index != 'number') {
+            index = 0;
+        }
+
+        return this.innerItems[index];
+    },
+
+    refreshOffsetValueRatio: function() {
+        var valueRange = this.getMaxValue() - this.getMinValue(),
+            trackWidth = this.elementWidth - this.thumbWidth;
+
+        this.offsetValueRatio = trackWidth / valueRange;
+    },
+
+    refreshElementWidth: function() {
+        this.elementWidth = this.element.dom.offsetWidth;
+        this.thumbWidth = this.getThumb(0).getElementWidth();
+    },
+
+    setActiveThumb: function(thumb) {
+        var oldActiveThumb = this.activeThumb;
+
+        if (oldActiveThumb && oldActiveThumb !== thumb) {
+            oldActiveThumb.setZIndex(null);
+        }
+
+        this.activeThumb = thumb;
+        thumb.setZIndex(2);
+
+        return this;
+    },
+
+    onThumbDragStart: function(thumb, e) {
+        if (e.absDeltaX <= e.absDeltaY) {
+            return false;
+        }
+        else {
+            e.stopPropagation();
+        }
+
+        if (this.getAllowThumbsOverlapping()) {
+            this.setActiveThumb(thumb);
+        }
+    },
+
+    onThumbDrag: function(thumb, e, offset) {
+        var index = this.getThumbIndex(thumb),
+            offsetX = offset.x,
+            offsetValueRatio = this.offsetValueRatio,
+            constrainedValue = this.constrainValue(offsetX / offsetValueRatio);
+
+        e.stopPropagation();
+
+        this.setIndexValue(index, constrainedValue);
+        this.fireChangeEvent();
+
+        return false;
+    },
+
+    setIndexValue: function(index, value, animation) {
+        var thumb = this.getThumb(index),
+            values = this.getValue(),
+            offsetValueRatio = this.offsetValueRatio,
+            draggable = thumb.getDraggable();
+
+        draggable.setOffset({
+            x: value * offsetValueRatio
+        }, animation);
+
+        values[index] = this.constrainValue(draggable.getOffset().x / offsetValueRatio);
+    },
+
+    onThumbDragEnd: function(thumb) {
+        this.refreshThumbConstraints(thumb);
+    },
+
+    getThumbIndex: function(thumb) {
+        return this.getThumbs().indexOf(thumb);
+    },
+
+    refreshThumbConstraints: function(thumb) {
+        var allowThumbsOverlapping = this.getAllowThumbsOverlapping(),
+            offsetX = thumb.getDraggable().getOffset().x,
+            thumbs = this.getThumbs(),
+            index = this.getThumbIndex(thumb),
+            previousThumb = thumbs[index - 1],
+            nextThumb = thumbs[index + 1],
+            thumbWidth = this.thumbWidth;
+
+        if (previousThumb) {
+            previousThumb.getDraggable().addExtraConstraint({
+                max: {
+                    x: offsetX - ((allowThumbsOverlapping) ? 0 : thumbWidth)
+                }
+            });
+        }
+
+        if (nextThumb) {
+            nextThumb.getDraggable().addExtraConstraint({
+                min: {
+                    x: offsetX + ((allowThumbsOverlapping) ? 0 : thumbWidth)
+                }
+            });
         }
     },
 
     // @private
-    applyThumbs: function(thumbs) {
-        var i, ln, config, currentThumb, instance,
-            currentThumbs = this.getThumbs() || [],
-            instances = [];
+    onTap: function(e) {
+        var targetElement = Ext.get(e.target);
 
-        if (thumbs && thumbs.length > 0) {
-            //convert it into an array if it is not already
-            if (!Ext.isArray(thumbs)) {
-                thumbs = [thumbs];
-            }
-
-            ln = thumbs.length;
-
-            for (i = 0; i < ln; i++) {
-                config = thumbs[i];
-                config.slider = this;
-                currentThumb = currentThumbs[i];
-
-                instance = Ext.factory(config, 'Ext.slider.Thumb', currentThumb);
-                instances.push(instance);
-            }
-
-            return instances;
+        if (!targetElement || targetElement.hasCls('x-thumb')) {
+            return;
         }
 
-        return thumbs;
+        var touchPointX = e.touch.point.x,
+            element = this.element,
+            elementX = element.getX(),
+            offset = touchPointX - elementX - (this.thumbWidth / 2),
+            value = this.constrainValue(offset / this.offsetValueRatio),
+            values = this.getValue(),
+            minDistance = Infinity,
+            ln = values.length,
+            i, absDistance, testValue, closestIndex;
+
+        if (ln === 1) {
+            closestIndex = 0;
+        }
+        else {
+            for (i = 0; i < ln; i++) {
+                testValue = values[i];
+                absDistance = Math.abs(testValue - value);
+
+                if (absDistance < minDistance) {
+                    minDistance = absDistance;
+                    closestIndex = i;
+                }
+            }
+        }
+
+        this.setIndexValue(closestIndex, value, this.getAnimation());
+        this.refreshThumbConstraints(this.getThumb(closestIndex));
+        this.fireChangeEvent();
     },
 
     // @private
     updateThumbs: function(newThumbs) {
-        if (newThumbs) {
-            this.add(newThumbs);
-        }
+        this.add(newThumbs);
     },
 
-    // @private
     applyValue: function(value) {
-        //sync the values from the thumbs
-        this.getValue();
+        var values = Ext.Array.from(value),
+            filteredValues = [],
+            previousFilteredValue = this.getMinValue(),
+            filteredValue, i, ln;
 
-        //convert it into an array if it is not already
-        if (!Ext.isArray(value)) {
-            value = [value];
+        for (i = 0,ln = values.length; i < ln; i++) {
+            filteredValue = this.constrainValue(values[i]);
+
+            if (filteredValue < previousFilteredValue) {
+                //<debug warn>
+                Ext.Logger.warn("Invalid values of '"+Ext.encode(values)+"', values at smaller indexes must be smaller than or equal to values at greater indexes");
+                //</debug>
+                filteredValue = previousFilteredValue;
+            }
+
+            filteredValues.push(filteredValue);
+
+            previousFilteredValue = filteredValue;
         }
 
-        return value;
+        return filteredValues;
     },
 
     /**
-     * Updates the slides {@link #thumbs} with their new value(s)
+     * Updates the sliders thumbs with their new value(s)
      */
-    updateValue: function(newValue) {
+    updateValue: function(value) {
         var thumbs = this.getThumbs(),
-            newThumbs = [],
-            ln = newValue.length,
-            thumb, i;
+            ln = value.length,
+            i;
 
-        //if there are no thumbs defined, create them
-        if (thumbs.length === 0) {
-            for (i = 0; i < ln; i++) {
-                newThumbs.push({
-                    value: newValue[i]
-                });
-            }
+        this.setThumbsCount(ln);
 
-            this.setThumbs(newThumbs);
-
-            return;
+        for (i = 0; i < ln; i++) {
+            thumbs[i].getDraggable().setExtraConstraint(null)
+                                    .setOffset({ x: value[i] * this.offsetValueRatio });
         }
 
-        //update the thumb values
-        ln = newValue.length;
-        for (i = ln - 1; i >= 0; i--) {
-            thumb = thumbs[i];
-            if (thumb) {
-                thumbs[i].setValue(newValue[i]);
-            }
-            //<debug>
-            else {
-                throw new Error("Ext.slider.Slider: [setValue] calling setValue() with more values than there are thumbs (" + thumbs.length + " thumb(s), " + ln +" value(s)).");
-            }
-            //</debug>
+        for (i = 0; i < ln; i++) {
+            this.refreshThumbConstraints(thumbs[i]);
         }
 
-        this._value = newValue;
+        this.fireChangeEvent();
     },
 
-    // @inherit
-    getValue: function() {
-        var thumbs = this.getThumbs(),
-            ln = thumbs.length,
-            value = [],
-            i;
-        
-        //update the thumb values
-        for (i = 0; i < ln; i++) {
-            value.push(thumbs[i].getValue());
+    /**
+     * @private
+     */
+    refreshValue: function() {
+        this.refreshOffsetValueRatio();
+
+        this.setValue(this.getValue());
+    },
+
+    /**
+     * @private
+     * Takes a desired value of a thumb and returns the nearest snap value. e.g if minValue = 0, maxValue = 100, increment = 10 and we
+     * pass a value of 67 here, the returned value will be 70. The returned number is constrained within {@link minValue} and {@link maxValue},
+     * so in the above example 68 would be returned if {@link maxValue} was set to 68.
+     * @param {Number} value The value to snap
+     * @return {Number} The snapped value
+     */
+    constrainValue: function(value) {
+        var me = this,
+            minValue  = me.getMinValue(),
+            maxValue  = me.getMaxValue(),
+            increment = me.getIncrement(),
+            remainder;
+
+        value = parseFloat(value);
+
+        if (isNaN(value)) {
+            value = minValue;
         }
 
-        this._value = value;
+        remainder = value % increment;
+        value -= remainder;
+
+        if (Math.abs(remainder) >= (increment / 2)) {
+            value += (remainder > 0) ? increment : -increment;
+        }
+
+        value = Math.max(minValue, value);
+        value = Math.min(maxValue, value);
 
         return value;
+    },
+
+    setThumbsCount: function(count) {
+        var thumbs = this.getThumbs(),
+            thumbsCount = thumbs.length,
+            i, ln, thumb;
+
+        if (thumbsCount > count) {
+            for (i = 0,ln = thumbsCount - count; i < ln; i++) {
+                thumb = thumbs[thumbs.length - 1];
+                thumb.destroy();
+            }
+        }
+        else if (thumbsCount < count) {
+            for (i = 0,ln = count - thumbsCount; i < ln; i++) {
+                this.add(this.factoryThumb());
+            }
+        }
+
+        return this;
+    },
+
+    fireChangeEvent: function() {
+        this.fireEvent('change', this, this.getValue());
     },
 
     /**
      * Convience method. Calls {@link #setValue}
      */
     setValues: function(value) {
-        this.updateValue(this.applyValue(value));
-        this._value = value;
+        this.setValue(value);
     },
-
-    // setValue: function(value) {
-    //     this.updateValue(this.applyValue(value));
-    //     this._value = this._values = value;
-    // },
 
     /**
      * Convience method. Calls {@link #getValue}
@@ -222,212 +437,34 @@ Ext.define('Ext.slider.Slider', {
             increment = 1;
         }
 
-        increment = Math.abs(increment);
-
-        return increment;
+        return Math.abs(increment);
     },
 
     // @private
-    updateMinValue: function(newMinValue) {
-        this.refreshThumbs();
+    updateAllowThumbsOverlapping: function(newValue, oldValue) {
+        if (typeof oldValue != 'undefined') {
+            this.refreshValue();
+        }
     },
 
     // @private
-    updateMaxValue: function(newMaxValue) {
-        this.refreshThumbs();
+    updateMinValue: function(newValue, oldValue) {
+        if (typeof oldValue != 'undefined') {
+            this.refreshValue();
+        }
     },
 
     // @private
-    updateIncrement: function(newIncrement) {
-        this.refreshThumbs();
-    },
-
-    /**
-     * Returns an instance of a thumb for a specifed index
-     * @param {Number} index The index of the thumb (defaults to 0)
-     * @return {Ext.slider.Thumb} The thumb instance
-     */
-    getThumb: function(index) {
-        var thumbs = this.getThumbs();
-        return thumbs[index || 0];
-    },
-
-    /**
-     * Finds the closest thumb for a specified value
-     * @return {Ext.slider.Thumb} The thumb
-     */
-    getClosestThumb: function(value) {
-        var thumbs = this.getThumbs(),
-            ln     = thumbs.length,
-            thumb  = thumbs[0],
-            difference = Infinity,
-            thumbDifference, thumbValue, i;
-
-        if (ln == 1) {
-           return thumb;
-        }
-
-        // loop through each of thumbs and find the one with the least amount of difference
-        for (i = 0; i < ln; i++) {
-            thumbValue = thumbs[i].getValue();
-            thumbDifference = Math.abs(thumbValue - value);
-            if (thumbDifference < difference) {
-                difference = thumbDifference;
-                thumb = thumbs[i];
-            }
-        }
-
-        return thumb;
-    },
-
-    /**
-     * Returns the index of a specified thumb
-     * @param {Ext.slider.Thumb} thumb
-     * @return {Number} Index of the thumb
-     */
-    indexOf: function(thumb) {
-        return this.getThumbs().indexOf(thumb);
-    },
-
-    /**
-     * Returns the correct offset for a specified value, based on the {@link #minWidth}, {@link #maxWidth} and
-     * {@link #increment} configurations
-     * @private
-     */
-    getOffsetForValue: function(value) {
-        var me = this,
-            minValue   = me.getMinValue(),
-            maxValue   = me.getMaxValue(),
-            range      = maxValue - minValue,
-            trackWidth = me.innerElement.getWidth(),
-            thumbWidth = 0,
-            thumb, ratio;
-
-        thumb = me.getThumb();
-        if (thumb) {
-            thumbWidth = thumb.renderElement.getWidth();
-        }
-        trackWidth = trackWidth - thumbWidth;
-
-        value = this.constrain(value);
-        ratio = trackWidth / range;
-
-        return Math.round((ratio * (value - minValue)));
-    },
-
-    /**
-     * Returns the correct value for a specified offset, based on the {@link #minWidth}, {@link #maxWidth} and
-     * {@link #increment} configurations. Rerverse of {@link #getOffsetForValue}
-     * @private
-     */
-    getValueForOffset: function(offset, isTap) {
-        var me = this,
-            minValue   = me.getMinValue(),
-            maxValue   = me.getMaxValue(),
-            range      = maxValue - minValue,
-            trackWidth = me.innerElement.getWidth(),
-            thumbWidth = 0,
-            thumb, ratio;
-
-        thumb = me.getThumb();
-        if (thumb) {
-            thumbWidth = thumb.renderElement.getWidth();
-        }
-        trackWidth = trackWidth - ((isTap) ? 0 : thumbWidth);
-
-        ratio = range / trackWidth;
-
-        return Math.round(minValue + (ratio * (offset)));
-    },
-
-    /**
-     * @private
-     * Takes a desired value of a thumb and returns the nearest snap value. e.g if minValue = 0, maxValue = 100, increment = 10 and we
-     * pass a value of 67 here, the returned value will be 70. The returned number is constrained within {@link minValue} and {@link maxValue},
-     * so in the above example 68 would be returned if {@link maxValue} was set to 68.
-     * @param {Number} value The value to snap
-     * @return {Number} The snapped value
-     */
-    constrain: function(value) {
-        var me = this,
-            minValue  = me.getMinValue(),
-            maxValue  = me.getMaxValue(),
-            increment = me.getIncrement(),
-            remainder = value % increment;
-
-        value -= remainder;
-
-        if (Math.abs(remainder) >= (increment / 2)) {
-            value += (remainder > 0) ? increment : -increment;
-        }
-
-        value = Math.max(minValue, value);
-        value = Math.min(maxValue, value);
-
-        return value;
-    },
-
-    /**
-     * @private
-     * Loops through each of the sliders {@link #thumbs} and calls disable/enable on each of them depending
-     * on the param specified.
-     * @param {Boolean} disable True to disable, false to enable
-     */
-    setThumbsDisabled: function(disable) {
-        var me = this,
-            thumbs = me.getThumbs(),
-            ln     = thumbs.length,
-            i;
-
-        for (i = 0; i < ln; i++) {
-            thumbs[i][disable ? 'disable' : 'enable']();
+    updateMaxValue: function(newValue, oldValue) {
+        if (typeof oldValue != 'undefined') {
+            this.refreshValue();
         }
     },
 
-    /**
-     * Called when the value of any child {@link #thumbs} changes.
-     * @private
-     */
-    onChange: function(thumb, value) {
-        var thumbs = this.getThumbs(),
-            ln = thumbs.length,
-            thumbWidth = thumb.renderElement.getWidth(),
-            previousThumb, offset, previousOffset, i, thumbDraggable, previousThumbDraggable;
-
-        for (i = 0; i < ln; i++) {
-            thumb         = thumbs[i];
-            previousThumb = thumbs[i - 1];
-            thumbDraggable         = (thumb) ? thumb.getDraggable() : null;
-            previousThumbDraggable = (previousThumb) ? previousThumb.getDraggable() : null;
-
-            if (previousThumb && thumbDraggable && previousThumbDraggable) {
-                offset = thumbDraggable.getOffset().x;
-                previousOffset = previousThumb.getDraggable().getOffset().x;
-
-                thumbDraggable.setConstraint({
-                    min: {
-                        x: (previousOffset === 0) ? thumbWidth : previousOffset + thumbWidth
-                    }
-                });
-
-                previousThumbDraggable.setConstraint({
-                    max: {
-                        x: offset - thumbWidth
-                    }
-                });
-            }
+    // @private
+    updateIncrement: function(newValue, oldValue) {
+        if (typeof oldValue != 'undefined') {
+            this.refreshValue();
         }
-
-        this.fireEvent('change', this, thumb, value);
-    },
-
-    doSetDisabled: function(disabled) {
-        this.callParent(arguments);
-        this.setThumbsDisabled(disabled);
-    },
-
-    // @inherit
-    reset: function() {
-        this.setValues(this.originalValue);
     }
 });

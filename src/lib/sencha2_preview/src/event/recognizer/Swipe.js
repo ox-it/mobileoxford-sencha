@@ -1,7 +1,46 @@
+/**
+ * A base class used for both {@link Ext.event.recognizer.VerticalSwipe} and {@link Ext.event.recognizer.HorizontalSwipe}
+ * event recognisers.
+ *
+ * @private
+ */
 Ext.define('Ext.event.recognizer.Swipe', {
     extend: 'Ext.event.recognizer.SingleTouch',
 
     handledEvents: ['swipe'],
+
+    /**
+     * @member Ext.dom.Element
+     * @event swipe
+     * Fires when there is a swipe
+     * When listening to this, ensure you know about the {@link Ext.event.Event#direction} property in the `event` object.
+     * @param {Ext.event.Event} event The {@link Ext.event.Event} event encapsulating the DOM event.
+     * @param {HTMLElement} node The target of the event.
+     * @param {Object} options The options object passed to Ext.util.Observable.addListener.
+     */
+    
+    /**
+     * @property {Number} direction
+     * The direction of the swipe. Available options are:
+     * 
+     * * up
+     * * down
+     * * left
+     * * right
+     * 
+     * Note: In order to recognise swiping up and down, you must enable the vertical swipe recogniser.
+     * 
+     * **This is only available when the event type is `swipe`**
+     * @member Ext.event.Event
+     */
+    
+    /**
+     * @property {Number} duration
+     * The duration of the swipe.
+     *
+     * **This is only available when the event type is `swipe`**
+     * @member Ext.event.Event
+     */
 
     inheritableStatics: {
         MAX_OFFSET_EXCEEDED: 0x10,

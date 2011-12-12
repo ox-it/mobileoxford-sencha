@@ -39,7 +39,7 @@ var store = new Ext.data.JsonStore({
 }
 </code></pre>
  *
- * <p>An object literal of this form could also be used as the {@link #data} config option.</p>
+ * <p>An object literal of this form could also be used as the {@link #cfg-data} config option.</p>
  *
  * @xtype jsonstore
  */

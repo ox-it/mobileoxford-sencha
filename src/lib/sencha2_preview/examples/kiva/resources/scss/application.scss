@@ -103,6 +103,31 @@ $include-default-icons: false;
   .x-item-selected {
     background: #fff;
   }
+
+  .completion {
+    @include display-box;
+    @include box-align(center);
+
+    .x-innerhtml {
+      @include display-box;
+      @include box-align(stretch);
+
+      height: 1em;
+      width: 100%;
+      border: 1px solid #bbb;
+      -webkit-box-shadow: inset 0 0 1px #fff;
+      padding: 1px;
+      @include border-radius(1em);
+      @include background-gradient(lighten(#ddd, 2), recessed);
+
+      .bar {
+        min-width: 1em;
+        border: 1px solid darken(#4B9123, 0);
+        @include border-radius(1em);
+        @include background-gradient(#74B446, matte);
+      }
+    }
+  }
 }
 
 // detail view

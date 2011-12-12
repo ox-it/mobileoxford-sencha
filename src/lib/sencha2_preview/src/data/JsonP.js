@@ -6,18 +6,18 @@
  * http://en.wikipedia.org/wiki/JSONP
  */
 Ext.define('Ext.data.JsonP', {
-    
+
     /* Begin Definitions */
-    
+
     singleton: true,
-    
+
     statics: {
         requestCount: 0,
         requests: {}
     },
-    
+
     /* End Definitions */
-    
+
     /**
      * @property timeout
      * @type Number
@@ -25,21 +25,21 @@ Ext.define('Ext.data.JsonP', {
      * failure callback will be fired. The timeout is in ms. Defaults to <tt>30000</tt>.
      */
     timeout: 30000,
-    
+
     /**
      * @property disableCaching
      * @type Boolean
      * True to add a unique cache-buster param to requests. Defaults to <tt>true</tt>.
      */
     disableCaching: true,
-   
+
     /**
-     * @property disableCachingParam 
+     * @property disableCachingParam
      * @type String
      * Change the parameter which is sent went disabling caching through a cache buster. Defaults to <tt>'_dc'</tt>.
      */
     disableCachingParam: '_dc',
-   
+
     /**
      * @property callbackKey
      * @type String
@@ -48,7 +48,7 @@ Ext.define('Ext.data.JsonP', {
      * url?callback=Ext.data.JsonP.callback1
      */
     callbackKey: 'callback',
-   
+
     /**
      * Makes a JSONP request.
      * @param {Object} options An object which may contain the following properties. Note that options will
@@ -68,7 +68,7 @@ Ext.define('Ext.data.JsonP', {
      * <li><b>disableCachingParam</b> : String (Optional) <div class="sub-desc">See {@link #disableCachingParam}</div></li>
      * <li><b>success</b> : Function (Optional) <div class="sub-desc">A function to execute if the request succeeds.</div></li>
      * <li><b>failure</b> : Function (Optional) <div class="sub-desc">A function to execute if the request fails.</div></li>
-     * <li><b>callback</b> : Function (Optional) <div class="sub-desc">A function to execute when the request 
+     * <li><b>callback</b> : Function (Optional) <div class="sub-desc">A function to execute when the request
      * completes, whether it is a success or failure.</div></li>
      * <li><b>scope</b> : Object (Optional)<div class="sub-desc">The scope in
      * which to execute the callbacks: The "this" object for the callback function. Defaults to the browser window.</div></li>
@@ -77,32 +77,32 @@ Ext.define('Ext.data.JsonP', {
      */
     request: function(options){
         options = Ext.apply({}, options);
-       
+
         //<debug>
         if (!options.url) {
             Ext.Error.raise('A url must be specified for a JSONP request.');
         }
         //</debug>
-        
-        var me = this, 
-            disableCaching = Ext.isDefined(options.disableCaching) ? options.disableCaching : me.disableCaching, 
-            cacheParam = options.disableCachingParam || me.disableCachingParam, 
-            id = ++me.statics().requestCount, 
-            callbackName = options.callbackName || 'callback' + id, 
-            callbackKey = options.callbackKey || me.callbackKey, 
-            timeout = Ext.isDefined(options.timeout) ? options.timeout : me.timeout, 
-            params = Ext.apply({}, options.params), 
+
+        var me = this,
+            disableCaching = Ext.isDefined(options.disableCaching) ? options.disableCaching : me.disableCaching,
+            cacheParam = options.disableCachingParam || me.disableCachingParam,
+            id = ++me.statics().requestCount,
+            callbackName = options.callbackName || 'callback' + id,
+            callbackKey = options.callbackKey || me.callbackKey,
+            timeout = Ext.isDefined(options.timeout) ? options.timeout : me.timeout,
+            params = Ext.apply({}, options.params),
             url = options.url,
-            request, 
+            request,
             script;
-            
+
         params[callbackKey] = 'Ext.data.JsonP.' + callbackName;
         if (disableCaching) {
             params[cacheParam] = new Date().getTime();
         }
-        
+
         script = me.createScript(url, params);
-        
+
         me.statics().requests[id] = request = {
             url: url,
             params: params,
@@ -114,17 +114,17 @@ Ext.define('Ext.data.JsonP', {
             callback: options.callback,
             callbackName: callbackName
         };
-        
+
         if (timeout > 0) {
             request.timeout = setTimeout(Ext.bind(me.handleTimeout, me, [request]), timeout);
         }
-        
+
         me.setupErrorHandling(request);
         me[callbackName] = Ext.bind(me.handleResponse, me, [request], true);
         Ext.getHead().appendChild(script);
         return request;
     },
-    
+
     /**
      * Abort a request. If the request parameter is not specified all open requests will
      * be aborted.
@@ -133,12 +133,12 @@ Ext.define('Ext.data.JsonP', {
     abort: function(request){
         var requests = this.statics().requests,
             key;
-            
+
         if (request) {
             if (!request.id) {
                 request = requests[request];
             }
-            this.abort(request);
+            this.handleAbort(request);
         } else {
             for (key in requests) {
                 if (requests.hasOwnProperty(key)) {
@@ -147,7 +147,7 @@ Ext.define('Ext.data.JsonP', {
             }
         }
     },
-    
+
     /**
      * Sets up error handling for the script
      * @private
@@ -156,7 +156,7 @@ Ext.define('Ext.data.JsonP', {
     setupErrorHandling: function(request){
         request.script.onerror = Ext.bind(this.handleError, this, [request]);
     },
-    
+
     /**
      * Handles any aborts when loading the script
      * @private
@@ -166,7 +166,7 @@ Ext.define('Ext.data.JsonP', {
         request.errorType = 'abort';
         this.handleResponse(null, request);
     },
-    
+
     /**
      * Handles any script errors when loading the script
      * @private
@@ -176,7 +176,7 @@ Ext.define('Ext.data.JsonP', {
         request.errorType = 'error';
         this.handleResponse(null, request);
     },
- 
+
     /**
      * Cleans up anu script handling errors
      * @private
@@ -185,7 +185,7 @@ Ext.define('Ext.data.JsonP', {
     cleanupErrorHandling: function(request){
         request.script.onerror = null;
     },
- 
+
     /**
      * Handle any script timeouts
      * @private
@@ -195,7 +195,7 @@ Ext.define('Ext.data.JsonP', {
         request.errorType = 'timeout';
         this.handleResponse(null, request);
     },
- 
+
     /**
      * Handle a successful response
      * @private
@@ -203,9 +203,9 @@ Ext.define('Ext.data.JsonP', {
      * @param {Object} request The request
      */
     handleResponse: function(result, request){
- 
+
         var success = true;
- 
+
         if (request.timeout) {
             clearTimeout(request.timeout);
         }
@@ -213,7 +213,7 @@ Ext.define('Ext.data.JsonP', {
         delete this.statics()[request.id];
         this.cleanupErrorHandling(request);
         Ext.fly(request.script).remove();
- 
+
         if (request.errorType) {
             success = false;
             Ext.callback(request.failure, request.scope, [request.errorType]);
@@ -222,7 +222,7 @@ Ext.define('Ext.data.JsonP', {
         }
         Ext.callback(request.callback, request.scope, [success, result, request.errorType]);
     },
-    
+
     /**
      * Create the script tag
      * @private

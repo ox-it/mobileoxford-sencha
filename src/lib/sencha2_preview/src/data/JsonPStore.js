@@ -31,7 +31,7 @@ stcCallback({
  * </code></pre>
  * <p>Where stcCallback is the callback name passed in the request to the remote domain. See {@link Ext.data.proxy.JsonP JsonPProxy}
  * for details of how this works.</p>
- * An object literal of this form could also be used as the {@link #data} config option.</p>
+ * An object literal of this form could also be used as the {@link #cfg-data} config option.</p>
  * <p><b>*Note:</b> Although not listed here, this class accepts all of the configuration options of
  * <b>{@link Ext.data.reader.Json JsonReader}</b> and <b>{@link Ext.data.proxy.JsonP JsonPProxy}</b>.</p>
  * @xtype jsonpstore

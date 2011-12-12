@@ -1,10 +1,10 @@
 /**
- * Represents a Sencha Touch application, which is typically a single page app using a 
+ * Represents a Sencha Touch application, which is typically a single page app using a
  * {@link Ext.viewport.Viewport Viewport}. A typical Ext.app.Application might look like this:
  *
  *     Ext.application({
  *         name: 'MyApp',
- *         
+ *
  *         launch: function() {
  *             Ext.create('Ext.Panel', {
  *                 fullscreen: true,
@@ -17,7 +17,7 @@
  * as its Models, Views and Controllers) will reside under this single namespace, which drastically lowers the chances
  * of colliding global variables.
  *
- * When the page is ready and all of your JavaScript has loaded, your Application's {@link #launch} function is called,
+ * When the page is ready and all of your JavaScript has loaded, your Application's {@link #property-launch} function is called,
  * at which time you can run the code that starts your app. Usually this consists of creating a Viewport, as we do in
  * the example above.
  *
@@ -40,9 +40,9 @@
  *
  * Note that we didn't actually list the Views directly in the Application itself. This is because Views are managed by
  * Controllers, so it makes sense to keep those dependencies there. The Application will load each of the specified
- * Controllers using the pathing conventions laid out in the upcoming application architecture guide - in this case 
+ * Controllers using the pathing conventions laid out in the upcoming application architecture guide - in this case
  * expecting the controllers to reside in app/controller/Posts.js and app/controller/Comments.js. In turn, each
- * Controller simply needs to list the Views it uses and they will be automatically loaded. Here's how our Posts 
+ * Controller simply needs to list the Views it uses and they will be automatically loaded. Here's how our Posts
  * controller like be defined:
  *
  *     Ext.define('MyApp.controller.Posts', {
@@ -52,16 +52,16 @@
  *         //the rest of the Controller here
  *     });
  *
- * Because we told our Application about our Models and Controllers, and our Controllers about their Views, Sencha 
+ * Because we told our Application about our Models and Controllers, and our Controllers about their Views, Sencha
  * Touch will automatically load all of our app files for us. This means we don't have to manually add script tags into
- * our html files whenever we add a new class, but more importantly it enables us to create a minimized build of our 
+ * our html files whenever we add a new class, but more importantly it enables us to create a minimized build of our
  * entire application using the Ext JS 4 SDK Tools.
- * 
+ *
  * ## Further Reading
- * 
+ *
  * Applications are usually populated with Models, Views and Controllers. We're working on a set of guides around MVC
  * but in the meantime you can find more background information at:
- * 
+ *
  * * {@link Ext.app.Controller}
  * * {@link Ext.data.Model}
  * * [Component (View) Guide](#!/guide/components)
@@ -71,7 +71,7 @@
 Ext.define('Ext.app.Application', {
     extend: 'Ext.app.Controller',
     alternateClassName: 'Ext.Application',
-    
+
     requires: [
         'Ext.ModelManager',
         'Ext.data.Model',
@@ -80,12 +80,18 @@ Ext.define('Ext.app.Application', {
     ],
 
     /**
+     * @event launch
+     * Fires when the Application is launched
+     * @param {Ext.app.Application} this
+     */
+
+    /**
      * @cfg {String} name The name of your application. This will also be the namespace for your views, controllers
      * models and stores. Don't use spaces or special characters in the name.
      */
 
     /**
-     * @cfg {Object} scope The scope to execute the {@link #launch} function in. Defaults to the Application
+     * @cfg {Object} scope The scope to execute the {@link #property-launch} function in. Defaults to the Application
      * instance.
      */
     scope: undefined,
@@ -125,7 +131,7 @@ Ext.define('Ext.app.Application', {
 
         var requires = config.requires || [],
             name = this.name;
-        
+
         Ext.Loader.setPath(name, this.appFolder);
 
         if (this.paths) {
@@ -183,7 +189,7 @@ Ext.define('Ext.app.Application', {
      * yet. The type of logic that you would usually want to put in this method is the creation of the viewport
      * (if autoCreateViewport has not been set to true), and any other logic you would like to do before
      * the controllers get initialized.
-     * @property launch
+     * @property init
      * @type Function
      * @return {Boolean} By default, the Application will dispatch to the configured startup controller and
      * action immediately after running the launch function. Return false to prevent this behavior.
@@ -264,7 +270,7 @@ Ext.define('Ext.app.Application', {
             this.controllers.add(controller);
                 if (autoInit !== false) {
                 controller.init();
-                    
+
                 if (this.launched) {
                     if (controller.onLaunch) {
                         controller.onLaunch(this);

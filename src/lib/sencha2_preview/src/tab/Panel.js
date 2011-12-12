@@ -1,21 +1,21 @@
 /**
- * Tab Panels are a great way to allow the user to switch between several pages that are all full screen. Each 
- * Component in the Tab Panel gets its own Tab, which shows the Component when tapped on. Tabs can be positioned at 
+ * Tab Panels are a great way to allow the user to switch between several pages that are all full screen. Each
+ * Component in the Tab Panel gets its own Tab, which shows the Component when tapped on. Tabs can be positioned at
  * the top or the bottom of the Tab Panel, and can optionally accept title and icon configurations.
- * 
+ *
  * Here's how we can set up a simple Tab Panel with tabs at the bottom. Use the controls at the top left of the example
- * to toggle between code mode and live preview mode (you can also edit the code and see your changes in the live 
+ * to toggle between code mode and live preview mode (you can also edit the code and see your changes in the live
  * preview):
- * 
+ *
  *     @example preview
  *     Ext.create('Ext.TabPanel', {
  *         fullscreen: true,
  *         tabBarPosition: 'bottom',
- *     
+ *
  *         defaults: {
  *             styleHtmlContent: true
  *         },
- *     
+ *
  *         items: [
  *             {
  *                 title: 'Home',
@@ -32,15 +32,15 @@
  * One tab was created for each of the {@link Ext.Panel panels} defined in the items array. Each tab automatically uses
  * the title and icon defined on the item configuration, and switches to that item when tapped on. We can also position
  * the tab bar at the top, which makes our Tab Panel look like this:
- * 
+ *
  *     @example preview
  *     Ext.create('Ext.TabPanel', {
  *         fullscreen: true,
- *     
+ *
  *         defaults: {
  *             styleHtmlContent: true
  *         },
- *     
+ *
  *         items: [
  *             {
  *                 title: 'Home',
@@ -52,7 +52,7 @@
  *             }
  *         ]
  *     });
- * 
+ *
  */
 Ext.define('Ext.tab.Panel', {
     extend: 'Ext.Container',
@@ -77,16 +77,14 @@ Ext.define('Ext.tab.Panel', {
          * An Ext.tab.Bar configuration.
          * @accessor
          */
-        tabBar: {
-            docked: 'top'
-        },
+        tabBar: true,
 
         /**
          * @cfg {String} tabBarPosition
          * The docked position for the {@link #tabBar} instance
          * @accessor
          */
-        tabBarPosition: null,
+        tabBarPosition: 'top',
 
         // @inherit
         layout: {
@@ -100,8 +98,10 @@ Ext.define('Ext.tab.Panel', {
         // @inherit
         cls: Ext.baseCSSPrefix + 'tabpanel'
     },
-    
+
     initialize: function() {
+        this.callParent();
+
         this.on({
             tabchange: 'doTabChange',
             delegate: '> tabbar',
@@ -128,18 +128,23 @@ Ext.define('Ext.tab.Panel', {
         this.getTabBar().setActiveTab(this.getInnerItems().indexOf(newCard));
     },
 
-    doSetActiveItem: function(activeItem) {
-        var items = this.getInnerItems(),
-            currentIndex = items.indexOf(this.getActiveItem()),
-            index = Ext.isNumber(activeItem) ? activeItem : items.indexOf(activeItem),
-            reverse = currentIndex > index;
+    /**
+     * @private
+     */
+    doSetActiveItem: function(newActiveItem, oldActiveItem) {
+        if (newActiveItem) {
+            var items = this.getInnerItems(),
+                oldIndex = items.indexOf(oldActiveItem),
+                newIndex = items.indexOf(newActiveItem),
+                reverse = oldIndex > newIndex;
 
-        this.getLayout().getAnimation().setReverse(reverse);
+            this.getLayout().getAnimation().setReverse(reverse);
 
-        this.callParent(arguments);
+            this.callParent(arguments);
 
-        if (index != -1) {
-            this.getTabBar().setActiveTab(index);
+            if (newIndex != -1) {
+                this.getTabBar().setActiveTab(newIndex);
+            }
         }
     },
 
@@ -156,6 +161,17 @@ Ext.define('Ext.tab.Panel', {
      * @private
      */
     applyTabBar: function(config) {
+        if (config === true) {
+            config = {};
+        }
+
+        if (config) {
+            Ext.applyIf(config, {
+                ui: this.getUi(),
+                docked: this.getTabBarPosition()
+            });
+        }
+
         return Ext.factory(config, Ext.tab.Bar, this.getTabBar());
     },
 
@@ -165,9 +181,8 @@ Ext.define('Ext.tab.Panel', {
      */
     updateTabBar: function(newTabBar) {
         if (newTabBar) {
-            newTabBar.setUi(this.getUi());
             this.add(newTabBar);
-            this._tabBarPosition = newTabBar.getDocked();
+            this.setTabBarPosition(newTabBar.getDocked());
         }
     },
 
@@ -176,11 +191,14 @@ Ext.define('Ext.tab.Panel', {
      * @private
      */
     updateTabBarPosition: function(position) {
-        this.getTabBar().setDocked(position);
+        var tabBar = this.getTabBar();
+        if (tabBar) {
+            tabBar.setDocked(position);
+        }
     },
 
     // @inherit
-    onAdd: function(card) {
+    onItemAdd: function(card) {
         var me = this;
 
         if (!card.isInnerItem()) {

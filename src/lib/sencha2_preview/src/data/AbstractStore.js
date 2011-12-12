@@ -12,7 +12,7 @@
  * given a {@link Ext.data.Model Model} that represents the type of data in the Store. It also expects to be given a
  * {@link Ext.data.proxy.Proxy Proxy} that handles the loading of data into the Store.
  *
- * AbstractStore provides a few helpful methods such as {@link #load} and {@link #sync}, which load and save data
+ * AbstractStore provides a few helpful methods such as {@link #method-load} and {@link #sync}, which load and save data
  * respectively, passing the requests through the configured {@link #proxy}. Both built-in Store subclasses add extra
  * behavior to each of these functions. Note also that each AbstractStore subclass has its own way of storing data -
  * in {@link Ext.data.Store} the data is saved as a flat {@link Ext.util.MixedCollection MixedCollection}, whereas in

@@ -1,16 +1,14 @@
-Ext.ns('Ext.plugin.GMap');
-
 Ext.define('Ext.plugin.GMap.Traffic', {
     extend: 'Ext.EventedBase',
     alias: 'plugin.gmaptraffic',
 
-    /**
-     * @property {Boolean} hidden
-     */
-    hidden : false,
+    config: {
+        /**
+         * @property {Boolean} hidden
+         */
+        hidden: null,
 
-    constructor : function(config) {
-        Ext.apply(this, config || {});
+        host: null
     },
 
     /**
@@ -18,13 +16,12 @@ Ext.define('Ext.plugin.GMap.Traffic', {
      * @param {Ext.Map} host
      */
     init : function(host) {
-        if (host && typeof host.renderMap == 'function') {
-            this.host = host;
-            host.traffic = this;
+        if (host && host.isMap === true) {
+            this.setHost(host);
 
             host.on({
-                maprender : this.onMapRender,
-                scope     : this
+                maprender: this.onMapRender,
+                scope: this
             });
         }
     },
@@ -32,32 +29,45 @@ Ext.define('Ext.plugin.GMap.Traffic', {
     // @private
     onMapRender : function(host, map) {
         var overlay = this.getOverlay();
-        if (overlay) {
-            this.hidden || overlay.setMap(map);
+
+        if (overlay && !this.getHidden()) {
+            overlay.setMap(map);
         }
     },
 
-    getOverlay : function(map) {
+    getOverlay: function() {
         if (!this.overlay && (window.google || {}).maps) {
             this.overlay = new google.maps.TrafficLayer();
         }
         return this.overlay;
     },
 
-    show : function() {
-        var overlay = this.getOverlay();
-        if (this.host && this.host.map && overlay) {
-            overlay.setMap(this.host.map);
+    applyHidden: function(config) {
+        return Boolean(config);
+    },
+
+    updateHidden: function(hidden) {
+        var overlay = this.getOverlay(),
+            host;
+        if (overlay) {
+            if (hidden) {
+                overlay.setMap(null);
+            }
+            else {
+                host = this.getHost();
+                if (host && host.isMap === true) {
+                    overlay.setMap(host.getMap());
+                }
+            }
         }
-        this.hidden = false;
+    },
+
+    show : function() {
+        this.setHidden(false);
 
     },
 
     hide : function() {
-        var overlay = this.getOverlay();
-        if (overlay) {
-            overlay.setMap(null);
-        }
-        this.hidden = true;
+        this.setHidden(true);
     }
 });

@@ -15,7 +15,12 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js">Ext.define('Ext.event.recognizer.DoubleTap', {
+  <pre class="prettyprint lang-js"><span id='Ext-event-recognizer-DoubleTap'>/**
+</span> * A simple event recogniser which knows when you double tap.
+ * 
+ * @private
+ */
+Ext.define('Ext.event.recognizer.DoubleTap', {
 
     extend: 'Ext.event.recognizer.SingleTouch',
 
@@ -24,6 +29,24 @@
     },
 
     handledEvents: ['singletap', 'doubletap'],
+
+<span id='Ext-dom-Element-event-singletap'>    /**
+</span>     * @member Ext.dom.Element
+     * @event singletap
+     * Fires when there is a single tap.
+     * @param {Ext.event.Event} event The {@link Ext.event.Event} event encapsulating the DOM event.
+     * @param {HTMLElement} node The target of the event.
+     * @param {Object} options The options object passed to Ext.util.Observable.addListener.
+     */
+    
+<span id='Ext-dom-Element-event-doubletap'>    /**
+</span>     * @member Ext.dom.Element
+     * @event doubletap
+     * Fires when there is a double tap.
+     * @param {Ext.event.Event} event The {@link Ext.event.Event} event encapsulating the DOM event.
+     * @param {HTMLElement} node The target of the event.
+     * @param {Object} options The options object passed to Ext.util.Observable.addListener.
+     */
 
     singleTapTimer: null,
 

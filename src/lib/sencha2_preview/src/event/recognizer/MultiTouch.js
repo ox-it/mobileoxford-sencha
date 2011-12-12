@@ -1,3 +1,6 @@
+/**
+ * @private
+ */
 Ext.define('Ext.event.recognizer.MultiTouch', {
     extend: 'Ext.event.recognizer.Touch',
 

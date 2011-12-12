@@ -207,7 +207,7 @@ Ext.define('Twitter.controller.Search', {
         var target = Ext.get(e.target),
             link = Ext.getDom('linker'),
             clickEvent = document.createEvent('Event');
-        
+
         //http://www.sencha.com/forum/showthread.php?130358-window.open()-from-toolbar-button-opens-window-from-list-item-a-new-tab&p=639938#post639938
         clickEvent.initEvent('click', true, false);
         
@@ -262,7 +262,7 @@ Ext.define('Twitter.controller.Search', {
     /**
      * Called on the keyup event of the search field. If the enter/return key was pressed, it will fire the search action.
      */
-    onSearch: function(e) {
+    onSearch: function(field, e) {
         var keyCode = e.event.keyCode,
             searchField = this.getSearchField();
         
@@ -286,6 +286,11 @@ Ext.define('Twitter.controller.Search', {
             profile       = this.getProfile(),
             query, store, index;
         
+        // ensure there is a search...
+        if (!search) {
+            return;
+        }
+
         //ensure the tweetlist is visisble
         tweetList.show();
 
@@ -314,6 +319,7 @@ Ext.define('Twitter.controller.Search', {
 
         //add the new search instance to the searchsStore
         searchesStore.add(search);
+        searchesStore.sync();
             
         // select the new record in the list
         searchList.select(search);

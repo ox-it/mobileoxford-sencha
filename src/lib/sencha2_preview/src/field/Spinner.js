@@ -11,7 +11,7 @@
  */
 Ext.define('Ext.field.Spinner', {
     extend: 'Ext.field.Number',
-    alias : 'widget.spinnerfield',
+    xtype: 'spinnerfield',
     alternateClassName: 'Ext.form.Spinner',
     requires: ['Ext.util.TapRepeater'],
 
@@ -51,10 +51,10 @@ Ext.define('Ext.field.Spinner', {
         maxValue: Number.MAX_VALUE,
 
         /**
-         * @cfg {Number} incrementValue Value that is added or subtracted from the current value when a spinner is used.
+         * @cfg {Number} increment Value that is added or subtracted from the current value when a spinner is used.
          * @accessor
          */
-        increment: 1,
+        increment: .1,
 
         /**
          * @cfg {Boolean} accelerateOnTapHold True if autorepeating should start slowly and accelerate.
@@ -94,7 +94,7 @@ Ext.define('Ext.field.Spinner', {
     },
 
     /**
-     * Updates the {@link #input} configuration
+     * Updates the {@link #component} configuration
      */
     updateComponent: function(newComponent) {
         this.callParent(arguments);
@@ -125,6 +125,10 @@ Ext.define('Ext.field.Spinner', {
         if (isNaN(value)) {
             value = this.getDefaultValue();
         }
+
+        //round the value to 1 decimal
+        value = Math.round(value * 10) / 10;
+
         return this.callParent([value]);
     },
 
@@ -175,7 +179,7 @@ Ext.define('Ext.field.Spinner', {
     // @private
     spin: function(down) {
         var me = this,
-            value = parseInt(me.getValue(), 10),
+            value = me.getValue(),
             increment = me.getIncrement(),
             direction = down ? 'down' : 'up';
 
@@ -189,13 +193,9 @@ Ext.define('Ext.field.Spinner', {
         me.setValue(value);
         value = me._value;
 
-        me.fireAction('spin', [me, value, direction], 'doSpin');
-        me.fireAction('spin' + direction, [me, value], 'doSpin' + Ext.String.capitalize(direction));
+        me.fireEvent('spin', me, value, direction);
+        me.fireEvent('spin' + direction, me, value);
     },
-
-    doSpin: Ext.emptyFn,
-    doSpinUp: Ext.emptyFn,
-    doSpinDown: Ext.emptyFn,
 
     reset: function() {
         this.setValue(this.getDefaultValue());

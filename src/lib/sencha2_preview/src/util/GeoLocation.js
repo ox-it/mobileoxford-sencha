@@ -34,8 +34,7 @@
  *     geo.updateLocation();
  */
 Ext.define('Ext.util.GeoLocation', {
-
-    mixins: ['Ext.mixin.Observable'],
+    extend: 'Ext.EventedBase',
 
     config: {
         /**
@@ -189,6 +188,10 @@ Ext.define('Ext.util.GeoLocation', {
         provider : undefined
     },
 
+    constructor: function(config) {
+        this.initConfig(config);
+    },
+
     updateMaximumAge: function() {
         if (this.watchOperation) {
             this.updateWatchOperation();
@@ -226,8 +229,8 @@ Ext.define('Ext.util.GeoLocation', {
             provider = me.getProvider();
 
         if (oldAutoUpdate && provider) {
-            provider.clearWatch(me.watchOperation);
-            me.watchOperation = null;
+            clearInterval(me.watchOperationId);
+            me.watchOperationId = null;
         }
 
         if (newAutoUpdate) {
@@ -250,15 +253,22 @@ Ext.define('Ext.util.GeoLocation', {
         var me = this,
             provider = me.getProvider();
 
-        if (me.watchOperation) {
-            provider.clearWatch(me.watchOperation);
+        // The native watchPosition method is currently broken in iOS5...
+
+        if (me.watchOperationId) {
+            clearInterval(me.watchOperationId);
         }
 
-        me.watchOperation = provider.watchPosition(
-            Ext.createDelegate(me.fireUpdate, me),
-            Ext.createDelegate(me.fireError, me),
-            me.parseOptions()
-        );
+        function pollPosition() {
+            provider.getCurrentPosition(
+                Ext.bind(me.fireUpdate, me),
+                Ext.bind(me.fireError, me),
+                me.parseOptions()
+            )
+        }
+
+        pollPosition();
+        me.watchOperationId = setInterval(pollPosition, 10000);
     },
 
     /**
@@ -297,9 +307,7 @@ Ext.define('Ext.util.GeoLocation', {
         };
 
         if (!provider) {
-//            setTimeout(function() {
-                failFunction(null);
-//            }, 0);
+            failFunction(null);
             return;
         }
 
@@ -320,9 +328,7 @@ Ext.define('Ext.util.GeoLocation', {
             );
         }
         catch(e) {
-//            setTimeout(function() {
-                failFunction(e.message);
-//            }, 0);
+            failFunction(e.message);
         }
     },
 
@@ -370,5 +376,9 @@ Ext.define('Ext.util.GeoLocation', {
             ret.timeout = timeout;
         }
         return ret;
+    },
+
+    destroy : function() {
+        this.updateAutoUpdate(null);
     }
 });

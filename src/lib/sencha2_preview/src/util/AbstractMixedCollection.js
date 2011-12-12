@@ -12,6 +12,7 @@ Ext.define('Ext.util.AbstractMixedCollection', {
      * @event clear
      * Fires when the collection is cleared.
      */
+
     /**
      * @event add
      * Fires when an item is added to the collection.
@@ -19,6 +20,7 @@ Ext.define('Ext.util.AbstractMixedCollection', {
      * @param {Object} o The item added.
      * @param {String} key The key associated with the added item.
      */
+
     /**
      * @event replace
      * Fires when an item is replaced in the collection.
@@ -26,6 +28,7 @@ Ext.define('Ext.util.AbstractMixedCollection', {
      * @param {Object} old The item being replaced.
      * @param {Object} new The new item.
      */
+
     /**
      * @event remove
      * Fires when an item is removed from the collection.
@@ -58,7 +61,7 @@ Ext.define('Ext.util.AbstractMixedCollection', {
     allowFunctions : false,
 
     /**
-     * Adds an item to the collection. Fires the {@link #add} event when complete.
+     * Adds an item to the collection. Fires the {@link #event-add} event when complete.
      * @param {String} key <p>The key to associate with the item, or the new item.</p>
      * <p>If a {@link #getKey} implementation was specified for this MixedCollection,
      * or if the key of the stored items is in a property called <tt><b>id</b></tt>,
@@ -124,7 +127,7 @@ mc.add(otherEl);
     },
 
     /**
-     * Replaces an item in the collection. Fires the {@link #replace} event when complete.
+     * Replaces an item in the collection. Fires the {@link #event-replace} event when complete.
      * @param {String} key <p>The key associated with the item to replace, or the replacement item.</p>
      * <p>If you supplied a {@link #getKey} implementation for this MixedCollection, or if the key
      * of your stored items is in a property called <tt><b>id</b></tt>, then the MixedCollection
@@ -248,7 +251,7 @@ mc.add(otherEl);
     },
 
     /**
-     * Inserts an item at the specified index in the collection. Fires the {@link #add} event when complete.
+     * Inserts an item at the specified index in the collection. Fires the {@link #event-add} event when complete.
      * @param {Number} index The index to insert the item at.
      * @param {String} key The key to associate with the new item, or the item itself.
      * @param {Object} o (optional) If the second parameter was a key, the new item.
@@ -304,7 +307,7 @@ mc.add(otherEl);
     },
 
     /**
-     * Remove an item from a specified index in the collection. Fires the {@link #remove} event when complete.
+     * Remove an item from a specified index in the collection. Fires the {@link #event-remove} event when complete.
      * @param {Number} index The index within the collection of the item to remove.
      * @return {Object} The item removed or false if no item was removed.
      */
@@ -415,7 +418,7 @@ mc.add(otherEl);
     },
 
     /**
-     * Removes all items from the collection.  Fires the {@link #clear} event when complete.
+     * Removes all items from the collection.  Fires the {@link #event-clear} event when complete.
      */
     clear: function(){
         var me = this;

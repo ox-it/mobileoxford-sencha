@@ -32,6 +32,7 @@
     /**
      * An array containing extra enumerables for old browsers
      * @type Array
+     * @hide
      */
     Ext.enumerables = enumerables;
 

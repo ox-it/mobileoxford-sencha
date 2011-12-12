@@ -115,5 +115,13 @@ Ext.define('Ext.Sheet', {
             this.setTop(initialConfig.top || 'auto');
             this.setBottom(initialConfig.bottom || 'auto');
         }
+    },
+
+    onHiddenChange: function(hidden) {
+        if (!hidden) {
+            Ext.Viewport.hideKeyboard();
+        }
+
+        this.callParent(arguments);
     }
 });

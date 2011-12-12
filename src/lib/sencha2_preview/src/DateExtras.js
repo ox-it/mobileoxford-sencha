@@ -1,9 +1,20 @@
 /**
  * @class Ext.Date
- * A set of useful static methods to deal with date
- * Note that if Ext.Date is required and loaded, it will copy all methods / properties to
- * this object for convenience
- *
+ * A set of useful static methods to deal with date.
+ * 
+ * **Please note:** Unless you require `Ext.DateExtras`, only the {@link #now} method will be available. You **MUST** 
+ * require `Ext.DateExtras` to use the other methods available below.**
+ * 
+ * Usage with {@link Ext#setup}:
+ * 
+ *     Ext.setup({
+ *         requires: 'Ext.DateExtras',
+ *         onReady: function() {
+ *             var date = new Date();
+ *             alert(Ext.Date.format(date, 'j/d/Y'));
+ *         }
+ *     });
+ * 
  * The date parsing and formatting syntax contains a subset of
  * <a href="http://www.php.net/date">PHP's date() function</a>, and the formats that are
  * supported will provide results equivalent to their PHP versions.

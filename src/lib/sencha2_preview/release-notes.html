@@ -13,6 +13,117 @@
         <div id="releases">
             <div class="release">
                 <h1>
+                    Release Notes for Sencha Touch 2.0.pr3
+                </h1>
+                <p class="notes">
+                    Release Notes: Release Notes: December 9, 2011<br>
+                    Version Number: 2.0.0.pr3
+                </p>
+                <ul>
+                    <li>Enhancements
+                        <ul>
+                            <li>Carousel refactored:
+                                <ul>
+                                    <li>Carousel example rewritten, this is now a carousel of carousels each separate carousel has a set of 10 themed images (Food, Animals, Cars, Architecture)</li>
+                                    <li>Carousel animations are back in place</li>
+                                    <li>Native-like behaviors for both dragging and flicking</li>
+                                    <li>Now removes unused items from the DOM automatically to support large carousels</li>
+                                </ul>
+                            </li>
+                            <li>NavigationView added (name subject to change): A stack based view which allows you to push views onto the 'stack' at anytime. The view will automatically handle the animation of the title and the back button (when you have stack with more than one item).</li>
+                            <li>[TOUCH-962] List.setGrouped() can now be set dynamically</li>
+                            <li>Added tap event to Img component</li>
+                            <li>Added decimal formatting to spinner</li>
+                            <li>Fullscreen deprecation warning removed</li>
+                            <li>Documentation for all events have been added</li>
+                            <li>[TOUCH-1055] Added base Mask and LoadMask components. Added mask config to container</li>
+                            <li>Added some convenience styling for item headers and footers.  Should allow for easy rounded corners</li>
+                            <li>Proper backwards compatibility added for 'dock' vs 'docked' in Containers</li>
+                            <li>Added flashIndicator methods to scrollview and scrollTo end methods to scroller</li>
+                            <li>NavigationBar renamed to TitleBar</li>
+                            <li>Updated Map plugins GmapTracker and GmapTraffic</li>
+                            <li>Swapped the order of "deactivate" and "activate" events</li>
+                            <li>Added Component Translatable behavior</li>
+                            <li>Added minPosition to scroller Abstract (counterpart to maxPosition)</li>
+                            <li>[TOUCH-131] Added $form-label-background-color for styling the form label background color</li>
+                            <li>[TOUCH-1129] Added Ext.Viewport.hideKeyboard method to force the keyboard to be removed from the screen in iOS</li>
+                        </ul>
+                    </li>
+                </ul>
+                <ul>
+                    <li>Bug Fixes
+                        <ul>
+                            <li>Fix issue where modal components were trying to remove a cls from a dom, after it was removed.</li>
+                            <li>[TOUCH-811] Fixed tapping on HashTags on the iPad1</li>
+                            <li>[TOUCH-812] Fixed tapping on links on the iPad1</li>
+                            <li>[TOUCH-888] Added bodyPadding, bodyMargin and bodyBorder methods into Ext.Panel</li>
+                            <li>[TOUCH-427] Fixed MessageBox not resizing based on message content</li>
+                            <li>[TOUCH-1033] readOnly fields will no longer show a clearIcon</li>
+                            <li>[TOUCH-818] Nested List example: In the detail view, the padding was moved so it will not affect the scrollbar</li>
+                            <li>[TOUCH-829] Twitter example no longer displays a blank field in search items for empty searches</li>
+                            <li>[TOUCH-1032] Fixed Tab Panel crashing when no items are present.  Also fix animation direction of tabs.</li>
+                            <li>[TOUCH-1043] Fixed issue with update which ensures listeners and eventBubble are processed first</li>
+                            <li>[TOUCH-1027] Fixed issues with emptyText on DataView/List</li>
+                            <li>[TOUCH-1023] Fixed Ext.field.Select to allow for remote stores</li>
+                            <li>[TOUCH-814] Ajax example now displays a loading mask</li>
+                            <li>[TOUCH-520] Removed Guide example</li>
+                            <li>[TOUCH-1030] Fixed issue with Map rendering before the dom is painted</li>
+                            <li>[TOUCH-753] Map added back to Kiva example</li>
+                            <li>[TOUCH-1041] Forced styleHtmlContent to a boolean</li>
+                            <li>[TOUCH-808] Added completion amount to Kiva example</li>
+                            <li>[TOUCH-1044] Fixed issues with floating items within a fit layout</li>
+                            <li>Fixed scrolling body on desktop</li>
+                            <li>[TOUCH-1053] Fix an issue when container with a tpl and scrollable</li>
+                            <li>Replaced alias with xtype in class definitions, reduced code using proxyConfig</li>
+                            <li>Added Translatable and its implementations, refactored Draggable to use Translatable</li>
+                            <li>Refactored Slider / Thumb / Toggle to work with new version of Draggable</li>
+                            <li>[TOUCH-989] Reset scroll position when refresh is called.  In addition, removed itemIndex property from the dom as it was not maintained when changes to the store changed the index.  Instead the getViewItems now returns a proper array and indexOf is used</li>
+                            <li>Fixed a bug with card show events being called twice</li>
+                            <li>[TOUCH-1054] Fixed issue with defaults: {hidden:true} in NavigationBar</li>
+                            <li>[TOUCH-1061] Call parent method of initialize in Button</li>
+                            <li>[TOUCH-1074] Fix issue with select/deselect when called with an index</li>
+                            <li>[TOUCH-1073] Fix recursive method call when abort is called with JSONP</li>
+                            <li>[TOUCH-1057] Set default labelAlign to left</li>
+                            <li>[TOUCH-1057/1052] Fixed label align issues, and rounded corner issues with fieldset</li>
+                            <li>[TOUCH-1046] Fixed various issues with Map.mapOptions.  Deprecated the update method as it conflicts with the base Component update.  This is now setMapCenter as that is what 'update' actually does.  Remove the now unused onUpdate method</li>
+                            <li>[TOUCH-1072] Fixed a small issue with floating items inside containers</li>
+                            <li>Added animation to Translatable, integrated into Slider</li>
+                            <li>[TOUCH-1090] Fixed issues with Nested Loading example in KitchenSink. Added emptyText config as well</li>
+                            <li>[TOUCH-501] Fixed CSS styling within google maps</li>
+                            <li>[TOUCH-954] Changed deprecated createDelegate to bind in GeoLocation</li>
+                            <li>[TOUCH-916] Deprecated useClearIcon in favor of clearIcon</li>
+                            <li>[TOUCH-1139] Put plugins support back in</li>
+                            <li>[TOUCH-739] Map example updated and working properly</li>
+                            <li>Fixed a bug with Picker where it removed all items, not just slots</li>
+                            <li>Fixed TabBar configuration issues with TabPanel</li>
+                            <li>Fixed a config issue with tabBarPosition</li>
+                            <li>Fixed Format.date</li>
+                            <li>Move plugins to proper directory and fix namespaces.  Remove plugins from ignore.</li>
+                            <li>Fixed an issue with AbstractScroller scrollToEnd methods</li>
+                            <li>[TOUCH-1173] Fixed some timeout issues when destroying a button</li>
+                            <li>[TOUCH-1183] load/filter/sort events will now refresh the selections on a list</li>
+                            <li>Fix issues relating to the browser not passing TouchEnd events under stress.  Touch can now recover from this gracefully</li>
+                            <li>Re-enable pull to refresh - not complete, styling needs to be updated</li>
+                            <li>[TOUCH-1187] Fixed problem with setting a DatePicker to null</li>
+                            <li>[TOUCH-1212] clearIcontap now fires the change event</li>
+                        </ul>
+                    </li>
+                </ul>
+                <ul>
+                    <li>Known Issues
+                        <ul>
+                            <li>Updated MVC with Routing/History/Deep Linking/Profiles will be in the next release</li>
+                            <li>The Data package currently cannot yet be configured by passing 'config' parameters. This will be implemented in the next release.</li>
+                            <li>Some animations are still not in place and will be added in a forthcoming release</li>
+                            <li>Android 3 and Blackberry optimizations are not yet in place</li>
+                            <li>We are standardizing all events to pass their scope as their first argument. This will affect 40 Events and will be put in place in the next release. When implemented we will provide full documentation for all the events affected by this change.</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+            <hr>
+            <div class="release">
+                <h1>
                     Release Notes for Sencha Touch 2.0.pr2
                 </h1>
                 <p class="notes">

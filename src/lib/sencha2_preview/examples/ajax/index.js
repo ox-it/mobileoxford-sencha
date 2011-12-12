@@ -24,19 +24,25 @@ Ext.setup({
         );
 
         var makeAjaxRequest = function() {
-            Ext.getBody().mask('Loading...', 'x-mask-loading', false);
+            Ext.getCmp('content').setMask({
+                message: 'Loading...'
+            });
+
             Ext.Ajax.request({
                 url: 'test.json',
                 success: function(response, opts) {
                     Ext.getCmp('content').update(response.responseText);
                     Ext.getCmp('status').setTitle('Static test.json file loaded');
-                    Ext.getBody().unmask();
+                    Ext.getCmp('content').unmask();
                 }
             });
         };
 
         var makeJSONPRequest = function() {
-            Ext.getBody().mask('Loading...', 'x-mask-loading', false);
+            Ext.getCmp('content').setMask({
+                message: 'Loading...'
+            });
+
             Ext.util.JSONP.request({
                 url: 'http://free.worldweatheronline.com/feed/weather.ashx',
                 callbackKey: 'callback',
@@ -57,7 +63,7 @@ Ext.setup({
                         alert('There was an error retrieving the weather.');
                     }
                     Ext.getCmp('status').setTitle('Palo Alto, CA Weather');
-                    Ext.getBody().unmask();
+                    Ext.getCmp('content').unmask();
                 }
             });
         };

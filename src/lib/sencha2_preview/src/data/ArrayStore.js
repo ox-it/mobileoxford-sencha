@@ -31,7 +31,7 @@
  *         ['Wal-Mart Stores, Inc.',45.45,0.73,1.63,'9/1 12:00am']
  *     ];
  *
- * An object literal of this form could also be used as the {@link #data} config option.
+ * An object literal of this form could also be used as the {@link #cfg-data} config option.
  *
  * **Note:** Although not listed here, this class accepts all of the configuration options of
  * **{@link Ext.data.reader.Array ArrayReader}**.

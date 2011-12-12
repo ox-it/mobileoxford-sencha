@@ -3,7 +3,7 @@ if (Ext.os.deviceType == 'Phone') {
         id: 'mainNestedList',
         extend: 'Ext.dataview.NestedList',
         requires: [
-            'Ext.NavigationBar'
+            'Ext.TitleBar'
         ],
         config: {
             store : 'Demos',
@@ -21,7 +21,7 @@ else {
         extend: 'Ext.Container',
         requires: [
             'Ext.dataview.NestedList',
-            'Ext.NavigationBar'
+            'Ext.TitleBar'
         ],
         config: {
             fullscreen: true,
@@ -46,7 +46,7 @@ else {
                 store : 'Demos'
             }, {
                 id: 'mainNavigationBar',
-                xtype : 'navigationbar',
+                xtype : 'titlebar',
                 docked: 'top',
                 title : 'Kitchen Sink',
                 items: [{

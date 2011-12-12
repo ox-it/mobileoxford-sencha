@@ -2,7 +2,7 @@
 Ext.define('Kiva.view.LoansListItem', {
     extend: 'Ext.dataview.DataItem',
     xtype : 'loanslistitem',
-    requires: ['Ext.Img'],
+    requires: ['Ext.Img', 'Kiva.view.LoansListItemCompletion'],
 
     config: {
         dataMap: {
@@ -16,6 +16,10 @@ Ext.define('Kiva.view.LoansListItem', {
 
             getAvatar: {
                 setSrc: 'image'
+            },
+
+            getCompletion: {
+                setPercentFunded: 'percent_funded'
             }
         },
 
@@ -31,6 +35,10 @@ Ext.define('Kiva.view.LoansListItem', {
 
         avatar: {
             docked: 'left'
+        },
+
+        completion: {
+            docked: 'right'
         },
 
         layout: {
@@ -67,7 +75,15 @@ Ext.define('Kiva.view.LoansListItem', {
         if (newAvatar) {
             this.add(newAvatar);
         }
-    }
+    },
 
-    
+    applyCompletion: function(config) {
+        return Ext.factory(config, Kiva.view.LoansListItemCompletion, this.getCompletion());
+    },
+
+    updateCompletion: function(newCompletion) {
+        if (newCompletion) {
+            this.add(newCompletion);
+        }
+    }
 });

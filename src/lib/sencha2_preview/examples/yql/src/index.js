@@ -58,7 +58,10 @@ Ext.setup({
         };
 
         var makeYqlRequest = function(btn) {
-            Ext.getBody().mask('Loading...', 'x-mask-loading', false);
+            Ext.Viewport.setMask({
+                message: 'Loading...'
+            });
+            
             var selected = btn.value;
             var opts = demoLookup[selected];
             if (opts) {
@@ -70,7 +73,7 @@ Ext.setup({
                             results = response.query.results;
                         }
                         Ext.getCmp('content').update(opts.tpl.apply(results));
-                        Ext.getBody().unmask();
+                        Ext.Viewport.unmask();
                     }
                 });
             }

@@ -1,3 +1,6 @@
+/**
+ * @private
+ */
 Ext.define('Ext.event.recognizer.SingleTouch', {
     extend: 'Ext.event.recognizer.Touch',
 

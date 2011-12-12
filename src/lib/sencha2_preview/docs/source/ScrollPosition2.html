@@ -15,70 +15,100 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js"><span id='Ext-scroll-indicator-ScrollPosition'>/**
-</span> * @private
+  <pre class="prettyprint lang-js"><span id='Ext-util-translatable-ScrollPosition'>/**
+</span> * @class Ext.util.translatable.ScrollPosition
+ * @private
+ *
+ * Scroll position implementation
  */
-Ext.define('Ext.scroll.indicator.ScrollPosition', {
-    extend: 'Ext.scroll.indicator.Abstract',
 
-    config: {
-        ui: 'scrollposition'
-    },
+Ext.define('Ext.util.translatable.ScrollPosition', {
+    extend: 'Ext.util.translatable.Abstract',
 
-    getElementConfig: function() {
-        var config = this.callParent(arguments);
+    wrapperWidth: 0,
+    wrapperHeight: 0,
 
-        config.children.unshift({
-            className: 'x-scroll-bar-stretcher'
-        });
+    baseCls: 'x-translatable',
 
-        return config;
-    },
+    getWrapper: function() {
+        var wrapper = this.wrapper,
+            baseCls = this.baseCls,
+            element = this.getElement(),
+            container;
 
-    updateValue: function(value) {
-        if (this.gapLength === 0) {
-            if (value &gt; 1) {
-                value = value - 1;
+        if (!wrapper) {
+            container = element.getParent();
+
+            if (!container) {
+                return null;
             }
 
-            this.setOffset(this.barLength * value);
+            wrapper = element.wrap({
+                className: baseCls + '-wrapper'
+            });
+
+            wrapper.insertFirst(Ext.Element.create({
+                className: baseCls + '-stretcher'
+            }));
+
+            element.addCls(baseCls);
+            container.addCls(baseCls + '-container');
+
+            this.container = container;
+            this.wrapper = wrapper;
+
+            this.refresh();
         }
-        else {
-            this.setOffset(this.gapLength * value);
+
+        return wrapper;
+    },
+
+    doTranslate: function(translation) {
+        var wrapper = this.getWrapper(),
+            wrapperDom;
+
+        if (wrapper) {
+            wrapperDom = wrapper.dom;
+
+            if ('x' in translation) {
+                wrapperDom.scrollLeft = this.wrapperWidth - translation.x;
+            }
+
+            if ('y' in translation) {
+                wrapperDom.scrollTop = this.wrapperHeight - translation.y;
+            }
+        }
+
+        return this.callParent(arguments);
+    },
+
+    refresh: function() {
+        var wrapper = this.getWrapper(),
+            wrapperDom;
+
+        if (wrapper) {
+            wrapperDom = wrapper.dom;
+
+            this.wrapperWidth = wrapperDom.offsetWidth;
+            this.wrapperHeight = wrapperDom.offsetHeight;
+
+            this.callParent(arguments);
         }
     },
 
-    setLength: function(length) {
-        var axis = this.getAxis(),
-            scrollOffset = this.barLength,
-            barDom = this.barElement.dom,
-            element = this.element;
+    destroy: function() {
+        var element = this.getElement(),
+            wrapper = this.getWrapper(),
+            baseCls = this.baseCls;
+
+        if (wrapper) {
+            this.container.removeCls(baseCls + '-container');
+            element.unwrap();
+            element.removeCls(baseCls);
+            wrapper.destroy();
+        }
 
         this.callParent(arguments);
-
-        if (axis === 'x') {
-            barDom.scrollLeft = scrollOffset;
-            element.setLeft(scrollOffset);
-        }
-        else {
-            barDom.scrollTop = scrollOffset;
-            element.setTop(scrollOffset);
-        }
-    },
-
-    setOffset: function(offset) {
-        var axis = this.getAxis(),
-            scrollOffset = this.barLength,
-            barDom = this.barElement.dom;
-
-        offset = scrollOffset - offset;
-
-        if (axis === 'x') {
-            barDom.scrollLeft = offset;
-        }
-        else {
-            barDom.scrollTop = offset;
-        }
     }
 });
 </pre>

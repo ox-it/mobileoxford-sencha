@@ -1,11 +1,11 @@
 /**
- * SegmentedButton is a container for a group of {@link Ext.Button}s. Generally a SegmentedButton would be 
+ * SegmentedButton is a container for a group of {@link Ext.Button}s. Generally a SegmentedButton would be
  * a child of a {@link Ext.Toolbar} and would be used to switch between different views.
- * 
+ *
  * # Useful Properties:
  *
  * - {@link #allowMultiple}
- * 
+ *
  * # Example usage:
  *
  *     var segmentedButton = new Ext.SegmentedButton({
@@ -34,25 +34,25 @@
 Ext.define('Ext.SegmentedButton', {
     extend: 'Ext.Container',
     xtype : 'segmentedbutton',
-    
+
     config: {
         // @inherited
         baseCls: Ext.baseCSSPrefix + 'segmentedbutton',
-        
+
         /**
          * @cfg {String} pressedCls
          * CSS class when a button is in pressed state.
          * @accessor
          */
         pressedCls: Ext.baseCSSPrefix + 'button-pressed',
-        
+
         /**
          * @cfg {Boolean} allowMultiple
          * Allow multiple pressed buttons.
          * @accessor
          */
         allowMultiple: false,
-        
+
         /**
          * @cfg {Boolean} allowDepress
          * Allow toggling the pressed state of each button.
@@ -101,8 +101,8 @@ Ext.define('Ext.SegmentedButton', {
 
             hiddenchange: 'onButtonHiddenChange'
         });
-        
-        me.callParent(arguments);
+
+        me.callParent();
     },
 
     updateAllowMultiple: function() {
@@ -118,7 +118,7 @@ Ext.define('Ext.SegmentedButton', {
         var me = this,
             pressedButtons = [],
             ln, i, item, items;
-        
+
         //call the parent first so the items get converted into a MixedCollection
         me.callParent(arguments);
 
@@ -145,18 +145,17 @@ Ext.define('Ext.SegmentedButton', {
     onButtonRelease: function(button) {
         var me             = this,
             pressedButtons = me.getPressedButtons(),
-            ln             = pressedButtons.length,
             buttons        = [],
             alreadyPressed;
 
-        if (!me.disabled) {
+        if (!me.getDisabled()) {
             //if we allow for multiple pressed buttons, use the existing pressed buttons
             if (me.getAllowMultiple()) {
                 buttons = buttons.concat(pressedButtons);
             }
 
             alreadyPressed = buttons.indexOf(button) !== -1;
-            
+
             //if we allow for depressing buttons, and the new pressed button is currently pressed, remove it
             if (alreadyPressed && me.getAllowDepress()) {
                 Ext.Array.remove(buttons, button);
@@ -262,7 +261,7 @@ Ext.define('Ext.SegmentedButton', {
     },
 
     /**
-     * 
+     *
      */
     doSetDisabled: function(disabled) {
         var me = this;
@@ -276,7 +275,7 @@ Ext.define('Ext.SegmentedButton', {
 }, function() {
     //<deprecated product=touch since=2.0>
     var me = this;
-    
+
     /**
      * Activates a button.
      * @param {Number/String/Ext.Button} button. The button to activate.
@@ -288,7 +287,7 @@ Ext.define('Ext.SegmentedButton', {
      * @deprecated 2.0.0
      */
     Ext.deprecateClassMethod(me, 'setPressed', me.prototype.setPressedButtons, '[Ext.SegmentedButton] setPressed is now deprecated, please use setPressedButtons instead');
-    
+
     /**
      * Gets the currently pressed button(s).
      * @method getPressed
@@ -299,6 +298,6 @@ Ext.define('Ext.SegmentedButton', {
         me.prototype.getPressedButtons,
         '[Ext.SegmentedButton] getPressed is now deprecated. Please use getPressedButtons instead.'
     );
-    
+
     //</deprecated>
 });

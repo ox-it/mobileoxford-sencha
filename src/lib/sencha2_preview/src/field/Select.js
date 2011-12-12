@@ -12,7 +12,7 @@ new Ext.field.Select({
  */
 Ext.define('Ext.field.Select', {
     extend: 'Ext.field.Text',
-    alias : 'widget.selectfield',
+    xtype: 'selectfield',
     alternateClassName: 'Ext.form.Select',
     requires: [
         'Ext.Panel',
@@ -25,7 +25,8 @@ Ext.define('Ext.field.Select', {
      * @event change
      * Fires when an option selection has changed
      * @param {Ext.field.Select} this
-     * @param {Mixed} value
+     * @param {Mixed} newValue The new value
+     * @param {Mixed} oldValue The old value
      */
 
     config: {
@@ -125,18 +126,18 @@ Ext.define('Ext.field.Select', {
 
     // @private
     initialize: function() {
+        this.callParent();
+
         this.getComponent().on({
             scope: this,
             masktap: 'onMaskTap'
         });
-
-        this.callParent();
     },
 
     applyValue: function(value) {
         var record = value,
             index;
-        
+
         if (!(value instanceof Ext.data.Model)) {
             index = this.getStore().find(this.getValueField(), value);
 
@@ -152,14 +153,14 @@ Ext.define('Ext.field.Select', {
 
     updateValue: function(newValue, oldValue) {
         this.previousRecord = oldValue;
-        
+
         if (newValue) {
             this.record = newValue;
 
             this.callParent([newValue.get(this.getDisplayField())]);
         }
 
-        this.fireAction('change', [this, newValue, oldValue]);
+        this.fireEvent('change', this, newValue, oldValue);
     },
 
     getValue: function() {
@@ -234,6 +235,14 @@ Ext.define('Ext.field.Select', {
 
     // @private
     showComponent: function() {
+        //check if the store is empty, if it is, return
+        if (this.getStore().getCount() === 0) {
+            return;
+        }
+
+        //hide the keyboard
+        Ext.Viewport.hideKeyboard();
+
         if (Ext.os.deviceType == 'Phone') {
             var picker = this.getPicker(),
                 name   = this.getName(),
@@ -278,7 +287,7 @@ Ext.define('Ext.field.Select', {
             store = me.getStore(),
             index = store.find(me.getValueField(), newValue);
             record = store.getAt(index);
-        
+
         me.setValue(record);
     },
 
@@ -321,6 +330,11 @@ selectBox.setOptions(
 
         if (store) {
             store = Ext.data.StoreManager.lookup(store);
+
+            store.on({
+                scope: this,
+                datachanged: this.onStoreDataChanged
+            });
         }
 
         return store;
@@ -331,6 +345,22 @@ selectBox.setOptions(
 
         if (newStore && record) {
             this.setValue(record);
+        }
+    },
+
+    /**
+     * Called when the internal {@link #store}'s data has changed
+     */
+    onStoreDataChanged: function(store, records) {
+        var initialConfig = this.getInitialConfig(),
+            value = this.getValue();
+
+        if (value) {
+            this.updateValue(this.applyValue(value));
+        } else if (initialConfig.hasOwnProperty('value')) {
+            this.setValue(initialConfig.value);
+        } else if (store.getCount() > 0) {
+            this.setValue(store.getAt(0));
         }
     },
 

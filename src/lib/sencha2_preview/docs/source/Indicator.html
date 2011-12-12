@@ -27,17 +27,29 @@ Ext.define('Ext.carousel.Indicator', {
     config: {
         // @inherit
         baseCls: Ext.baseCSSPrefix + 'carousel-indicator',
+
         direction: 'horizontal'
     },
 
+<span id='Ext-carousel-Indicator-event-previous'>    /**
+</span>     * @event previous
+     * @param {Ext.carousel.Indicator} this
+     * Fires when this indicator is tapped on the left half
+     */
+
+<span id='Ext-carousel-Indicator-event-next'>    /**
+</span>     * @event next
+     * @param {Ext.carousel.Indicator} this
+     * Fires when this indicator is tapped on the right half
+     */
+
     initialize: function() {
-        var me = this;
-        me.callParent(arguments);
+        this.callParent();
 
-        me.indicators = [];
+        this.indicators = [];
 
-        me.element.on({
-            tap  : 'onTap',
+        this.element.on({
+            tap: 'onTap',
             scope: this
         });
     },
@@ -45,12 +57,13 @@ Ext.define('Ext.carousel.Indicator', {
     updateDirection: function(newDirection, oldDirection) {
         var baseCls = this.getBaseCls();
 
-        this.element.replaceCls(baseCls + '-' + oldDirection, baseCls + '-' + newDirection);
+        this.element.replaceCls(oldDirection, newDirection, baseCls);
 
         if (newDirection === 'horizontal') {
             this.setBottom(0);
             this.setRight(null);
-        } else {
+        }
+        else {
             this.setRight(0);
             this.setBottom(null);
         }
@@ -63,32 +76,49 @@ Ext.define('Ext.carousel.Indicator', {
     },
 
     removeIndicator: function() {
-        if (this.indicators.length) {
-            this.indicators.pop().remove();
+        var indicators = this.indicators;
+
+        if (indicators.length &gt; 0) {
+            indicators.pop().remove();
         }
     },
 
     setActiveIndex: function(index) {
-        var indicators = this.indicators;
+        var indicators = this.indicators,
+            currentActiveIndex = this.activeIndex,
+            currentActiveItem = indicators[currentActiveIndex],
+            activeItem = indicators[index],
+            baseCls = this.getBaseCls();
 
-        if (indicators.length &amp;&amp; indicators[index]) {
-            indicators[index].radioCls(this.getBaseCls() + '-active');
+        if (currentActiveItem) {
+            currentActiveItem.removeCls(baseCls, null, 'active');
         }
+
+        if (activeItem) {
+            activeItem.addCls(baseCls, null, 'active');
+        }
+
+        this.activeIndex = index;
+
+        return this;
     },
 
     // @private
-    onTap: function(e, t) {
-        var box = this.element.getPageBox(),
+    onTap: function(e) {
+        var touch = e.touch,
+            box = this.element.getPageBox(),
             centerX = box.left + (box.width / 2),
             centerY = box.top + (box.height / 2),
             direction = this.getDirection();
 
-        if ((direction === 'horizontal' &amp;&amp; e.pageX &gt; centerX) || (direction === 'vertical' &amp;&amp; e.pageY &gt; centerY)) {
-            this.fireEvent('next');
-        } else {
-            this.fireEvent('previous');
+        if ((direction === 'horizontal' &amp;&amp; touch.pageX &gt;= centerX) || (direction === 'vertical' &amp;&amp; touch.pageY &gt;= centerY)) {
+            this.fireEvent('next', this);
+        }
+        else {
+            this.fireEvent('previous', this);
         }
     }
-});</pre>
+});
+</pre>
 </body>
 </html>

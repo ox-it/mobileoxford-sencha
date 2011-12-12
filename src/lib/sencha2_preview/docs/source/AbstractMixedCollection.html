@@ -29,6 +29,7 @@ Ext.define('Ext.util.AbstractMixedCollection', {
 </span>     * @event clear
      * Fires when the collection is cleared.
      */
+
 <span id='Ext-util-AbstractMixedCollection-event-add'>    /**
 </span>     * @event add
      * Fires when an item is added to the collection.
@@ -36,6 +37,7 @@ Ext.define('Ext.util.AbstractMixedCollection', {
      * @param {Object} o The item added.
      * @param {String} key The key associated with the added item.
      */
+
 <span id='Ext-util-AbstractMixedCollection-event-replace'>    /**
 </span>     * @event replace
      * Fires when an item is replaced in the collection.
@@ -43,6 +45,7 @@ Ext.define('Ext.util.AbstractMixedCollection', {
      * @param {Object} old The item being replaced.
      * @param {Object} new The new item.
      */
+
 <span id='Ext-util-AbstractMixedCollection-event-remove'>    /**
 </span>     * @event remove
      * Fires when an item is removed from the collection.
@@ -75,7 +78,7 @@ Ext.define('Ext.util.AbstractMixedCollection', {
     allowFunctions : false,
 
 <span id='Ext-util-AbstractMixedCollection-method-add'>    /**
-</span>     * Adds an item to the collection. Fires the {@link #add} event when complete.
+</span>     * Adds an item to the collection. Fires the {@link #event-add} event when complete.
      * @param {String} key &lt;p&gt;The key to associate with the item, or the new item.&lt;/p&gt;
      * &lt;p&gt;If a {@link #getKey} implementation was specified for this MixedCollection,
      * or if the key of the stored items is in a property called &lt;tt&gt;&lt;b&gt;id&lt;/b&gt;&lt;/tt&gt;,
@@ -141,7 +144,7 @@ mc.add(otherEl);
     },
 
 <span id='Ext-util-AbstractMixedCollection-method-replace'>    /**
-</span>     * Replaces an item in the collection. Fires the {@link #replace} event when complete.
+</span>     * Replaces an item in the collection. Fires the {@link #event-replace} event when complete.
      * @param {String} key &lt;p&gt;The key associated with the item to replace, or the replacement item.&lt;/p&gt;
      * &lt;p&gt;If you supplied a {@link #getKey} implementation for this MixedCollection, or if the key
      * of your stored items is in a property called &lt;tt&gt;&lt;b&gt;id&lt;/b&gt;&lt;/tt&gt;, then the MixedCollection
@@ -265,7 +268,7 @@ mc.add(otherEl);
     },
 
 <span id='Ext-util-AbstractMixedCollection-method-insert'>    /**
-</span>     * Inserts an item at the specified index in the collection. Fires the {@link #add} event when complete.
+</span>     * Inserts an item at the specified index in the collection. Fires the {@link #event-add} event when complete.
      * @param {Number} index The index to insert the item at.
      * @param {String} key The key to associate with the new item, or the item itself.
      * @param {Object} o (optional) If the second parameter was a key, the new item.
@@ -321,7 +324,7 @@ mc.add(otherEl);
     },
 
 <span id='Ext-util-AbstractMixedCollection-method-removeAt'>    /**
-</span>     * Remove an item from a specified index in the collection. Fires the {@link #remove} event when complete.
+</span>     * Remove an item from a specified index in the collection. Fires the {@link #event-remove} event when complete.
      * @param {Number} index The index within the collection of the item to remove.
      * @return {Object} The item removed or false if no item was removed.
      */
@@ -432,7 +435,7 @@ mc.add(otherEl);
     },
 
 <span id='Ext-util-AbstractMixedCollection-method-clear'>    /**
-</span>     * Removes all items from the collection.  Fires the {@link #clear} event when complete.
+</span>     * Removes all items from the collection.  Fires the {@link #event-clear} event when complete.
      */
     clear: function(){
         var me = this;

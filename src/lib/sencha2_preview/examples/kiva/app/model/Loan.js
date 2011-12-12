@@ -12,7 +12,6 @@ Ext.define('Kiva.model.Loan', {
         {name: "name",           type: "string"},
         {name: "status",         type: "string"},
         {name: "loan_amount",    type: "int"},
-        {name: "percentfunded",  type: "int"},
         {name: "funded_amount",  type: "int"},
         {name: "basket_amount",  type: "int"},
         {name: "borrower_count", type: "int"},
@@ -24,7 +23,12 @@ Ext.define('Kiva.model.Loan', {
         {name: "image", type: "string", mapping: "image.id", convert: function(value, record) {
             return "http://kiva.org/img/w80h80/" + value + ".jpg";
         }},
-        'terms', 'location'
+        'terms', 'location',
+        {
+            name: 'percent_funded', convert: function(v, record) {
+                return parseInt(record.data.funded_amount / record.data.loan_amount * 100, 10);
+            }
+        }
     ],
     
     proxy: {

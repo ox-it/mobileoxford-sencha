@@ -498,7 +498,7 @@ var ExtObject = Ext.Object = {
      * @return {String[]} An array of keys from the object
      * @method
      */
-    getKeys: ('keys' in Object.prototype) ? Object.keys : function(object) {
+    getKeys: ('keys' in Object) ? Object.keys : function(object) {
         var keys = [],
             property;
 
@@ -569,9 +569,37 @@ var ExtObject = Ext.Object = {
         objectClass.prototype = prototype;
 
         return objectClass;
-    }
-};
+    },
 
+    redefineProperty: function() {
+        if ('defineProperty' in Object) {
+            return function(object, property, getter, setter) {
+                var obj = {
+                    configurable: true,
+                    enumerable: true
+                };
+
+                if (getter) {
+                    obj.get = getter;
+                }
+                if (setter) {
+                    obj.set = setter;
+                }
+                Object.defineProperty(object, property, obj);
+            };
+        }
+        else {
+            return function(object, property, getter, setter) {
+                if (getter) {
+                    object.__defineGetter__(property, getter);
+                }
+                if (setter) {
+                    object.__defineSetter__(property, setter);
+                }
+            };
+        }
+    }()
+};
 
 <span id='Ext-method-merge'>/**
 </span> * A convenient alias method for {@link Ext.Object#merge}

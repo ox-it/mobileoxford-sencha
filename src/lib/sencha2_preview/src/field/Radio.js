@@ -1,7 +1,7 @@
 /**
  * The radio field is an enhanced version of the native browser radio controls and is a good way of allowing your user
  * to choose one option out of a selection of several (for example, choosing a favorite color):
- * 
+ *
  *     var form = Ext.create('Ext.form.Panel', {
  *         items: [
  *             {
@@ -25,19 +25,19 @@
  *             }
  *         ]
  *     });
- * 
+ *
  * Above we created a simple form which allows the user to pick a color from the options red, green and blue. Because
- * we gave each of the fields above the same {@link #name}, the radio field ensures that only one of them can be 
- * checked at a time. When we come to get the values out of the form again or submit it to the server, only 1 value 
+ * we gave each of the fields above the same {@link #name}, the radio field ensures that only one of them can be
+ * checked at a time. When we come to get the values out of the form again or submit it to the server, only 1 value
  * will be sent for each group of radio fields with the same name:
- * 
+ *
  *     form.getValues(); //looks like {color: 'red'}
  *     form.submit(); //sends a single field back to the server (in this case color: red)
- * 
+ *
  */
 Ext.define('Ext.field.Radio', {
     extend: 'Ext.field.Checkbox',
-    alias : 'widget.radiofield',
+    xtype: 'radiofield',
     alternateClassName: 'Ext.form.Radio',
 
     isRadio: true,

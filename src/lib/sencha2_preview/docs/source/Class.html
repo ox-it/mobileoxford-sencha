@@ -507,10 +507,12 @@
                 map = cache[name] = {
                     internal: '_' + name,
                     initialized: '_is' + capitalizedName + 'Initialized',
+                    initializing: 'is' + capitalizedName + 'Initializing',
                     apply: 'apply' + capitalizedName,
                     update: 'update' + capitalizedName,
-                    'set': 'set' + capitalizedName,
-                    'get': 'get' + capitalizedName,
+                    set: 'set' + capitalizedName,
+                    get: 'get' + capitalizedName,
+                    initGet: 'initGet' + capitalizedName,
                     doSet : 'doSet' + capitalizedName,
                     changeEvent: name.toLowerCase() + 'change'
                 }
@@ -648,6 +650,8 @@
                 updateName = nameMap.update,
                 setName = nameMap.set,
                 getName = nameMap.get,
+                initGetName = nameMap.initGet,
+                initializingName = nameMap.initializing,
                 hasOwnSetter = (setName in prototype) || data.hasOwnProperty(setName),
                 hasOwnApplier = (applyName in prototype) || data.hasOwnProperty(applyName),
                 hasOwnUpdater = (updateName in prototype) || data.hasOwnProperty(updateName),
@@ -701,12 +705,14 @@
                     };
                 }
 
-                data[getName] = function() {
+                data[getName] = prototype[initGetName] = function() {
                     var currentGetter;
 
                     if (!this[initializedName]) {
                         this[initializedName] = true;
+                        this[initializingName] = true;
                         this[setName](this.config[name]);
+                        this[initializingName] = false;
                     }
 
                     currentGetter = this[getName];

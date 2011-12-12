@@ -16,12 +16,14 @@ Ext.define('Ext.util.TapRepeater', {
      * @param {Ext.util.TapRepeater} this
      * @param {Ext.event.Event} e
      */
+
     /**
      * @event tap
      * Fires on a specified interval during the time the element is pressed.
      * @param {Ext.util.TapRepeater} this
      * @param {Ext.event.Event} e
      */
+
     /**
      * @event touchend
      * Fires when the touch is ended.
@@ -97,8 +99,8 @@ Ext.define('Ext.util.TapRepeater', {
         }
         me.tapStartTime = new Date();
 
-        me.fireAction('touchstart', [me, e], 'doTouchStart');
-        me.fireAction('tap', [me, e], 'doTap');
+        me.fireEvent('touchstart', me, e);
+        me.fireEvent('tap', me, e);
 
         // Do not honor delay or interval if acceleration wanted.
         if (me.getAccelerate()) {
@@ -107,14 +109,10 @@ Ext.define('Ext.util.TapRepeater', {
         me.setTimer(Ext.defer(me.tap, me.getDelay() || me.getInterval(), me, [e]));
     },
 
-    doTouchStart: Ext.emptyFn,
-    doTouchEnd: Ext.emptyFn,
-    doTap: Ext.emptyFn,
-
     // @private
     tap: function(e) {
         var me = this;
-        me.fireAction('tap', [me, e], 'doTap');
+        me.fireEvent('tap', me, e);
         me.setTimer(Ext.defer(me.tap, me.getAccelerate() ? me.easeOutExpo(Ext.Date.getElapsed(me.tapStartTime),
             400,
             -390,
@@ -132,6 +130,6 @@ Ext.define('Ext.util.TapRepeater', {
         var me = this;
         clearTimeout(me.getTimer());
         me.getEl().removeCls(me.getPressCls());
-        me.fireAction('touchend', [me, e], 'doTouchEnd');
+        me.fireEvent('touchend', me, e);
     }
 });

@@ -50,6 +50,8 @@ Ext.define('Ext.behavior.Scrollable', {
         else if (scrollView) {
             scrollView.destroy();
         }
+
+        return this;
     },
 
     getScrollView: function() {

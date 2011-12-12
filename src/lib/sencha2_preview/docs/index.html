@@ -33,21 +33,12 @@
   })();
   </script>
 
-  <script type="text/javascript">
-    Docs = {
-        localStorageDb: "touch-2",
-        showPrintButton: false,
-        touchExamplesUi: true
-    };
-  </script>
   <script type="text/javascript" src="extjs/ext-all.js"></script>
+  <script type="text/javascript" src="data.js"></script>
   <script type="text/javascript" src="app.js"></script>
   <script type="text/javascript" src="resources/prettify/prettify.js"></script>
-  <script type="text/javascript" src="data.js"></script>
 
-        <link rel="canonical" href="http://docs.sencha.com/touch/2-0/" />
-      <meta name="description" content="Sencha Touch 2.0 API Documentation from Sencha. Documentation on how to create Javascript applications with Sencha Touch" />
-
+  <link rel='canonical' href='http://docs.sencha.com/touch/2-0/' /><meta name='description' content='Sencha Touch 2.0 API Documentation from Sencha. Documentation on how to create Javascript applications with Sencha Touch' />
 
 </head>
 <body id="ext-body">
@@ -251,8 +242,8 @@
 <a href="#!/api/Ext.dataview.List" rel="Ext.dataview.List" class="docClass">Ext.dataview.List</a>
 <a href="#!/api/Ext.dataview.NestedList" rel="Ext.dataview.NestedList" class="docClass">Ext.dataview.NestedList</a>
 <a href="#!/api/Ext.viewport.Default" rel="Ext.viewport.Default" class="docClass">Ext.viewport.Default</a>
-<a href="#!/api/Ext.viewport.Viewport" rel="Ext.viewport.Viewport" class="docClass">Ext.viewport.Viewport</a>
 <a href="#!/api/Ext.form.Panel" rel="Ext.form.Panel" class="docClass">Ext.form.Panel</a>
+<a href="#!/api/Ext.navigation.View" rel="Ext.navigation.View" class="docClass">Ext.navigation.View</a>
 </div>
 </div>
 <div class='right-column'>
@@ -285,9 +276,11 @@
 <a href="#!/api/Ext.ComponentQuery" rel="Ext.ComponentQuery" class="docClass">Ext.ComponentQuery</a>
 <a href="#!/api/Ext.AbstractComponent" rel="Ext.AbstractComponent" class="docClass">Ext.AbstractComponent</a>
 <a href="#!/api/Ext.Component" rel="Ext.Component" class="docClass">Ext.Component</a>
+<a href="#!/api/Ext.Decorator" rel="Ext.Decorator" class="docClass">Ext.Decorator</a>
 <a href="#!/api/Ext.Audio" rel="Ext.Audio" class="docClass">Ext.Audio</a>
 <a href="#!/api/Ext.Button" rel="Ext.Button" class="docClass">Ext.Button</a>
 <a href="#!/api/Ext.Label" rel="Ext.Label" class="docClass">Ext.Label</a>
+<a href="#!/api/Ext.Mask" rel="Ext.Mask" class="docClass">Ext.Mask</a>
 <a href="#!/api/Ext.LoadMask" rel="Ext.LoadMask" class="docClass">Ext.LoadMask</a>
 <a href="#!/api/Ext.Map" rel="Ext.Map" class="docClass">Ext.Map</a>
 <a href="#!/api/Ext.Media" rel="Ext.Media" class="docClass">Ext.Media</a>
@@ -297,7 +290,8 @@
 <a href="#!/api/Ext.Spacer" rel="Ext.Spacer" class="docClass">Ext.Spacer</a>
 <a href="#!/api/Ext.Toolbar" rel="Ext.Toolbar" class="docClass">Ext.Toolbar</a>
 <a href="#!/api/Ext.Title" rel="Ext.Title" class="docClass">Ext.Title</a>
-<a href="#!/api/Ext.NavigationBar" rel="Ext.NavigationBar" class="docClass">Ext.NavigationBar</a>
+<a href="#!/api/Ext.TitleBar" rel="Ext.TitleBar" class="docClass">Ext.TitleBar</a>
+<a href="#!/api/Ext.Viewport" rel="Ext.Viewport" class="docClass">Ext.Viewport</a>
 <a href="#!/api/Ext.Video" rel="Ext.Video" class="docClass">Ext.Video</a>
 <a href="#!/api/Ext.picker.Date" rel="Ext.picker.Date" class="docClass">Ext.picker.Date</a>
 <a href="#!/api/Ext.picker.Picker" rel="Ext.picker.Picker" class="docClass">Ext.picker.Picker</a>
@@ -334,6 +328,11 @@
 <a href="#!/api/Ext.XTemplate" rel="Ext.XTemplate" class="docClass">Ext.XTemplate</a>
 <a href="#!/api/Ext.scroll.Scroller" rel="Ext.scroll.Scroller" class="docClass">Ext.scroll.Scroller</a>
 <a href="#!/api/Ext.scroll.View" rel="Ext.scroll.View" class="docClass">Ext.scroll.View</a>
+</div>
+<h3>Plugins</h3>
+<div class='links'>
+<a href="#!/api/Ext.plugin.ListPaging" rel="Ext.plugin.ListPaging" class="docClass">Ext.plugin.ListPaging</a>
+<a href="#!/api/Ext.plugin.PullRefresh" rel="Ext.plugin.PullRefresh" class="docClass">Ext.plugin.PullRefresh</a>
 </div>
 </div>
 <div style='clear:both'></div>
@@ -466,7 +465,6 @@
 <h3>Events</h3>
 <div class='links'>
 <a href="#!/api/Ext.EventManager" rel="Ext.EventManager" class="docClass">Ext.EventManager</a>
-<a href="#!/api/Ext.event.Dom" rel="Ext.event.Dom" class="docClass">Ext.event.Dom</a>
 <a href="#!/api/Ext.event.Event" rel="Ext.event.Event" class="docClass">Ext.event.Event</a>
 <a href="#!/api/Ext.util.DelayedTask" rel="Ext.util.DelayedTask" class="docClass">Ext.util.DelayedTask</a>
 <a href="#!/api/Ext.util.TapRepeater" rel="Ext.util.TapRepeater" class="docClass">Ext.util.TapRepeater</a>
@@ -502,7 +500,7 @@
 </ul>
         </div>
 
-  <div id='footer-content' style='display: none'>Sencha Touch 2.0 Docs - Generated with <a href='https://github.com/senchalabs/jsduck'>JSDuck</a> revison f6fb0ad</div>
+  <div id='footer-content' style='display: none'>Sencha Touch 2.0 Docs - Generated with <a href='https://github.com/senchalabs/jsduck'>JSDuck</a> 3.2.1. <a href='http://www.sencha.com/legal/terms-of-use/'>Terms of Use</a></div>
 
         <div id="notice-text" style="display: none">
         Use <a href="http://docs.sencha.com/touch/2-0">http://docs.sencha.com/touch/2-0</a> for up to date documentation and features

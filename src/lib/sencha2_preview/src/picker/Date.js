@@ -94,13 +94,6 @@ Ext.define('Ext.picker.Date', {
          * new Date() = current date
          * @accessor
          */
-        
-        /**
-         * @cfg {Boolean} useTitles
-         * Generate a title header for each individual slot and use
-         * the title configuration of the slot.
-         * @accessor
-         */
 
         /**
          * @cfg {Array} slots

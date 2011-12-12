@@ -1,3 +1,8 @@
+/**
+ * A event recogniser which knows when you tap and hold for more than 1 second.
+ * 
+ * @private
+ */
 Ext.define('Ext.event.recognizer.LongPress', {
     extend: 'Ext.event.recognizer.SingleTouch',
 
@@ -10,6 +15,15 @@ Ext.define('Ext.event.recognizer.LongPress', {
     },
 
     handledEvents: ['longpress'],
+
+    /**
+     * @member Ext.dom.Element
+     * @event longpress
+     * Fires when you tap and hold for more than 1 second
+     * @param {Ext.event.Event} event The {@link Ext.event.Event} event encapsulating the DOM event.
+     * @param {HTMLElement} node The target of the event.
+     * @param {Object} options The options object passed to Ext.util.Observable.addListener.
+     */
 
     fireLongPress: function(e) {
         var touch = e.changedTouches[0];

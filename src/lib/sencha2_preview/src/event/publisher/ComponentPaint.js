@@ -95,14 +95,16 @@ Ext.define('Ext.event.publisher.ComponentPaint', {
 
     publish: function(subscribers, component, eventName) {
         var id = component.getId(),
+            needsDispatching = false,
             eventNames, items, i, ln, isPainted;
 
         if (subscribers[id]) {
             eventNames = this.eventNames;
+
             isPainted = component.isPainted();
 
             if ((eventName === eventNames.painted && isPainted) || eventName === eventNames.erased && !isPainted) {
-                this.dispatcher.doDispatchEvent(this.targetType, '#' + id, eventName, [component]);
+                needsDispatching = true;
             }
             else {
                 return this;
@@ -116,6 +118,12 @@ Ext.define('Ext.event.publisher.ComponentPaint', {
                 this.publish(subscribers, items[i], eventName);
             }
         }
-    }
+        else if (component.isDecorator) {
+            this.publish(subscribers, component.getComponent(), eventName);
+        }
 
+        if (needsDispatching) {
+            this.dispatcher.doDispatchEvent(this.targetType, '#' + id, eventName, [component]);
+        }
+    }
 });

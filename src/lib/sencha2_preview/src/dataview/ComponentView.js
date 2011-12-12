@@ -103,6 +103,51 @@ Ext.define('Ext.dataview.ComponentView', {
         'Ext.dataview.DataItem'
     ],
 
+    /**
+     * @event itemtouchstart
+     * Fires whenever an item is touched
+     * @param {Ext.dataview.ComponentView} this
+     * @param {Number} index The index of the item touched
+     * @param {Ext.dataview.DataItem} item The item touched
+     * @param {Ext.EventObject} e The event object
+     */
+
+    /**
+     * @event itemtouchend
+     * Fires whenever an item is touched
+     * @param {Ext.dataview.ComponentView} this
+     * @param {Number} index The index of the item touched
+     * @param {Ext.dataview.DataItem} item The item touched
+     * @param {Ext.EventObject} e The event object
+     */
+
+    /**
+     * @event itemtap
+     * Fires whenever an item is tapped
+     * @param {Ext.dataview.ComponentView} this
+     * @param {Number} index The index of the item tapped
+     * @param {Ext.dataview.DataItem} item The item tapped
+     * @param {Ext.EventObject} e The event object
+     */
+
+    /**
+     * @event itemdoubletap
+     * Fires whenever an item is doubletapped
+     * @param {Ext.dataview.ComponentView} this
+     * @param {Number} index The index of the item doubletapped
+     * @param {Ext.dataview.DataItem} item The item doubletapped
+     * @param {Ext.EventObject} e The event object
+     */
+
+    /**
+     * @event itemswipe
+     * Fires whenever an item is swiped
+     * @param {Ext.dataview.ComponentView} this
+     * @param {Number} index The index of the item swiped
+     * @param {Ext.dataview.DataItem} item The item swiped
+     * @param {Ext.EventObject} e The event object
+     */
+
     config: {
         // @inherit
         defaultType: 'dataitem',
@@ -203,7 +248,7 @@ Ext.define('Ext.dataview.ComponentView', {
             scope   : me,
             single: true
         });
-        me.fireAction('itemtouchstart', [me, me.getViewItems().indexOf(item), item, e], 'doItemTouchStart');
+        me.fireEvent('itemtouchstart', me, me.getViewItems().indexOf(item), item, e);
     },
 
     onItemTouchEnd: function(item, record, e) {
@@ -220,7 +265,7 @@ Ext.define('Ext.dataview.ComponentView', {
             touchmove: 'onItemTouchMove',
             scope   : me
         });
-        me.fireAction('itemtouchend', [me, me.getViewItems().indexOf(item), item, e], 'doItemTouchEnd');
+        me.fireEvent('itemtouchend', me, me.getViewItems().indexOf(item), item, e);
     },
 
     onItemTouchMove: function(item, record, e) {
@@ -236,17 +281,17 @@ Ext.define('Ext.dataview.ComponentView', {
 
     onItemTap: function(item, record, e) {
         var me = this;
-        me.fireAction('itemtap', [me, me.getViewItems().indexOf(item), item, e], 'doItemTap');
+        me.fireEvent('itemtap', me, me.getViewItems().indexOf(item), item, e);
     },
 
     onItemDoubleTap: function(item, record, e) {
         var me = this;
-        me.fireAction('itemdoubletap', [me, me.getViewItems().indexOf(item), item, e], 'doItemDoubleTap');
+        me.fireEvent('itemdoubletap', me, me.getViewItems().indexOf(item), item, e);
     },
 
     onItemSwipe: function(item, record, e) {
         var me = this;
-        me.fireAction('itemswipe', [me, me.getViewItems().indexOf(item), item, e], 'doItemSwipe');
+        me.fireEvent('itemswipe', me, me.getViewItems().indexOf(item), item, e);
     },
 
     moveItemsToCache: function(from, to) {

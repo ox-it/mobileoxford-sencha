@@ -10,17 +10,29 @@ Ext.define('Ext.carousel.Indicator', {
     config: {
         // @inherit
         baseCls: Ext.baseCSSPrefix + 'carousel-indicator',
+
         direction: 'horizontal'
     },
 
+    /**
+     * @event previous
+     * @param {Ext.carousel.Indicator} this
+     * Fires when this indicator is tapped on the left half
+     */
+
+    /**
+     * @event next
+     * @param {Ext.carousel.Indicator} this
+     * Fires when this indicator is tapped on the right half
+     */
+
     initialize: function() {
-        var me = this;
-        me.callParent(arguments);
+        this.callParent();
 
-        me.indicators = [];
+        this.indicators = [];
 
-        me.element.on({
-            tap  : 'onTap',
+        this.element.on({
+            tap: 'onTap',
             scope: this
         });
     },
@@ -28,12 +40,13 @@ Ext.define('Ext.carousel.Indicator', {
     updateDirection: function(newDirection, oldDirection) {
         var baseCls = this.getBaseCls();
 
-        this.element.replaceCls(baseCls + '-' + oldDirection, baseCls + '-' + newDirection);
+        this.element.replaceCls(oldDirection, newDirection, baseCls);
 
         if (newDirection === 'horizontal') {
             this.setBottom(0);
             this.setRight(null);
-        } else {
+        }
+        else {
             this.setRight(0);
             this.setBottom(null);
         }
@@ -46,30 +59,46 @@ Ext.define('Ext.carousel.Indicator', {
     },
 
     removeIndicator: function() {
-        if (this.indicators.length) {
-            this.indicators.pop().remove();
+        var indicators = this.indicators;
+
+        if (indicators.length > 0) {
+            indicators.pop().remove();
         }
     },
 
     setActiveIndex: function(index) {
-        var indicators = this.indicators;
+        var indicators = this.indicators,
+            currentActiveIndex = this.activeIndex,
+            currentActiveItem = indicators[currentActiveIndex],
+            activeItem = indicators[index],
+            baseCls = this.getBaseCls();
 
-        if (indicators.length && indicators[index]) {
-            indicators[index].radioCls(this.getBaseCls() + '-active');
+        if (currentActiveItem) {
+            currentActiveItem.removeCls(baseCls, null, 'active');
         }
+
+        if (activeItem) {
+            activeItem.addCls(baseCls, null, 'active');
+        }
+
+        this.activeIndex = index;
+
+        return this;
     },
 
     // @private
-    onTap: function(e, t) {
-        var box = this.element.getPageBox(),
+    onTap: function(e) {
+        var touch = e.touch,
+            box = this.element.getPageBox(),
             centerX = box.left + (box.width / 2),
             centerY = box.top + (box.height / 2),
             direction = this.getDirection();
 
-        if ((direction === 'horizontal' && e.pageX > centerX) || (direction === 'vertical' && e.pageY > centerY)) {
-            this.fireEvent('next');
-        } else {
-            this.fireEvent('previous');
+        if ((direction === 'horizontal' && touch.pageX >= centerX) || (direction === 'vertical' && touch.pageY >= centerY)) {
+            this.fireEvent('next', this);
+        }
+        else {
+            this.fireEvent('previous', this);
         }
     }
 });

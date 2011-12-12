@@ -4,25 +4,25 @@
  * The Default Layout is the layout that all other layouts inherit from. The main capability it provides is docking,
  * which means that every other layout can also provide docking support. It's unusual to use Default layout directly,
  * instead it's much more common to use one of the sub classes:
- * 
+ *
  * * {@link Ext.layout.HBox hbox layout}
  * * {@link Ext.layout.VBox vbox layout}
  * * {@link Ext.layout.Card card layout}
  * * {@link Ext.layout.Fit fit layout}
- * 
+ *
  * For a full overview of layouts check out the [Layout Guide](#!/guide/layouts).
- * 
+ *
  * ## Docking
- * 
+ *
  * Docking enables you to place additional Components at the top, right, bottom or left edges of the parent Container,
- * resizing the other items as necessary. For example, let's say we're using an {@link Ext.layout.HBox hbox layout} 
+ * resizing the other items as necessary. For example, let's say we're using an {@link Ext.layout.HBox hbox layout}
  * with a couple of items and we want to add a banner to the top so that we end up with something like this:
- * 
+ *
  * {@img ../guides/layouts/docktop.jpg}
- * 
+ *
  * This is simple to achieve with the *dock: 'top'* configuration below. We can dock as many of the items as we like,
  * to either the top, right, bottom or left edges of the Container:
- * 
+ *
  *     Ext.create('Ext.Container', {
  *         fullscreen: true,
  *         layout: 'hbox',
@@ -42,14 +42,14 @@
  *             }
  *         ]
  *     });
- * 
+ *
  * Similarly, to dock something to the left of a layout (a {@link Ext.layout.VBox vbox} in this case), such as the
  * following:
- * 
+ *
  * {@img ../guides/layouts/dockleft.jpg}
- * 
+ *
  * We can simply dock to the left:
- * 
+ *
  *     Ext.create('Ext.Container', {
  *         fullscreen: true,
  *         layout: 'vbox',
@@ -69,7 +69,7 @@
  *             }
  *         ]
  *     });
- * 
+ *
  * We can also dock to the bottom and right and use other layouts than hbox and vbox ({@link Ext.layout.Card card} and
  * {@link Ext.layout.Fit fit} layouts both accept docking too).
  */
@@ -132,7 +132,7 @@ Ext.define('Ext.layout.Default', {
 
         this.centeringWrappers = {};
 
-        this.callParent([config]);
+        this.initConfig(config);
     },
 
     reapply: Ext.emptyFn,
@@ -209,7 +209,7 @@ Ext.define('Ext.layout.Default', {
      */
     doItemMove: function(item, toIndex, fromIndex) {
         if (item.isCentered()) {
-            item.setZIndex(toIndex + 100); //they should always be above other things on the page
+            item.setZIndex(toIndex + 200); //they should always be above other things on the page
         }
         else {
             this.insertItem(item, toIndex);
@@ -233,14 +233,23 @@ Ext.define('Ext.layout.Default', {
      */
     doItemFloatingChange: function(item, floating) {
         var element = item.element,
-            floatingItemCls = this.floatingItemCls;
+            floatingItemCls = this.floatingItemCls,
+            zIndex = this.container.indexOf(item) + 100;
+
+        if (item.getCentered()) {
+            zIndex += 100;
+        }
 
         if (floating) {
             // If we are floating and not centered, add a modal mask
             if (item.getModal() && !item.getCentered()) {
                 this.addModalMask(item);
+
+                //if it is modal, we want it to overlap everything else on the page, even other floating items
+                zIndex += 100;
             }
-            item.setZIndex(this.container.indexOf(item) + 100); //they should always be above other things on the page
+
+            item.setZIndex(zIndex); //they should always be above other things on the page
             element.addCls(floatingItemCls);
         }
         else {
@@ -249,37 +258,44 @@ Ext.define('Ext.layout.Default', {
         }
     },
 
-    //TODO Jacky: help optimizing this
     addModalMask: function(item) {
-        var container = this.container,
-            modalMask = container.modalMask;
+        var me = this,
+            container = me.container,
+            onMaskTap;
 
-        if (!modalMask) {
-            container.modalMask = modalMask = new Ext.Mask();
-        }
+        //show the container mask
+        container.mask();
 
-        // Ensure the mask is the first item in the container
-        container.element.append(modalMask.renderElement);
-
-        if (item.isPainted()) {
-            modalMask.show();
-        }
-
+        //if the hideOnMaskTap configuration is set to yes, add a listener to the mask to unmask the
+        //container and hide the item
         if (item.getHideOnMaskTap()) {
-            modalMask.on({
-                tap: function(mask) {
-                    mask.hide();
-                    item.hide();
-                }
-            });
+            onMaskTap = function() {
+                container.unmask();
+                item.hide();
+            };
         }
 
+        //listen to the erased and painted events. erased means we should hide the mask. painted means we should
+        //show the mask, again.
         item.on({
             erased: function() {
-                modalMask.hide();
+                container.unmask();
+
+                //make sure we remove the listener from the mask
+                if (onMaskTap) {
+                    container.getMask().un('tap', onMaskTap, me);
+                }
             },
             painted: function() {
-                modalMask.show();
+                container.mask();
+
+                //set the xindex of the mask to 1 below the actual item
+                container.getMask().setZIndex(container.indexOf(item) + 199);
+
+                //add the tap listener
+                if (onMaskTap) {
+                    container.getMask().on('tap', onMaskTap, me);
+                }
             }
         });
     },
@@ -300,8 +316,12 @@ Ext.define('Ext.layout.Default', {
     doActiveItemChange: Ext.emptyFn,
 
     centerItem: function(item) {
+        var zIndex = this.container.indexOf(item) + 200;
+
         this.insertItem(item, 0);
-        item.setZIndex(this.container.indexOf(item) + 1);
+
+        item.setZIndex(zIndex);
+
         this.createCenteringWrapper(item);
 
         // TODO: Jacky think more about this
@@ -368,33 +388,15 @@ Ext.define('Ext.layout.Default', {
         var id = item.getId(),
             wrappers = this.centeringWrappers,
             renderElement = item.renderElement,
-            maskCls = this.maskCls,
             wrapper;
 
         wrappers[id] = wrapper = renderElement.wrap({
             className: this.centeredItemCls
         });
 
-        //TODO Jacky: help optimizing this
-        // If we are modal, use the centering wrapper as the masking element, just add the maskCls
+        //if it is modal, we need to add the mask
         if (item.getModal()) {
-            if (item.getHideOnMaskTap()) {
-                wrapper.on({
-                    tap: function() {
-                        item.hide();
-                        wrapper.removeCls(maskCls);
-                    }
-                });
-            }
-
-            item.on({
-                painted: function() {
-                    wrapper.addCls(maskCls);
-                },
-                erased: function() {
-                    wrapper.removeCls(maskCls);
-                }
-            })
+            this.addModalMask(item);
         }
 
         return wrapper;
@@ -443,17 +445,19 @@ Ext.define('Ext.layout.Default', {
                // Retrieve the *physical* index of that relativeItem
                domIndex = innerItems.indexOf(relativeItem);
 
-               while (relativeItem && (relativeItem.isCentered() || relativeItem.isDocked())) {
-                   relativeItem = innerItems[++domIndex];
-               }
+               if (domIndex !== -1) {
+                   while (relativeItem && (relativeItem.isCentered() || relativeItem.isDocked())) {
+                       relativeItem = innerItems[++domIndex];
+                   }
 
-               if (relativeItem) {
-                   innerItems.splice(domIndex, 0, item);
+                   if (relativeItem) {
+                       innerItems.splice(domIndex, 0, item);
 
-                   relativeItemDom = relativeItem.renderElement.dom;
-                   containerDom.insertBefore(itemDom, relativeItemDom);
+                       relativeItemDom = relativeItem.renderElement.dom;
+                       containerDom.insertBefore(itemDom, relativeItemDom);
 
-                   return this;
+                       return this;
+                   }
                }
            }
        }

@@ -1,11 +1,12 @@
 Ext.define('Kiva.view.detail.Information', {
-    extend: 'Ext.Component',
+    extend: 'Ext.Container',
     xtype: 'detailInformation',
     requires: ['Ext.XTemplate'],
 
     config: {
         cls: 'detail-card',
         styleHtmlContent: true,
+        scrollable: 'auto',
 
         tpl: Ext.create('Ext.XTemplate',
             '<h1>{name}</h1>',

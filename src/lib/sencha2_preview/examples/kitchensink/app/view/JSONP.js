@@ -1,7 +1,6 @@
 Ext.define('Kitchensink.view.JSONP', {
     extend: 'Ext.Container',
     config: {
-        layout: 'fit',
         scrollable: true,
         items: [{
                 xtype: 'panel',
@@ -25,7 +24,9 @@ Ext.define('Kitchensink.view.JSONP', {
                         '</div>'
                     ]);
 
-                    panel.element.mask('Loading...', 'x-mask-loading', false);
+                    panel.getParent().setMask({
+                        message: 'Loading...'
+                    });
 
                     Ext.util.JSONP.request({
                         url: 'http://free.worldweatheronline.com/feed/weather.ashx',
@@ -47,7 +48,7 @@ Ext.define('Kitchensink.view.JSONP', {
                                 alert('There was an error retrieving the weather.');
                             }
 
-                            panel.element.unmask();
+                            panel.getParent().unmask();
                         }
                     });
                 }

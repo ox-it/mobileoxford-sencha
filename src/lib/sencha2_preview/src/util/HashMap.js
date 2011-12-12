@@ -128,7 +128,7 @@ Ext.define('Ext.util.HashMap', {
 
     /**
      * Replaces an item in the hash. If the key doesn't exist, the
-     * {@link #add} method will be used.
+     * {@link #method-add} method will be used.
      * @param {String} key The key of the item.
      * @param {Object} value The new value for the item.
      * @return {Object} The new value of the item.

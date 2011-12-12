@@ -48,11 +48,13 @@ Ext.define('Ext.tab.Tab', {
 
     /**
      * @event activate
+     * Fires when a tab is activated
      * @param {Ext.tab.Tab} this
      */
 
     /**
      * @event deactivate
+     * Fires when a tab is deactivated
      * @param {Ext.tab.Tab} this
      */
 

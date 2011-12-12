@@ -23,6 +23,8 @@ Ext.define('Ext.Map', {
     xtype : 'map',
     requires: ['Ext.util.GeoLocation'],
 
+    isMap: true,
+
     config: {
         /**
          * @event maprender
@@ -157,20 +159,34 @@ Ext.define('Ext.Map', {
             map = me.getMap(),
             event;
 
+        if (!me.isPainted()) {
+            me.on({
+                painted: 'renderMap',
+                scope: me,
+                single: true
+            });
+            return;
+        }
+
         if (gm) {
             if (Ext.is.iPad) {
-                Ext.merge(mapOptions, {
+                Ext.merge({
                     navigationControlOptions: {
                         style: gm.NavigationControlStyle.ZOOM_PAN
                     }
-                });
+                }, mapOptions);
             }
 
-            Ext.merge(mapOptions, {
-                center: new gm.LatLng(37.381592, -122.135672), // Palo Alto
+            mapOptions = Ext.merge({
                 zoom: 12,
                 mapTypeId: gm.MapTypeId.ROADMAP
-            });
+            }, mapOptions);
+
+            // This is done separately from the above merge so we don't have to instantiate
+            // a new LatLng if we don't need to
+            if (!mapOptions.hasOwnProperty('center')) {
+                mapOptions.center = new gm.LatLng(37.381592, -122.135672); // Palo Alto
+            }
 
             if (element.dom.firstChild) {
                 Ext.fly(element.dom.firstChild).remove();
@@ -195,21 +211,13 @@ Ext.define('Ext.Map', {
 
     // @private
     onGeoUpdate: function(geo) {
-        var center;
         if (geo) {
-            center = this.getMapOptions().center = new google.maps.LatLng(geo.getLatitude(), geo.getLongitude());
+            this.setMapCenter(new google.maps.LatLng(geo.getLatitude(), geo.getLongitude()));
         }
-
-        this.setHtml(center);
     },
 
     // @private
     onGeoError: Ext.emptyFn,
-
-    // @private
-    onUpdate: function(map, e, options) {
-        this.setHtml((options || {}).data);
-    },
 
     /**
      * Moves the map center to the designated coordinates hash of the form:
@@ -221,7 +229,7 @@ Ext.define('Ext.Map', {
      * @param {Object/google.maps.LatLng} coordinates Object representing the desired Latitude and
      * longitude upon which to center the map.
      */
-    update: function(coordinates) {
+    setMapCenter: function(coordinates) {
         var me = this,
             map = me.getMap(),
             gm = (window.google || {}).maps;
@@ -241,37 +249,57 @@ Ext.define('Ext.Map', {
             if (map && coordinates instanceof gm.LatLng) {
                 map.panTo(coordinates);
             }
+            else {
+                this.setMapOptions(Ext.apply(this.getMapOptions(), {
+                    center: coordinates
+                }));
+            }
         }
     },
 
     // @private
     onZoomChange : function() {
         var mapOptions = this.getMapOptions(),
-            map = this.getMap();
+            map = this.getMap(),
+            zoom;
 
-        mapOptions.zoom = (map && map.getZoom) ? map.getZoom() : mapOptions.zoom || 10;
+        zoom = (map && map.getZoom) ? map.getZoom() : mapOptions.zoom || 10;
 
-        this.fireEvent('zoomchange', this, map, mapOptions.zoom);
+        this.setMapOptions(Ext.apply(mapOptions, {
+            zoom: zoom
+        }));
+
+        this.fireEvent('zoomchange', this, map, zoom);
     },
 
     // @private
     onTypeChange : function() {
         var mapOptions = this.getMapOptions(),
-            map = this.getMap();
+            map = this.getMap(),
+            mapTypeId;
 
-        mapOptions.mapTypeId = (map && map.getMapTypeId) ? map.getMapTypeId() : mapOptions.mapTypeId;
+        mapTypeId = (map && map.getMapTypeId) ? map.getMapTypeId() : mapOptions.mapTypeId;
 
-        this.fireEvent('typechange', this, map, mapOptions.mapTypeId);
+        this.setMapOptions(Ext.apply(mapOptions, {
+            mapTypeId: mapTypeId
+        }));
+
+        this.fireEvent('typechange', this, map, mapTypeId);
     },
 
     // @private
     onCenterChange: function() {
         var mapOptions = this.getMapOptions(),
-            map = this.getMap();
+            map = this.getMap(),
+            center;
 
-        mapOptions.center = (map && map.getCenter) ? map.getCenter() : mapOptions.center;
+        center = (map && map.getCenter) ? map.getCenter() : mapOptions.center;
 
-        this.fireEvent('centerchange', this, map, mapOptions.center);
+        this.setMapOptions(Ext.apply(mapOptions, {
+            center: center
+        }));
+
+        this.fireEvent('centerchange', this, map, center);
 
     },
 
@@ -297,4 +325,17 @@ Ext.define('Ext.Map', {
      * @return {Object} mapOptions
      */
     Ext.deprecateClassMethod(this, 'getState', 'getMapOptions');
+
+    /**
+     * @deprecated 2.0.0
+     * Moves the map center to the designated coordinates hash of the form:
+     *
+     *     { latitude: 37.381592, longitude: -122.135672 }
+     *
+     * or a google.maps.LatLng object representing to the target location.
+     *
+     * @param {Object/google.maps.LatLng} coordinates Object representing the desired Latitude and
+     * longitude upon which to center the map.
+     */
+    Ext.deprecateClassMethod(this, 'update', 'setMapCenter');
 });

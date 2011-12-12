@@ -5,7 +5,7 @@
  * Note that the MessageBox is asynchronous. Unlike a regular JavaScript `alert` (which will halt browser execution),
  * showing a MessageBox will not cause the code to stop. For this reason, if you have code that should only run _after_
  * some user feedback from the MessageBox, you must use a callback function (see the `fn` configuration option parameter
- * for the {@link #show show} method for more details).
+ * for the {@link #method-show show} method for more details).
  *
  * # Example usage:
  *
@@ -297,12 +297,13 @@ Ext.define('Ext.MessageBox', {
     // pass `fn` config to show method instead
     onClick: function(button) {
         if (button) {
-            var config = button.userConfig || {};
+            var config = button.userConfig || {},
+                initialConfig = button.getInitialConfig();
 
             if (typeof config.fn == 'function') {
                 config.fn.call(
                     config.scope || null,
-                    button.itemId || button.text,
+                    initialConfig.itemId || initialConfig.text,
                     config.input ? config.input.dom.value : null,
                     config
                 );

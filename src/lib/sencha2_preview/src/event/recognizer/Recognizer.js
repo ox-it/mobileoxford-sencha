@@ -1,4 +1,26 @@
 /**
+ * A base class for all event recognisers in Sencha Touch.
+ * 
+ * Sencha Touch, by default, includes various different {@link Ext.event.recognizer.Recognizer} subclasses to recognise 
+ * events happening in your application.
+ * 
+ * ## Default recognisers
+ * 
+ * * {@link Ext.event.recognizer.Tap}
+ * * {@link Ext.event.recognizer.DoubleTap}
+ * * {@link Ext.event.recognizer.LongPress}
+ * * {@link Ext.event.recognizer.Drag}
+ * * {@link Ext.event.recognizer.HorizontalSwipe}
+ * * {@link Ext.event.recognizer.Pinch}
+ * * {@link Ext.event.recognizer.Rotate}
+ * 
+ * ## Additional recognisers
+ * 
+ * * {@link Ext.event.recognizer.VerticalSwipe}
+ * 
+ * If you want to create custom recognisers, or disable recognisers in your Sencha Touch application, please refer to the
+ * documentation in {@link Ext#setup}.
+ * 
  * @private
  */
 Ext.define('Ext.event.recognizer.Recognizer', {

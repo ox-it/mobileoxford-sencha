@@ -24,9 +24,9 @@ fieldset         {@link Ext.form.FieldSet}
  * functionality.
  */
 Ext.define('Ext.field.Field', {
-    extend: 'Ext.Component',
+    extend: 'Ext.Decorator',
     alternateClassName: 'Ext.form.Field',
-    alias : 'widget.field',
+    xtype: 'field',
     requires: [
         'Ext.field.Input'
     ],
@@ -54,29 +54,18 @@ Ext.define('Ext.field.Field', {
         label: null,
 
         /**
-         * @cfg {String} labelAlign The position to render the label relative to the field input. Defaults to 'left'.
+         * @cfg {String} labelAlign The position to render the label relative to the field input.
+         * Available options are: 'top', 'left', 'bottom' and 'right'
+         * Defaults to 'left'
          * @accessor
          */
-        labelAlign: null,
+        labelAlign: 'left',
 
         /**
          * @cfg {Number} labelWidth The width to make this field's label (defaults to 30%).
          * @accessor
          */
         labelWidth: '30%',
-
-        /**
-         * @cfg {Boolean/Object} input An instance of the inner input for this field, if one
-         * has been defined.
-         * @todo
-         * @accessor
-         */
-        component: null,
-
-        /**
-         * @cfg {Boolean} useClearIcon True to use a clear icon in this field
-         * @accessor
-         */
 
         /**
          * @cfg {Boolean} clearIcon True to use a clear icon in this field
@@ -112,7 +101,7 @@ Ext.define('Ext.field.Field', {
         /**
          * @cfg {String} name The field's HTML name attribute.
          * <b>Note</b>: this property must be set if this field is to be automatically included with
-         * {@link Ext.form.Panel#submit form submit()}.
+         * {@link Ext.form.Panel#method-submit form submit()}.
          * @accessor
          */
         name: null,
@@ -129,6 +118,15 @@ Ext.define('Ext.field.Field', {
          * @accessor
          */
         tabIndex: null
+
+        /**
+         * @cfg {Object} component The inner component for this field.
+         */
+
+        /**
+         * @cfg {Boolean} fullscreen
+         * @hide
+         */
     },
 
     cachedConfig: {
@@ -143,17 +141,6 @@ Ext.define('Ext.field.Field', {
          * @accessor
          */
         requiredCls: Ext.baseCSSPrefix + 'field-required'
-    },
-
-    // @inherit
-    constructor: function(config) {
-        config = config || {};
-
-        if (config.hasOwnProperty('useClearIcon')) {
-            config.clearIcon = config.useClearIcon;
-        }
-
-        this.callParent([config]);
     },
 
     getElementConfig: function() {
@@ -223,22 +210,6 @@ Ext.define('Ext.field.Field', {
         }
     },
 
-    // @private
-    applyComponent: function(config) {
-        return Ext.factory(config);
-    },
-
-    // @private
-    updateComponent: function(newComponent) {
-        if (this.componentElement) {
-            this.componentElement.destroy();
-        }
-
-        if (newComponent) {
-            this.componentElement = this.innerElement.appendChild(newComponent.element);
-        }
-    },
-
     /**
      * Updates the {@link #required} configuration
      * @private
@@ -260,7 +231,7 @@ Ext.define('Ext.field.Field', {
     // @private
     initialize: function() {
         var me = this;
-        me.callParent(arguments);
+        me.callParent();
 
         me.doInitValue();
     },
@@ -318,20 +289,21 @@ Ext.define('Ext.field.Field', {
                 }
             };
 
-            // {@link #input}
             /**
              * @member Ext.field.Field
              * @cfg {String} inputCls CSS class to add to the input element
-             * @deprecated 2.0.0 Deprecated, please use {@link #input}.inputCls
+             * @todo this probably should not be deprecated
+             * @deprecated 2.0.0 Deprecated, please use {@link #component}.inputCls
              */
-            deprecateProperty('inputCls', 'input', 'inputCls');
-            
+            deprecateProperty('inputCls', 'input', 'cls');
+
             /**
              * @member Ext.field.Field
              * @cfg {String} fieldCls CSS class to add to the field
-             * @deprecated 2.0.0 Deprecated, please use {@link #input}.inputCls
+             * @todo this probably should not be deprecated, plus it is not input cls
+             * @deprecated 2.0.0 Deprecated, please use {@link #component}.inputCls
              */
-            deprecateProperty('fieldCls', 'input', 'inputCls');
+            deprecateProperty('fieldCls', 'input', 'cls');
 
             /**
              * @member Ext.field.Field
@@ -339,6 +311,13 @@ Ext.define('Ext.field.Field', {
              * @deprecated 2.0.0 Please use the {@link #label} configuration instead
              */
             deprecateProperty('fieldLabel', null, 'label');
+
+            /**
+             * @member Ext.field.Field
+             * @cfg {String} useClearIcon True to use a clear icon in this field
+             * @deprecated 2.0.0 Please use the {@link #clearIcon} configuration instead
+             */
+            deprecateProperty('useClearIcon', null, 'clearIcon');
 
             //<debug warn>
             if (config.hasOwnProperty('autoCreateField')) {
@@ -350,7 +329,7 @@ Ext.define('Ext.field.Field', {
         }
     });
 
-    prototype.__defineGetter__('fieldEl', function() {
+    Ext.Object.redefineProperty(prototype, 'fieldEl', function() {
         //<debug warn>
         Ext.Logger.deprecate("'fieldEl' is deprecated, please use getInput() to get an instance of Ext.field.Field instead", this);
         //</debug>
@@ -358,7 +337,7 @@ Ext.define('Ext.field.Field', {
         return this.getInput().input;
     });
 
-    prototype.__defineGetter__('labelEl', function() {
+    Ext.Object.redefineProperty(prototype, 'labelEl', function() {
         //<debug warn>
         Ext.Logger.deprecate("'labelEl' is deprecated", this);
         //</debug>

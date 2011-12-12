@@ -1,22 +1,22 @@
 /**
  * Encapsulates a DOM element, adding simple DOM manipulation facilities, normalizing for browser differences.
- * 
+ *
  * All instances of this class inherit the methods of Ext.Fx making visual effects easily available to all DOM elements.
- * 
- * Note that the events documented in this class are not Ext events, they encapsulate browser events. To access the 
- * underlying browser event, see Ext.EventObject.browserEvent. Some older browsers may not support the full range of 
+ *
+ * Note that the events documented in this class are not Ext events, they encapsulate browser events. To access the
+ * underlying browser event, see Ext.EventObject.browserEvent. Some older browsers may not support the full range of
  * events. Which events are supported is beyond the control of Ext JS.
- * 
+ *
  * ## Usage
- * 
+ *
  *     // by id
  *     var el = Ext.get("my-div");
- * 
+ *
  *     // by DOM element reference
  *     var el = Ext.get(myDivElement);
- * 
+ *
  * ## Composite (Collections of) Elements
- * 
+ *
  * For working with collections of Elements, see Ext.CompositeElement
  */
 Ext.define('Ext.dom.Element', {
@@ -482,9 +482,11 @@ Ext.define('Ext.dom.Element', {
     setLengthValue: function(name, value) {
         if (typeof value == 'number') {
             value = value + 'px';
+        } else if (value === null) {
+            value = 'auto';
         }
 
-        this.dom.style[name] = value;
+        this.dom.style[name] = value + ' !important';
 
         return this;
     },
@@ -601,9 +603,9 @@ Ext.define('Ext.dom.Element', {
 
         if (dom && dom.parentNode && dom.tagName != 'BODY') {
             dom.parentNode.removeChild(dom);
-            delete cache[this.id];
         }
 
+        delete cache[this.id];
         delete this.dom;
     }
 

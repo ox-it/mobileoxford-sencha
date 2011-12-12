@@ -156,6 +156,6 @@ var s = Ext.util.Format.format('&lt;div class="{0}">{1}&lt;/div>', cls, text);
         if (!Ext.isDate(v)) {
             v = new Date(Date.parse(v));
         }
-        return v.dateFormat(format || Ext.util.Format.defaultDateFormat);
+        return Ext.Date.format(v, format || Ext.util.Format.defaultDateFormat);
     }
 });

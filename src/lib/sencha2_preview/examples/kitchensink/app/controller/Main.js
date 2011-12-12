@@ -162,7 +162,9 @@ Ext.define('Kitchensink.controller.Main', {
             filename = this.getMain().getActiveItem().ref;
 
         overlay.show();
-        overlay.mask('Loading', null, true);
+        overlay.setMask({
+            message: 'Loading...'
+        });
 
         Ext.Ajax.request({
             url: 'app/view/' + filename + '.js',

@@ -2889,7 +2889,7 @@ var ExtObject = Ext.Object = {
      * @return {String[]} An array of keys from the object
      * @method
      */
-    getKeys: ('keys' in Object.prototype) ? Object.keys : function(object) {
+    getKeys: ('keys' in Object) ? Object.keys : function(object) {
         var keys = [],
             property;
 
@@ -2960,9 +2960,37 @@ var ExtObject = Ext.Object = {
         objectClass.prototype = prototype;
 
         return objectClass;
-    }
-};
+    },
 
+    redefineProperty: function() {
+        if ('defineProperty' in Object) {
+            return function(object, property, getter, setter) {
+                var obj = {
+                    configurable: true,
+                    enumerable: true
+                };
+
+                if (getter) {
+                    obj.get = getter;
+                }
+                if (setter) {
+                    obj.set = setter;
+                }
+                Object.defineProperty(object, property, obj);
+            };
+        }
+        else {
+            return function(object, property, getter, setter) {
+                if (getter) {
+                    object.__defineGetter__(property, getter);
+                }
+                if (setter) {
+                    object.__defineSetter__(property, setter);
+                }
+            };
+        }
+    }()
+};
 
 /**
  * A convenient alias method for {@link Ext.Object#merge}
@@ -4580,7 +4608,7 @@ var noArgs = [],
                 defaultConfig = new this.configClass,
                 defaultConfigList = this.initConfigList,
                 hasConfig = this.hasConfigMap,
-                nameMap, i, ln, name, initializedName, value;
+                nameMap, i, ln, name, initializedName;
 
             this.initConfig = Ext.emptyFn;
 
@@ -4595,7 +4623,10 @@ var noArgs = [],
                     if (hasConfig[name]) {
                         if (instanceConfig[name] !== null) {
                             defaultConfigList.push(name);
-                            this[configNameCache[name].initialized] = false;
+                            nameMap = configNameCache[name];
+
+                            this[nameMap.initialized] = false;
+                            this[nameMap.get] = this[nameMap.initGet];
                         }
                     }
                 }
@@ -5251,10 +5282,12 @@ var noArgs = [],
                 map = cache[name] = {
                     internal: '_' + name,
                     initialized: '_is' + capitalizedName + 'Initialized',
+                    initializing: 'is' + capitalizedName + 'Initializing',
                     apply: 'apply' + capitalizedName,
                     update: 'update' + capitalizedName,
-                    'set': 'set' + capitalizedName,
-                    'get': 'get' + capitalizedName,
+                    set: 'set' + capitalizedName,
+                    get: 'get' + capitalizedName,
+                    initGet: 'initGet' + capitalizedName,
                     doSet : 'doSet' + capitalizedName,
                     changeEvent: name.toLowerCase() + 'change'
                 }
@@ -5392,6 +5425,8 @@ var noArgs = [],
                 updateName = nameMap.update,
                 setName = nameMap.set,
                 getName = nameMap.get,
+                initGetName = nameMap.initGet,
+                initializingName = nameMap.initializing,
                 hasOwnSetter = (setName in prototype) || data.hasOwnProperty(setName),
                 hasOwnApplier = (applyName in prototype) || data.hasOwnProperty(applyName),
                 hasOwnUpdater = (updateName in prototype) || data.hasOwnProperty(updateName),
@@ -5445,12 +5480,14 @@ var noArgs = [],
                     };
                 }
 
-                data[getName] = function() {
+                data[getName] = prototype[initGetName] = function() {
                     var currentGetter;
 
                     if (!this[initializedName]) {
                         this[initializedName] = true;
+                        this[initializingName] = true;
                         this[setName](this.config[name]);
+                        this[initializingName] = false;
                     }
 
                     currentGetter = this[getName];

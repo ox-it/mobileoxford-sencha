@@ -13,6 +13,38 @@ Ext.define('Ext.scroll.scroller.Abstract', {
         'Ext.mixin.Observable'
     ],
 
+    /**
+     * @event maxpositionchange
+     * Fires whenever the maximum position has changed
+     * @param {Ext.scroll.scroller.Abstract} this
+     * @param {Number} maxPosition The new maximum position
+     */
+
+    /**
+     * @event refresh
+     * Fires whenever the Scroller is refreshed
+     */
+
+    /**
+     * @event scrollstart
+     * Fires whenever the scrolling is started
+     */
+
+    /**
+     * @event scrollend
+     * Fires whenever the scrolling is ended
+     * @param {Ext.scroll.scroller.Abstract} this
+     * @param {Object} position The new position object
+     */
+
+    /**
+     * @event scroll
+     * Fires whenever the Scroller is scrolled
+     * @param {Ext.scroll.scroller.Abstract} this
+     * @param {Number} x The new x position
+     * @param {Number} y The new y position
+     */
+
     config: {
         element: null,
 
@@ -67,6 +99,8 @@ Ext.define('Ext.scroll.scroller.Abstract', {
 
         autoRefresh: true,
 
+        directionLock: false,
+
         cls: Ext.baseCSSPrefix + 'scroll-scroller',
 
         containerCls: Ext.baseCSSPrefix + 'scroll-container'
@@ -94,6 +128,8 @@ Ext.define('Ext.scroll.scroller.Abstract', {
             drag      : 'onDrag',
             dragend   : 'onDragEnd'
         };
+
+        this.minPosition = { x: 0, y: 0 };
 
         this.startPosition = { x: 0, y: 0 };
 
@@ -151,6 +187,7 @@ Ext.define('Ext.scroll.scroller.Abstract', {
         this.onConfigUpdate(['containerSize', 'size'], 'refreshMaxPosition');
 
         this.on('maxpositionchange', 'snapToBoundary');
+        this.on('minpositionchange', 'snapToBoundary');
     },
 
     attachListeneners: function() {
@@ -175,14 +212,15 @@ Ext.define('Ext.scroll.scroller.Abstract', {
     },
 
     applyDirection: function(direction) {
-        var maxPosition = this.getMaxPosition(),
+        var minPosition = this.getMinPosition(),
+            maxPosition = this.getMaxPosition(),
             isHorizontal, isVertical;
 
         this.givenDirection = direction;
 
         if (direction === 'auto') {
-            isHorizontal = maxPosition.x > 0;
-            isVertical = maxPosition.y > 0;
+            isHorizontal = maxPosition.x > minPosition.x;
+            isVertical = maxPosition.y > minPosition.y;
 
             if (isHorizontal && isVertical) {
                 direction = 'both';
@@ -241,6 +279,21 @@ Ext.define('Ext.scroll.scroller.Abstract', {
             x: easing,
             y: easing.clone()
         };
+    },
+
+    getMinPosition: function() {
+        var minPosition = this.minPosition;
+
+        if (!minPosition) {
+            this.minPosition = minPosition = {
+                x: 0,
+                y: 0
+            };
+
+            this.fireEvent('minpositionchange', this, minPosition);
+        }
+
+        return minPosition;
     },
 
     getMaxPosition: function() {
@@ -450,10 +503,12 @@ Ext.define('Ext.scroll.scroller.Abstract', {
         this.stopAnimation();
     },
 
-    onDragStart: function() {
-        this.stopAnimation(true);
-
-        var startPosition = this.startPosition,
+    onDragStart: function(e) {
+        var direction = this.getDirection(),
+            absDeltaX = e.absDeltaX,
+            absDeltaY = e.absDeltaY,
+            directionLock = this.getDirectionLock(),
+            startPosition = this.startPosition,
             flickStartPosition = this.flickStartPosition,
             flickStartTime = this.flickStartTime,
             lastDragPosition = this.lastDragPosition,
@@ -462,6 +517,21 @@ Ext.define('Ext.scroll.scroller.Abstract', {
             x = currentPosition.x,
             y = currentPosition.y,
             now = Ext.Date.now();
+
+        this.isDragging = true;
+
+        if (directionLock && direction !== 'both') {
+            if ((direction === 'horizontal' && absDeltaX > absDeltaY)
+                || (direction === 'vertical' && absDeltaY > absDeltaX)) {
+                e.stopPropagation();
+            }
+            else {
+                this.isDragging = false;
+                return;
+            }
+        }
+
+        this.stopAnimation(true);
 
         lastDragPosition.x = x;
         lastDragPosition.y = y;
@@ -482,7 +552,7 @@ Ext.define('Ext.scroll.scroller.Abstract', {
 
         this.isDragging = true;
 
-        this.fireEvent('scrollstart');
+        this.fireEvent('scrollstart', this);
     },
 
     onAxisDrag: function(axis, delta) {
@@ -495,6 +565,7 @@ Ext.define('Ext.scroll.scroller.Abstract', {
             lastDragPosition = this.lastDragPosition,
             dragDirection = this.dragDirection,
             old = this.position[axis],
+            min = this.getMinPosition()[axis],
             max = this.getMaxPosition()[axis],
             start = this.startPosition[axis],
             last = lastDragPosition[axis],
@@ -505,7 +576,7 @@ Ext.define('Ext.scroll.scroller.Abstract', {
             now = Ext.Date.now(),
             distance;
 
-        if (current < 0) {
+        if (current < min) {
             current *= restrictFactor;
         }
         else if (current > max) {
@@ -572,13 +643,14 @@ Ext.define('Ext.scroll.scroller.Abstract', {
         var currentPosition = this.position[axis],
             flickStartPosition = this.flickStartPosition[axis],
             flickStartTime = this.flickStartTime[axis],
+            minPosition = this.getMinPosition()[axis],
             maxPosition = this.getMaxPosition()[axis],
             maxAbsVelocity = this.getMaxAbsoluteVelocity(),
             boundValue = null,
             easing, velocity, duration;
 
-        if (currentPosition < 0) {
-            boundValue = 0;
+        if (currentPosition < minPosition) {
+            boundValue = minPosition;
         }
         else if (currentPosition > maxPosition) {
             boundValue = maxPosition;
@@ -744,6 +816,20 @@ Ext.define('Ext.scroll.scroller.Abstract', {
         this.startAnimation();
     },
 
+    /**
+     * Scrolls to the end of the scrollable view
+     */
+    scrollToEnd: function() {
+        this.scrollTo(0, this.getSize().y - this.getContainerSize().y);
+    },
+
+    /**
+     * Scrolls to the end of the scrollable view, animated.
+     */
+    scrollToEndAnimated: function() {
+        this.scrollToAnimated(0, this.getSize().y - this.getContainerSize().y);
+    },
+
     onScrollEnd: function() {
         if (this.isSnapping) {
             this.isSnapping = false;
@@ -773,11 +859,8 @@ Ext.define('Ext.scroll.scroller.Abstract', {
     },
 
     snapValueForAxis: function(value, axis) {
-        var containerSize = this.getContainerSize()[axis],
-            containerScrollSize = this.getContainerScrollSize()[axis],
-            snap = this.getSnap(),
-            offset = this.getSnapOffset()[axis],
-            easing;
+        var snap = this.getSnap(),
+            offset = this.getSnapOffset()[axis];
 
         value = Math.round((value + offset) / snap) * snap;
 
@@ -786,21 +869,24 @@ Ext.define('Ext.scroll.scroller.Abstract', {
 
     snapToBoundary: function() {
         var position    = this.position,
+            minPosition = this.getMinPosition(),
             maxPosition = this.getMaxPosition(),
+            minX = minPosition.x,
+            minY = minPosition.y,
             maxX = maxPosition.x,
             maxY = maxPosition.y,
             x = position.x,
             y = position.y;
 
-        if (x < 0) {
-            x = 0;
+        if (x < minX) {
+            x = minX;
         }
         else if (x > maxX) {
             x = maxX;
         }
 
-        if (y < 0) {
-            y = 0;
+        if (y < minY) {
+            y = minY;
         }
         else if (y > maxY) {
             y = maxY;

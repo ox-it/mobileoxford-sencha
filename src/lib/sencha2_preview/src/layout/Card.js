@@ -46,6 +46,14 @@ Ext.define('Ext.layout.Card', {
     extend: 'Ext.layout.Fit',
     alternateClassName: 'Ext.layout.CardLayout',
 
+    /**
+     * @event activeitemchange
+     * @preventable doActiveItemChange
+     * Fires when an card is made active
+     * @param {Mixed} newActiveItem The new active item
+     * @param {Mixed} oldActiveItem The old active item
+     */
+
     requires: [
         'Ext.fx.layout.Card'
     ],
@@ -76,7 +84,9 @@ Ext.define('Ext.layout.Card', {
      * @private
      */
     updateAnimation: function(animation, oldAnimation) {
-        animation.setLayout(this);
+        if (animation && animation.isAnimation) {
+            animation.setLayout(this);
+        }
 
         if (oldAnimation) {
             oldAnimation.destroy();
@@ -87,32 +97,29 @@ Ext.define('Ext.layout.Card', {
      * @private
      */
     doItemAdd: function(item, index) {
+        this.callParent(arguments);
+
         if (item.isInnerItem()) {
-            item.addCls(this.itemCls);
             item.hide();
         }
-
-        this.callParent(arguments);
     },
 
     /**
      * @private
      */
     doItemRemove: function(item) {
+        this.callParent(arguments);
+
         if (item.isInnerItem()) {
-            item.removeCls(this.itemCls);
             item.show();
         }
-
-        this.callParent(arguments);
     },
 
     /**
      * @private
      */
     onActiveItemChange: function(newActiveItem, oldActiveItem) {
-        this.fireAction(this.eventNames.activeItemChange, [newActiveItem, oldActiveItem],
-            this.doActiveItemChange);
+        this.fireAction(this.eventNames.activeItemChange, [newActiveItem, oldActiveItem], 'doActiveItemChange');
     },
 
     /**

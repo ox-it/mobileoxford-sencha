@@ -15,15 +15,12 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js"><span id='Ext-scroll-easing-BoundMomentum'>/**
-</span> * @private
- */
-Ext.define('Ext.scroll.easing.BoundMomentum', {
-    extend: 'Ext.scroll.easing.Easing',
+  <pre class="prettyprint lang-js">Ext.define('Ext.fx.easing.BoundMomentum', {
+    extend: 'Ext.fx.easing.Abstract',
 
     requires: [
-        'Ext.scroll.easing.Momentum',
-        'Ext.scroll.easing.Bounce'
+        'Ext.fx.easing.Momentum',
+        'Ext.fx.easing.Bounce'
     ],
 
     config: {
@@ -41,11 +38,11 @@ Ext.define('Ext.scroll.easing.BoundMomentum', {
     },
 
     applyMomentum: function(config, currentEasing) {
-        return Ext.factory(config, Ext.scroll.easing.Momentum, currentEasing);
+        return Ext.factory(config, Ext.fx.easing.Momentum, currentEasing);
     },
 
     applyBounce: function(config, currentEasing) {
-        return Ext.factory(config, Ext.scroll.easing.Bounce, currentEasing);
+        return Ext.factory(config, Ext.fx.easing.Bounce, currentEasing);
     },
 
     updateStartTime: function(startTime) {

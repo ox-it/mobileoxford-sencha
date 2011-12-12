@@ -41,7 +41,7 @@
  *
  * <p><u>Inline data</u></p>
  *
- * <p>Stores can also load data inline. Internally, Store converts each of the objects we pass in as {@link #data}
+ * <p>Stores can also load data inline. Internally, Store converts each of the objects we pass in as {@link #cfg-data}
  * into Model instances:</p>
  *
  <pre><code>
@@ -60,7 +60,7 @@
  * to be processed by a {@link Ext.data.reader.Reader reader}). If your inline data requires processing to decode the data structure,
  * use a {@link Ext.data.proxy.Memory MemoryProxy} instead (see the {@link Ext.data.proxy.Memory MemoryProxy} docs for an example).</p>
  *
- * <p>Additional data can also be loaded locally using {@link #add}.</p>
+ * <p>Additional data can also be loaded locally using {@link #method-add}.</p>
  *
  * <p><u>Loading Nested Data</u></p>
  *
@@ -213,8 +213,7 @@ Ext.define('Ext.data.Store', {
 
     alias: 'store.store',
 
-    requires: ['Ext.data.StoreManager', 'Ext.ModelManager', 'Ext.data.Model', 'Ext.util.Grouper'],
-    uses: ['Ext.data.proxy.Memory'],
+    requires: ['Ext.data.StoreManager', 'Ext.ModelManager', 'Ext.data.Model', 'Ext.util.Grouper', 'Ext.data.proxy.Memory'],
 
     /**
      * @cfg {Boolean} remoteSort
@@ -775,8 +774,8 @@ Ext.define('Ext.data.Store', {
         return '';
     },
     /**
-     * Inserts Model instances into the Store at the given index and fires the {@link #add} event.
-     * See also <code>{@link #add}</code>.
+     * Inserts Model instances into the Store at the given index and fires the {@link #event-add} event.
+     * See also <code>{@link #method-add}</code>.
      * @param {Number} index The start index at which to insert the passed Records.
      * @param {Ext.data.Model[]} records An Array of Ext.data.Model objects to add to the cache.
      */
@@ -1305,8 +1304,8 @@ Ext.define('Ext.data.Store', {
     },
 
     /**
-     * Loads an array of {@Ext.data.Model model} instances into the store, fires the datachanged event. This should only usually
-     * be called internally when loading from the {@link Ext.data.proxy.Proxy Proxy}, when adding records manually use {@link #add} instead
+     * Loads an array of {@link Ext.data.Model model} instances into the store, fires the datachanged event. This should only usually
+     * be called internally when loading from the {@link Ext.data.proxy.Proxy Proxy}, when adding records manually use {@link #method-add} instead
      * @param {Ext.data.Model[]} records The array of records to load
      * @param {Object} options {addRecords: true} to add these records to the existing records, false to remove the Store's existing records first
      */
@@ -1356,7 +1355,7 @@ Ext.define('Ext.data.Store', {
      * Loads a given 'page' of data by setting the start and limit values appropriately. Internally this just causes a normal
      * load operation, passing in calculated 'start' and 'limit' params
      * @param {Number} page The number of the page to load
-     * @param {Object} options See options for {@link #load}
+     * @param {Object} options See options for {@link #method-load}
      */
     loadPage: function(page, options) {
         var me = this;
@@ -1374,7 +1373,7 @@ Ext.define('Ext.data.Store', {
 
     /**
      * Loads the next 'page' in the current data set
-     * @param {Object} options See options for {@link #load}
+     * @param {Object} options See options for {@link #method-load}
      */
     nextPage: function(options) {
         this.loadPage(this.currentPage + 1, options);
@@ -1382,7 +1381,7 @@ Ext.define('Ext.data.Store', {
 
     /**
      * Loads the previous 'page' in the current data set
-     * @param {Object} options See options for {@link #load}
+     * @param {Object} options See options for {@link #method-load}
      */
     previousPage: function(options) {
         this.loadPage(this.currentPage - 1, options);
@@ -1402,7 +1401,7 @@ Ext.define('Ext.data.Store', {
     /**
      * Prefetches data into the store using its configured {@link #proxy}.
      * @param {Object} options (Optional) config object, passed into the Ext.data.Operation object before loading.
-     * See {@link #load}
+     * See {@link #method-load}
      */
     prefetch: function(options) {
         var me = this,
@@ -1437,7 +1436,7 @@ Ext.define('Ext.data.Store', {
      * Prefetches a page of data.
      * @param {Number} page The page to prefetch
      * @param {Object} options (Optional) config object, passed into the Ext.data.Operation object before loading.
-     * See {@link #load}
+     * See {@link #method-load}
      */
     prefetchPage: function(page, options) {
         var me = this,
@@ -1892,7 +1891,7 @@ Ext.define('Ext.data.Store', {
      * Gets the number of cached records.
      * <p>If using paging, this may not be the total size of the dataset. If the data object
      * used by the Reader contains the dataset size, then the {@link #getTotalCount} function returns
-     * the dataset size.  <b>Note</b>: see the Important note in {@link #load}.</p>
+     * the dataset size.  <b>Note</b>: see the Important note in {@link #method-load}.</p>
      * @return {Number} The number of Records in the Store's cache.
      */
     getCount: function() {

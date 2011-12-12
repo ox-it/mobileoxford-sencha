@@ -12,7 +12,7 @@ Ext.define('Ext.Title', {
         /**
          * @cfg {String} title The title text
          */
-        title: '&nbsp'
+        title: ''
     },
 
     // @private

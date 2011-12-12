@@ -20,8 +20,8 @@ Ext.define('Kiva.view.Detail', {
 
     requires: [
         'Kiva.view.detail.Information',
-        'Kiva.view.detail.Schedule'
-        // 'Kiva.view.detail.Map'
+        'Kiva.view.detail.Schedule',
+        'Kiva.view.detail.Map'
     ],
 
     config: {
@@ -50,8 +50,8 @@ Ext.define('Kiva.view.Detail', {
                 flex: 1,
                 items: [
                     { xtype: 'detailInformation' },
-                    { xtype: 'detailSchedule' }
-                    // { xtype: 'detailMap' }
+                    { xtype: 'detailSchedule' },
+                    { xtype: 'detailMap' }
                 ]
             },
             {
@@ -66,42 +66,47 @@ Ext.define('Kiva.view.Detail', {
     show: function(animation) {
         this.callParent();
 
+        this.getParent().setMask(true);
+
         Ext.Animator.run([{
             element  : this.element,
             xclass   : 'Ext.fx.animation.SlideIn',
             direction: Ext.os.deviceType == "Phone" ? "up" : "left",
             duration : this.animationDuration
         }, {
-            element : 'ext-mask-1',
-            xclass  : 'Ext.fx.animation.FadeIn',
-            duration: this.animationDuration
+            element  : this.getParent().getMask().element,
+            xclass   : 'Ext.fx.animation.FadeIn',
+            direction: Ext.os.deviceType == "Phone" ? "up" : "left",
+            duration : this.animationDuration
         }]);
     },
 
     hide: function(animation) {
-        var me = this,
-            mask = Ext.getCmp('ext-mask-1');
+        var me = this;
 
         //we fire this event so the controller can deselect all items immediately.
-        this.fireEvent('hideanimationstart', this);
+        me.fireEvent('hideanimationstart', me);
 
-        //show the mask element so we can animation it out (it is already shown at this point)
-        mask.show();
+        //show the mask again
+        me.getParent().setMask(true);
 
         Ext.Animator.run([{
             element  : me.element,
             xclass   : 'Ext.fx.animation.SlideOut',
-            duration : this.animationDuration,
+            duration : me.animationDuration,
             preserveEndState: false,
             direction: Ext.os.deviceType == "Phone" ? "down" : "right",
             onEnd: function() {
                 me.setHidden(true);
-                mask.setHidden(true);
             }
         }, {
-            element : 'ext-mask-1',
-            xclass  : 'Ext.fx.animation.FadeOut',
-            duration: this.animationDuration
+            element  : me.getParent().getMask().element,
+            xclass   : 'Ext.fx.animation.FadeOut',
+            direction: Ext.os.deviceType == "Phone" ? "up" : "left",
+            duration : me.animationDuration,
+            onEnd: function() {
+                me.getParent().setMask(false);
+            }
         }]);
     },
 
@@ -122,13 +127,30 @@ Ext.define('Kiva.view.Detail', {
 
     updateLoan: function(newLoan) {
         var information = this.down('detailInformation'),
-            payments = this.down('detailSchedule');
+            payments = this.down('detailSchedule'),
+            map = this.down('detailMap'),
+            coords = newLoan.get('location').geo.pairs.split(' ').map(parseFloat);
 
         information.setData(newLoan.data);
         payments.setData(newLoan.data.terms.scheduled_payments);
 
         //update the lend button
         this.updateLendButton();
+
+        //update the map
+        if (this.mapMarker) {
+            this.mapMarker.setMap(null);
+            delete this.mapMarker;
+        }
+        
+        //add a marker for the Loanee's position on the map
+        this.mapMarker = new google.maps.Marker({ 
+            map: map.map, 
+            title : newLoan.get('name'),
+            position: new google.maps.LatLng(coords[0], coords[1])  
+        });
+        
+        map.update(this.mapMarker.position);
     },
 
     updateLendButton: function() {
@@ -145,196 +167,4 @@ Ext.define('Kiva.view.Detail', {
             link.dispatchEvent(clickEvent);
         });
     }
-
-    // /**
-    //  * Here we just set up the items that will go in the carousel and add a button to make it easy for the
-    //  * user to lend money to the loanee.
-    //  */
-    // initComponent: function() {
-    //     Ext.apply(this, {
-    //         items: {
-    //             xtype: 'carousel',
-    //             items: [
-    //                 this.getDetailsCard(),
-    //                 this.getPaymentsCard(),
-    //                 this.getMapCard()
-    //             ]
-    //         },
-
-    //         dockedItems: {
-    //             xtype: 'button',
-    //             text: 'Lend $25',
-    //             ui: 'action',
-    //             dock: 'bottom'
-    //         }
-    //     });
-
-    //     kiva.views.LoanInfo.superclass.initComponent.apply(this, arguments);
-    // },
-
-    // /**
-    //  * Sets the Loan instance to be displayed in the cards. If this component has already been rendered,
-    //  * the cards are updated immediately, otherwise they will be updated when the component is rendered
-    //  * @param {Ext.data.Model} loan The Loan instance
-    //  */
-    // setLoan: function(loan) {
-    //     /**
-    //      * @property instance
-    //      * @type Ext.data.Model
-    //      * The currently loaded Loan instance
-    //      */
-    //     this.instance = loan;
-
-    //     if (this.rendered) {
-    //         this.updateCards();
-    //     } else {
-    //         this.on('show', this.updateCards, this);
-    //     }
-    // },
-
-    // /**
-    //  * Returns an Ext.Component that displays details about the given loan
-    //  * @return {Ext.Component} The details component
-    //  */
-    // getDetailsCard: function() {
-    //     return new Ext.Component({
-    //         tpl: new Ext.XTemplate(
-    //             '<h1>{name}</h1>',
-    //             '<h2>{location.town}, {location.country}</h2>',
-    //             '<p class="overview">',
-    //                 '<strong>Activity:</strong> {activity}<br />',
-    //                 '<strong>Sector:</strong> {sector}<br />',
-    //                 '<strong>Amount requested:</strong> ${terms.loan_amount}<br />',
-    //                 '<strong>Amount funded:</strong> ${funded_amount}<br />',
-    //             '</p>',
-    //             '<p><strong>Overview</strong><br />{description.texts.en}</p>',
-    //             {compiled: true}
-    //         ),
-
-    //         itemId: 'detailsCard',
-    //         scroll: 'vertical',
-    //         styleHtmlContent: true,
-    //         html: '',
-    //         listeners : {
-    //             activate : function() {
-    //                 if (this.scroller) {
-    //                     this.scroller.scrollTo({x:0, y:0});
-    //                 }
-    //             }
-    //         }
-    //     });
-    // },
-
-    // /**
-    //  * Returns an Ext.Component that displays the payment schedule for the given loan
-    //  * @return {Ext.Component} The payments component
-    //  */
-    // getPaymentsCard: function() {
-    //     return new Ext.Component({
-    //         html: '',
-    //         scroll: 'vertical',
-    //         styleHtmlContent: true,
-    //         itemId: 'paymentsCard',
-
-    //         tpl: new Ext.XTemplate(
-    //             '<h1>Repayment Schedule</h1>',
-    //             '<tpl for=".">',
-    //                 '<div class="payment">',
-    //                     '<div>{[this.formatDueDate(values.due_date)]} <span>${amount}</span></div>',
-    //                 '</div>',
-    //             '</tpl>',
-    //             {
-    //                 compiled: true,
-
-    //                 /**
-    //                  * Takes a date timestamp and formats it nicely for display
-    //                  * @param {String} date The data string
-    //                  * @return {String} The formatted date string
-    //                  */
-    //                 formatDueDate: function(date) {
-    //                     var format = "j M Y",
-    //                         parsed = Date.parseDate(date, 'c');
-
-    //                     return Ext.util.Format.date(parsed, format);
-    //                 }
-    //             }
-    //         ),
-
-    //         listeners : {
-    //             activate : function() {
-    //                 if (this.scroller) {
-    //                     this.scroller.scrollTo({x:0, y:0});
-    //                 }
-    //             }
-    //         }
-    //     });
-    // },
-
-    // /**
-    //  * Returns an Ext.Map centered on the location of the Loanee
-    //  * @return {Ext.Map} The map component
-    //  */
-    // getMapCard: function() {
-    //     return new Ext.Map({
-    //         itemId: 'mapCard',
-    //         maskMap: true,
-
-    //         mapOptions: {
-    //             center: this.mapPosition,
-    //             disableDefaultUI: true,
-    //             zoom: 5
-    //         },
-
-    //         listeners : {
-    //             activate : function() {
-    //                 if (this.marker) {
-    //                     this.update(this.marker.position);
-    //                 }
-    //             },
-    //             resize : function() {
-    //                 if (this.marker) {
-    //                     this.update(this.marker.position);
-    //                 }
-    //             }
-    //         }
-    //     });
-    // },
-
-    // /**
-    //  * @private
-    //  * This is used internally by the component to update the contents of each card.
-    //  */
-    // updateCards: function() {
-    //     var detailsCard  = this.down("#detailsCard"),
-    //         paymentsCard = this.down("#paymentsCard"),
-    //         mapCard      = this.down("#mapCard"),
-    //         loan         = this.instance,
-    //         coords       = loan.get('location').geo.pairs.split(' ').map(parseFloat);
-
-    //     //updates the text in the first two cards
-    //     detailsCard.update(loan.data);
-    //     paymentsCard.update(loan.data.terms.scheduled_payments);
-
-    //     //if we already had an old marker, remove it now
-    //     if (this.mapMarker) {
-    //         this.mapMarker.setMap(null);
-    //         delete this.mapMarker;
-    //     }
-
-    //     //add a marker for the Loanee's position on the map
-    //     this.mapMarker = new google.maps.Marker({
-    //         map: mapCard.map,
-    //         title : loan.get('name'),
-    //         position: new google.maps.LatLng(coords[0], coords[1])
-    //     });
-
-    //     mapCard.update(this.mapMarker.position);
-
-    //     //finally, update the link tied to the Lend $25 button
-    //     var url    = "http://www.kiva.org/lend/" + this.instance.getId(),
-    //         text   = Ext.util.Format.format('<a href="{0}" target="_blank">Lend $25</a>', url),
-    //         button = this.getDockedItems()[0];
-
-    //     button.setText(text);
-    // }
 });

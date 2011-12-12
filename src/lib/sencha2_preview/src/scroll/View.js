@@ -22,7 +22,14 @@ Ext.define('Ext.scroll.View', {
                 axis: 'y'
             }
         },
-        cls: Ext.baseCSSPrefix + 'scroll-view'
+        cls: Ext.baseCSSPrefix + 'scroll-view',
+
+        /**
+         * @cfg {Number} flashIndicatorTimeout
+         * The amount of time to flash the indicators when {@link #flashIndicator} or {@link #flashIndicators}
+         * is called.
+         */
+        flashIndicatorTimeout: 1000
     },
 
     processConfig: function(config) {
@@ -33,7 +40,7 @@ Ext.define('Ext.scroll.View', {
         if (typeof config == 'string') {
             config = {
                 direction: config
-            }
+            };
         }
 
         config = Ext.merge({}, config);
@@ -242,6 +249,41 @@ Ext.define('Ext.scroll.View', {
     refreshIndicators: function() {
         this.refreshIndicator('x');
         this.refreshIndicator('y');
+    },
+
+    /**
+     * Flashes each of the scroll indicators, if they are currently enabled, AND there is scrollable content
+     * on that axis.
+     * Uses the {@link #flashIndicatorTimeout} configuration.
+     */
+    flashIndicators: function() {
+        this.flashIndicator('x');
+        this.flashIndicator('y');
+    },
+
+    /**
+     * Flashes a specific indicator, on the passed axis, if that axis is enabled and there is
+     * scrollable content.
+     * Uses the {@link #flashIndicatorTimeout} configuration.
+     * @param {String} axis The axis to flash. `x` or `y`
+     */
+    flashIndicator: function(axis) {
+        var me = this,
+            indicator = this.getIndicators()[axis];
+        
+        if (!me.isAxisEnabled(axis)) {
+            return me;
+        }
+        
+        if (indicator.getRatio() == 1) {
+            return me;
+        }
+
+        me.showIndicator(axis);
+
+        setTimeout(function() {
+            me.hideIndicator(axis);
+        }, me.getFlashIndicatorTimeout());
     },
 
     destroy: function() {

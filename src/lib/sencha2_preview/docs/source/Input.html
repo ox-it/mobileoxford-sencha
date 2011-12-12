@@ -22,12 +22,65 @@ Ext.define('Ext.field.Input', {
     extend: 'Ext.Component',
     xtype : 'input',
 
+<span id='Ext-field-Input-event-clearicontap'>    /**
+</span>     * @event clearicontap
+     * Fires whenever the clear icon is tapped
+     * @param {Ext.field.Input} this
+     * @param {Ext.EventObject} e The event object
+     */
+
+<span id='Ext-field-Input-event-masktap'>    /**
+</span>     * @event masktap
+     * @preventable doMaskTap
+     * Fires whenever a mask is tapped
+     * @param {Ext.field.Input} this
+     * @param {Ext.EventObject} e The event object
+     */
+
+<span id='Ext-field-Input-event-focus'>    /**
+</span>     * @event focus
+     * @preventable doFocus
+     * Fires whenever the input get focus
+     * @param {Ext.EventObject} e The event object
+     */
+
+<span id='Ext-field-Input-event-blur'>    /**
+</span>     * @event blur
+     * @preventable doBlur
+     * Fires whenever the input loses focus
+     * @param {Ext.EventObject} e The event object
+     */
+
+<span id='Ext-field-Input-event-click'>    /**
+</span>     * @event click
+     * Fires whenever the input is clicked
+     * @param {Ext.EventObject} e The event object
+     */
+
+<span id='Ext-field-Input-event-keyup'>    /**
+</span>     * @event keyup
+     * Fires whenever keyup is detected
+     * @param {Ext.EventObject} e The event object
+     */
+
+<span id='Ext-field-Input-event-paste'>    /**
+</span>     * @event paste
+     * Fires whenever paste is detected
+     * @param {Ext.EventObject} e The event object
+     */
+
+<span id='Ext-field-Input-event-mousedown'>    /**
+</span>     * @event mousedown
+     * Fires whenever the input has a mousedown occur
+     * @param {Ext.EventObject} e The event object
+     */
+
     cachedConfig: {
-<span id='Ext-field-Input-cfg-inputCls'>        /**
-</span>         * @cfg {String} inputCls The className to be applied to this input
+<span id='Ext-field-Input-cfg-cls'>        /**
+</span>         * @cfg {String} cls The className to be applied to this input
          * @accessor
          */
-        inputCls: Ext.baseCSSPrefix + 'form-field',
+        cls: Ext.baseCSSPrefix + 'form-field',
 
 <span id='Ext-field-Input-cfg-focusCls'>        /**
 </span>         * @cfg {String} focusCls The CSS class to use when the field receives focus
@@ -37,7 +90,7 @@ Ext.define('Ext.field.Input', {
 
         // @private
         maskCls: Ext.baseCSSPrefix + 'field-mask',
-        
+
 <span id='Ext-field-Input-cfg-useMask'>        /**
 </span>         * True to use a mask on this field, or `auto` to automatically select when you should use it.
          * @cfg {String/Boolean} useMask
@@ -74,7 +127,7 @@ Ext.define('Ext.field.Input', {
 <span id='Ext-field-Input-cfg-name'>        /**
 </span>         * @cfg {String} name The field's HTML name attribute
          * &lt;b&gt;Note&lt;/b&gt;: this property must be set if this field is to be automatically included with
-         * {@link Ext.form.Panel#submit form submit()}.
+         * {@link Ext.form.Panel#method-submit form submit()}.
          * @accessor
          */
         name: null,
@@ -84,7 +137,7 @@ Ext.define('Ext.field.Input', {
          * @accessor
          */
         value: null,
-        
+
 <span id='Ext-field-Input-property-isFocused'>        /**
 </span>         * @property {Boolean} &lt;tt&gt;True&lt;/tt&gt; if the field currently has focus.
          * @accessor
@@ -167,14 +220,14 @@ Ext.define('Ext.field.Input', {
 <span id='Ext-field-Input-cfg-disabled'>        /**
 </span>         * @cfg {Boolean} disabled True to disable the field (defaults to false).
          * &lt;p&gt;Be aware that conformant with the &lt;a href=&quot;http://www.w3.org/TR/html401/interact/forms.html#h-17.12.1&quot;&gt;HTML specification&lt;/a&gt;,
-         * disabled Fields will not be {@link Ext.form.Panel#submit submitted}.&lt;/p&gt;
+         * disabled Fields will not be {@link Ext.form.Panel#method-submit submitted}.&lt;/p&gt;
          * @accessor
          */
 
 <span id='Ext-field-Input-cfg-startValue'>        /**
 </span>         * &lt;p&gt;The value that the Field had at the time it was last focused. This is the value that is passed
          * to the {@link Ext.field.Text#change} event which is fired if the value has been changed when the Field is blurred.&lt;/p&gt;
-         * &lt;p&gt;&lt;b&gt;This will be undefined until the Field has been visited.&lt;/b&gt; Compare {@link #originalValue}.&lt;/p&gt;
+         * &lt;p&gt;&lt;b&gt;This will be undefined until the Field has been visited.&lt;/b&gt; Compare {@link #property-originalValue}.&lt;/p&gt;
          * @cfg {Mixed} startValue
          * @accessor
          */
@@ -279,12 +332,12 @@ Ext.define('Ext.field.Input', {
         }
     },
 
-<span id='Ext-field-Input-method-updateInputCls'>    /**
-</span>     * Updates the {@link #inputCls} configuration
+<span id='Ext-field-Input-method-updateCls'>    /**
+</span>     * Updates the {@link #cls} configuration
      */
-    updateInputCls: function(newInputCls, oldInputCls) {
+    updateCls: function(newCls, oldCls) {
         this.input.addCls(Ext.baseCSSPrefix + 'input-el');
-        this.input.replaceCls(oldInputCls, newInputCls);
+        this.input.replaceCls(oldCls, newCls);
     },
 
 <span id='Ext-field-Input-method-updateType'>    /**
@@ -540,23 +593,18 @@ Ext.define('Ext.field.Input', {
     },
 
     // @private
-    onClearIconTap: function(e) {
-        this.fireEvent('clearicontap', this, e);
-    },
-
-    // @private
     onMaskTap: function(e) {
         this.fireAction('masktap', [this, e], 'doMaskTap');
     },
 
     // @private
-    doMaskTap: function() {
-        if (this.getDisabled()) {
+    doMaskTap: function(me, e) {
+        if (me.getDisabled()) {
             return false;
         }
 
-        this.maskCorrectionTimer = Ext.defer(this.showMask, 1000, this);
-        this.hideMask();
+        me.maskCorrectionTimer = Ext.defer(me.showMask, 1000, me);
+        me.hideMask();
     },
 
     // @private
@@ -601,16 +649,8 @@ Ext.define('Ext.field.Input', {
         return me;
     },
 
-    onClick: function() {
-        this.fireAction('click', arguments);
-    },
-
-    onChange: function() {
-        this.fireAction('change', arguments);
-    },
-
-    onFocus: function() {
-        this.fireAction('focus', arguments, 'doFocus');
+    onFocus: function(e) {
+        this.fireAction('focus', [e], 'doFocus');
     },
 
     // @private
@@ -630,8 +670,8 @@ Ext.define('Ext.field.Input', {
         }
     },
 
-    onBlur: function() {
-        this.fireAction('blur', arguments, 'doBlur');
+    onBlur: function(e) {
+        this.fireAction('blur', [e], 'doBlur');
     },
 
     // @private
@@ -651,16 +691,38 @@ Ext.define('Ext.field.Input', {
         // Ext.currentlyFocusedField = null;
     },
 
-    onKeyUp: function() {
-        this.fireAction('keyup', arguments);
+    // @private
+    onClearIconTap: function(e) {
+        var oldValue = this.getValue(),
+            newValue;
+
+        this.fireEvent('clearicontap', this, e);
+
+        newValue = this.getValue();
+
+        if (String(newValue) != String(oldValue)) {
+            this.onChange(this, newValue, oldValue);
+        }
     },
 
-    onPaste: function() {
-        this.fireAction('paste', arguments);
+    onClick: function(e) {
+        this.fireEvent('click', e);
     },
 
-    onMouseDown: function() {
-        this.fireAction('mousedown', arguments);
+    onChange: function(me, value, startValue) {
+        this.fireEvent('change', me, value, startValue);
+    },
+
+    onKeyUp: function(e) {
+        this.fireEvent('keyup', e);
+    },
+
+    onPaste: function(e) {
+        this.fireEvent('paste', e);
+    },
+
+    onMouseDown: function(e) {
+        this.fireEvent('mousedown', e);
     }
 });
 </pre>

@@ -3,6 +3,8 @@
  */
 Ext.define('Ext.fx.animation.Abstract', {
 
+    isAnimation: true,
+
     requires: [
         'Ext.fx.State'
     ],

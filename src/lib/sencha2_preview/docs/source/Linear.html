@@ -15,11 +15,11 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js"><span id='Ext-scroll-easing-Linear'>/**
-</span> * @private
- */
-Ext.define('Ext.scroll.easing.Linear', {
-    extend: 'Ext.scroll.easing.Easing',
+  <pre class="prettyprint lang-js">Ext.define('Ext.fx.easing.Linear', {
+
+    extend: 'Ext.fx.easing.Abstract',
+
+    alias: 'easing.linear',
 
     config: {
         duration: 0,
@@ -36,9 +36,15 @@ Ext.define('Ext.scroll.easing.Linear', {
 
     getValue: function() {
         var deltaTime = Ext.Date.now() - this.getStartTime(),
-            omegaTime = Math.min(1, (deltaTime / this.getDuration()));
+            duration = this.getDuration();
 
-        return this.getStartValue() + (omegaTime * this.distance);
+        if (deltaTime &gt; duration) {
+            this.isEnded = true;
+            return this.getEndValue();
+        }
+        else {
+            return this.getStartValue() + ((deltaTime / duration) * this.distance);
+        }
     }
 });
 </pre>

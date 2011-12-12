@@ -106,7 +106,7 @@ var noArgs = [],
             //&lt;/feature&gt;
         },
 
-<span id='Ext-Base-property-S-onExtended'>        /**
+<span id='Ext-Base-method-S-onExtended'>        /**
 </span>         * @private
          * @param config
          */
@@ -944,7 +944,7 @@ var noArgs = [],
                 defaultConfig = new this.configClass,
                 defaultConfigList = this.initConfigList,
                 hasConfig = this.hasConfigMap,
-                nameMap, i, ln, name, initializedName, value;
+                nameMap, i, ln, name, initializedName;
 
             this.initConfig = Ext.emptyFn;
 
@@ -959,7 +959,10 @@ var noArgs = [],
                     if (hasConfig[name]) {
                         if (instanceConfig[name] !== null) {
                             defaultConfigList.push(name);
-                            this[configNameCache[name].initialized] = false;
+                            nameMap = configNameCache[name];
+
+                            this[nameMap.initialized] = false;
+                            this[nameMap.get] = this[nameMap.initGet];
                         }
                     }
                 }
@@ -1086,7 +1089,7 @@ var noArgs = [],
         }
     });
 
-<span id='Ext-Base-property-callOverridden'>    /**
+<span id='Ext-Base-method-callOverridden'>    /**
 </span>     * Call the original method that was previously overridden with {@link Ext.Base#override}
      *
      *     Ext.define('My.Cat', {

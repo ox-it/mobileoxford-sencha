@@ -15,80 +15,62 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js"><span id='Ext-field-Toggle'>/**
-</span> * Specialized Slider with a single thumb and only two values. By default the toggle component can
- * be switched between the values of 0 and 1.
+  <pre class="prettyprint lang-js"><span id='Ext-slider-Toggle'>/**
+</span> * @private
  */
-Ext.define('Ext.field.Toggle', {
-    extend: 'Ext.field.Slider',
-    alias : 'widget.togglefield',
-    alternateClassName: 'Ext.form.Toggle',
+Ext.define('Ext.slider.Toggle', {
+    extend: 'Ext.slider.Slider',
 
     config: {
         // @inherit
-        cls: 'x-toggle',
+        baseCls: 'x-toggle',
 
-        // @inherit
-        minValue: 0,
-
-        // @inherit
-        maxValue: 1,
-
-<span id='Ext-field-Toggle-cfg-minValueCls'>        /**
+<span id='Ext-slider-Toggle-cfg-minValueCls'>        /**
 </span>         * @cfg {String} minValueCls CSS class added to the field when toggled to its minValue
          * @accessor
          */
-        minValueCls: Ext.baseCSSPrefix + 'toggle-off',
+        minValueCls: 'x-toggle-off',
 
-<span id='Ext-field-Toggle-cfg-maxValueCls'>        /**
+<span id='Ext-slider-Toggle-cfg-maxValueCls'>        /**
 </span>         * @cfg {String} maxValueCls CSS class added to the field when toggled to its maxValue
          * @accessor
          */
-        maxValueCls: Ext.baseCSSPrefix + 'toggle-on'
-
-        // // @inherit
-        // animationDuration: 70
+        maxValueCls: 'x-toggle-on'
     },
 
-<span id='Ext-field-Toggle-method-onChange'>    /**
-</span>     * @private
-     */
-    onChange: function(slider, thumb, newValue) {
+    applyMinValue: function() {
+        return 0;
+    },
+
+    applyMaxValue: function() {
+        return 1;
+    },
+
+    applyIncrement: function() {
+        return 1;
+    },
+
+    onTap: function() {
+        this.setValue(this.getValue() &gt; 0 ? 0 : 1);
+    },
+
+    fireChangeEvent: function() {
         var me = this,
-            innerElement = me.innerElement,
-            isOn = newValue &gt; 0,
+            value = this.getValue(),
+            isOn = value &gt; 0,
             onCls = me.getMaxValueCls(),
             offCls = me.getMinValueCls();
 
-        innerElement.addCls(isOn ? onCls : offCls);
-        innerElement.removeCls(isOn ? offCls : onCls);
+        this.addCls(isOn ? onCls : offCls);
+        this.removeCls(isOn ? offCls : onCls);
 
-        this.fireEvent('change', this, thumb, newValue);
-    },
-
-    onTap: function(e) {
-        var value = (this.getValue() &gt; 0) ? 0 : 1;
-        this.setValue(value);
+        this.callParent();
     },
 
     getValue: function() {
-        var value;
-
-        if (this.initialized) {
-            value = this.getComponent().getValue();
-        } else {
-            value = this.getInitialConfig().value;
-        }
-
-        if (Ext.isArray(value)) {
-            value = value[0];
-        }
-
-        this._value = value;
-        this._values = value;
-
-        return value;
+        return this.callParent()[0];
     }
-});</pre>
+});
+</pre>
 </body>
 </html>

@@ -47,7 +47,7 @@ Panels are also Containers, which means they can contain other Components, arran
 	@example
     var panel = Ext.create('Ext.Panel', {
         layout: 'hbox',
-        
+
         items: [
             {
                 xtype: 'panel',
@@ -63,7 +63,7 @@ Panels are also Containers, which means they can contain other Components, arran
             }
         ]
     });
-    
+
     Ext.Viewport.add(panel);
 
 This time we created 3 Panels - the first one is created just as before but the inner two are declared inline using an xtype. Xtype is a convenient way of creating Components without having to go through the process of using Ext.create and specifying the full class name, instead you can just provide the xtype for the class inside an object and the framework will create the components for you.
@@ -80,10 +80,10 @@ Whenever you create a new Component you can pass in configuration options. All o
         fullscreen: true,
         html: 'This is a Panel'
     });
-    
+
     //we can update the HTML later using the setHtml method:
     panel.setHtml('Some new HTML');
-    
+
     //we can retrieve the current HTML using the getHtml method:
     alert(panel.getHtml()); //alerts "Some new HTML"
 
@@ -96,28 +96,28 @@ As we mentioned above, Containers are special Components that can have child Com
 	@example
     //this is the Panel we'll be adding below
     var aboutPanel = Ext.create('Ext.Panel', {
-        html: 'About this app' 
+        html: 'About this app'
     });
-    
+
     //this is the Panel we'll be adding to
     var mainPanel = Ext.create('Ext.Panel', {
         fullscreen: true,
-        
+
         layout: 'hbox',
         defaults: {
             flex: 1
         },
-        
+
         items: {
             html: 'First Panel',
 			style: 'background-color: #5E99CC;'
         }
     });
-    
+
     //now we add the first panel inside the second
     mainPanel.add(aboutPanel);
 
-Here we created three Panels in total. First we made the aboutPanel, which we might use to tell the user a little about the app. Then we create one called mainPanel, which already contains a third Panel in its {@link Ext.Container#items items} configuration, with some dummy text ("First Panel"). Finally, we add the first panel to the second by calling the {@link Ext.Container#add add} method on mainPanel.
+Here we created three Panels in total. First we made the aboutPanel, which we might use to tell the user a little about the app. Then we create one called mainPanel, which already contains a third Panel in its {@link Ext.Container#cfg-items items} configuration, with some dummy text ("First Panel"). Finally, we add the first panel to the second by calling the {@link Ext.Container#method-add add} method on mainPanel.
 
 In this case we gave our mainPanel another hbox layout, but we also introduced some {@link Ext.Container#defaults defaults}. These are applied to every item in the Panel, so in this case every child inside mainPanel will be given a flex: 1 configuration. The effect of this is that when we first render the screen only a single child is present inside mainPanel, so that child takes up the full width available to it. Once the mainPanel.add line is called though, the aboutPanel is rendered inside of it and also given a flex of 1, which will cause it and the first panel to both receive half the full width of the mainPanel.
 
@@ -157,7 +157,7 @@ Every time the value of the text field changes, the 'change' event is fired and 
 Lots of events are fired by Sencha Touch components, allowing you to easily hook into most aspects of an Application's behavior. They can also be specified after the Component has been created.
 
 For example, let's say you have a dashboard that polls for live updates, but you don't want it to poll if the dashboard is not visible, you could simply hook into the dashboard's show and hide events:
-    
+
 	dashboard.on({
 		hide: MyApp.stopPolling,
 		show: MyApp.startPolling
@@ -165,8 +165,8 @@ For example, let's say you have a dashboard that polls for live updates, but you
 
 It's easy to hook behavior like this into your whole app, in this case preserving battery life. Other useful events that are fired are:
 
-* {@link Ext.Component#show show}
-* {@link Ext.Component#hide hide}
+* {@link Ext.Component#event-show show}
+* {@link Ext.Component#event-hide hide}
 
 Each Component has a full list of the events they fire inside their class docs.
 

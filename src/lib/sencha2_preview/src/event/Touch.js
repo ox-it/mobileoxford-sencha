@@ -19,6 +19,10 @@ Ext.define('Ext.event.Touch', {
         return this.callParent([event]);
     },
 
+    clone: function() {
+        return new this.self(this);
+    },
+
     setTargets: function(targetsMap) {
         this.doSetTargets(this.changedTouches, targetsMap);
         this.doSetTargets(this.touches, targetsMap);
@@ -67,7 +71,8 @@ Ext.define('Ext.event.Touch', {
                     identifier: identifier,
                     target: touch.target,
                     timeStamp: touch.timeStamp,
-                    point: Ext.util.Point.fromTouch(touch)
+                    point: Ext.util.Point.fromTouch(touch),
+                    targets: touch.targets
                 };
             }
 

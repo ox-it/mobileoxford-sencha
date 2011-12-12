@@ -1,203 +1,148 @@
 /**
- * A simple utility class for generically masking elements while loading data.  If the {@link #store}
- * config option is specified, the masking will be automatically synchronized with the store's loading
- * process and the mask element will be cached for reuse.
- * <p>Example usage:</p>
- *<pre><code>
-// Basic mask:
-var myMask = new Ext.LoadMask(Ext.getBody(), {msg:"Please wait..."});
-myMask.show();
-</code></pre>
+ * A simple class used to mask any {@link Ext.Container}.
+ * This should rarely be used directly, instead look at the {@link Ext.Container#cfg-mask} configuration.
  */
 Ext.define('Ext.LoadMask', {
-    requires: ['Ext.data.StoreManager'],
-
-    mixins: {
-        observable: 'Ext.util.Observable'
-    },
+    extend: 'Ext.Mask',
+    xtype: 'loadmask',
 
     config: {
         /**
-         * @cfg {String} msg
-         * The text to display in a centered loading message box (defaults to 'Loading...')
+         * @cfg {String} message
+         * The text to display in a centered loading message box.
          * @accessor
          */
-        msg: 'Loading...',
+        message: 'Loading...',
 
         /**
-         * @cfg {String} msgCls
-         * The CSS class to apply to the loading message element (defaults to "x-mask-loading")
+         * @cfg {String} messageCls
+         * The CSS class to apply to the loading message element.
          * @accessor
          */
-        msgCls: Ext.baseCSSPrefix + 'mask-loading'
+        messageCls: Ext.baseCSSPrefix + 'mask-message',
+
+        /**
+         * @cfg {Boolean} indicator
+         * True to show the loading indicator on this {@link Ext.LoadMask}.
+         * @accessor
+         */
+        indicator: true
     },
 
-    /**
-     * @cfg {Ext.data.Store} store
-     * Optional Store to which the mask is bound. The mask is displayed when a load request is issued, and
-     * hidden on either load sucess, or load fail.
-     */
+    getTemplate: function() {
+        var prefix = Ext.baseCSSPrefix;
 
-    /**
-     * Read-only. True if the mask is currently disabled so that it will not be displayed
-     * @type Boolean
-     */
-    disabled: false,
-
-    /**
-     * Sets the {@link #msg} configuration
-     */
-    applyMsg: function(msg) {
-        if (this.el) {
-            var me = this,
-                dom = me.el.dom,
-                mask = Ext.Element.data(dom, 'mask');
-
-            //check if the mask exists
-            if (mask) {
-                var maskEl = el.child('.x-loading-msg');
-                if (maskEl) {
-                    maskEl.update(msg);
-                }
+        return [
+            {
+                //it needs an inner so it can be centered within the mask, and have a background
+                reference: 'innerElement',
+                cls: prefix + 'mask-inner',
+                children: [
+                    //the elements required for the CSS loading {@link #indicator}
+                    {
+                        reference: 'indicatorElement',
+                        cls: prefix + 'loading-spinner-outer',
+                        children: [
+                            {
+                                cls: prefix + 'loading-spinner',
+                                children: [
+                                    { tag: 'span', cls: prefix + 'loading-top' },
+                                    { tag: 'span', cls: prefix + 'loading-right' },
+                                    { tag: 'span', cls: prefix + 'loading-bottom' },
+                                    { tag: 'span', cls: prefix + 'loading-left' }
+                                ]
+                            }
+                        ]
+                    },
+                    //the element used to display the {@link #message}
+                    {
+                        reference: 'messageElement'
+                    }
+                ]
             }
-        }
-
-        return msg;
+        ];
     },
 
     /**
-     * Sets the {@link #msgCls} configuration
+     * Updates the message element with the new value of the {@link #message} configuration
+     * @private
      */
-    applyMsgCls: function(msgCls) {
-        if (this.el) {
-            var me = this,
-                dom = me.el.dom,
-                mask = Ext.Element.data(dom, 'mask');
-
-            //check if the mask exists
-            if (mask) {
-                // TODO this needs to check where the actual maskElement is. mask.addCls
-                // var maskEl = el.child('.x-loading-msg');
-                // if (maskEl) {
-                //     maskEl.update(msg);
-                // }
-            }
-        }
-
-        return msgCls;
+    updateMessage: function(newMessage) {
+        this.messageElement.update(newMessage);
     },
 
     /**
-     * Creates new LoadMask.
-     * @param {Mixed} el The element or DOM node, or its id
-     * @param {Object} config The config object
+     * Replaces the cls of the message element with the value of the {@link #messageCls} configuration.
+     * @private
      */
-    constructor: function(el, config) {
-        var me = this;
-
-        me.el = Ext.get(el);
-        Ext.apply(me, config);
-
-        me.addEvents('show', 'hide');
-        if (me.store) {
-            me.bindStore(me.store, true);
-        }
-
-        me.callParent();
-
-        me.mixins.observable.constructor.call(me);
+    updateMessageCls: function(newMessageCls, oldMessageCls) {
+        this.messageElement.replaceCls(oldMessageCls, newMessageCls);
     },
 
     /**
-     * Changes the data store bound to this LoadMask.
-     * @param {Ext.data.Store} store The store to bind to this LoadMask
+     * Shows/hides the loading indicator when the {@link #indicator} configuration is changed.
+     * @private
      */
-    bindStore: function(store, initial) {
-        if (!initial && this.store) {
-            this.mun(this.store, {
-                scope: this,
-                beforeload: this.onBeforeLoad,
-                load: this.onLoad,
-                exception: this.onLoad
-            });
-
-            if (!store) {
-                this.store = null;
-            }
-        }
-
-        if (store) {
-            store = Ext.StoreMgr.lookup(store);
-            this.mon(store, {
-                scope: this,
-                beforeload: this.onBeforeLoad,
-                load: this.onLoad,
-                exception: this.onLoad
-            });
-        }
-
-        this.store = store;
-        if (store && store.isLoading()) {
-            this.onBeforeLoad();
-        }
-    },
-
-    /**
-     * Disables the mask to prevent it from being displayed
-     */
-    disable: function() {
-       this.setDisabled(true);
-    },
-
-    /**
-     * Enables the mask so that it can be displayed
-     */
-    enable: function() {
-        this.setDisabled(false);
-    },
-
-    /**
-     * Method to determine whether this LoadMask is currently disabled.
-     * @return {Boolean} the disabled state of this LoadMask.
-     */
-    isDisabled: function() {
-        return this.getDisabled();
-    },
-
-    // @private
-    onLoad: function() {
-        this.el.unmask();
-        this.fireEvent('hide', this, this.el, this.store);
-    },
-
-    // @private
-    onBeforeLoad: function() {
-        if (!this.disabled) {
-            this.el.mask(Ext.LoadingSpinner + '<div class="x-loading-msg">' + this.msg + '</div>', this.msgCls, false);
-            this.fireEvent('show', this, this.el, this.store);
-        }
-    },
-
-    /**
-     * Show this LoadMask over the configured Element.
-     */
-    show: function() {
-        this.onBeforeLoad();
-    },
-
-    /**
-     * Hide this LoadMask.
-     */
-    hide: function() {
-        this.onLoad();
-    },
-
-    // private
-    destroy: function() {
-        this.hide();
-        this.clearListeners();
+    updateIndicator: function(newIndicator) {
+        this[newIndicator ? 'removeCls' : 'addCls'](Ext.baseCSSPrefix + 'indicator-hidden');
     }
 }, function() {
-    Ext.LoadingSpinner = '<div class="x-loading-spinner"><span class="x-loading-top"></span><span class="x-loading-right"></span><span class="x-loading-bottom"></span><span class="x-loading-left"></span></div>';
-});
+    //<deprecated product=touch since=2.0>
+    this.override({
+        constructor: function(config, other) {
+            if (typeof other !== "undefined") {
+                config = other;
 
+                Ext.Logger.deprecate("You no longer need to pass an element to create a Ext.LoadMask. It is a component and can be shown " +
+                "using the Ext.Container.masked configuration.", this);
+            }
+
+            if (config) {
+                /**
+                 * @member Ext.LoadMask
+                 * @cfg {String} msg The message to display on the {@link Ext.LoadMask}
+                 * @deprecated 2.0.0 Please use the {@link #message} configuration
+                 */
+                if (config.hasOwnProperty('msg')) {
+                    config.message = config.msg;
+                    Ext.Logger.deprecate("'msg' config is deprecated, please use 'message' config instead", this);
+                    delete config.msg;
+                }
+
+                /**
+                 * @member Ext.LoadMask
+                 * @cfg {String} msgCls The message cls used on the element which displays the {@link #message}
+                 * @deprecated 2.0.0 Please use the {@link #messageCls} configuration
+                 */
+                if (config.hasOwnProperty('msgCls')) {
+                    config.messageCls = config.msgCls;
+                    Ext.Logger.deprecate("'msgCls' config is deprecated, please use 'messageCls' config instead", this);
+                    delete config.msgCls;
+                }
+
+                /**
+                 * @cfg {Ext.data.Store} store
+                 * Optional Store to which the mask is bound. The mask is displayed when a load request is issued, and
+                 * hidden on either load sucess, or load fail.
+                 * @deprecated 2.0.0 You can no longer bind a store to a {@link Ext.LoadMask}
+                 */
+                if (config.hasOwnProperty('store')) {
+                    Ext.Logger.deprecate("'store' config is deprecated. You can no longer bind a store to a Ext.LoadMask", this);
+                    delete config.store;
+                }
+            }
+
+            this.callParent([config]);
+        },
+
+        /**
+         * Changes the data store bound to this LoadMask.
+         * @param {Ext.data.Store} store The store to bind to this LoadMask
+         * @deprecated 2.0.0 You can no longer bind a store to a {@link Ext.LoadMask}.
+         */
+        bindStore: function() {
+            Ext.Logger.deprecate("You can no longer bind a store to a Ext.LoadMask", this);
+        }
+    });
+    //</deprecated>
+});

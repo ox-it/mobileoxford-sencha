@@ -1,7 +1,10 @@
+/**
+ * A simple event recogniser which knows when you drag.
+ * 
+ * @private
+ */
 Ext.define('Ext.event.recognizer.Drag', {
     extend: 'Ext.event.recognizer.SingleTouch',
-
-    handledEvents: ['dragstart', 'drag', 'dragend'],
 
     isStarted: false,
 
@@ -11,11 +14,43 @@ Ext.define('Ext.event.recognizer.Drag', {
 
     lastPoint: null,
 
+    handledEvents: ['dragstart', 'drag', 'dragend'],
+
+    /**
+     * @member Ext.dom.Element
+     * @event dragstart
+     * Fired once when a drag has started.
+     * @param {Ext.event.Event} event The {@link Ext.event.Event} event encapsulating the DOM event.
+     * @param {HTMLElement} node The target of the event.
+     * @param {Object} options The options object passed to Ext.util.Observable.addListener.
+     */
+
+    /**
+     * @member Ext.dom.Element
+     * @event drag
+     * Fires continuously when there is dragging (the touch must move for this to be fired).
+     * @param {Ext.event.Event} event The {@link Ext.event.Event} event encapsulating the DOM event.
+     * @param {HTMLElement} node The target of the event.
+     * @param {Object} options The options object passed to Ext.util.Observable.addListener.
+     */
+    
+    /**
+     * @member Ext.dom.Element
+     * @event dragend
+     * Fires when a drag has ended.
+     * @param {Ext.event.Event} event The {@link Ext.event.Event} event encapsulating the DOM event.
+     * @param {HTMLElement} node The target of the event.
+     * @param {Object} options The options object passed to Ext.util.Observable.addListener.
+     */
+
     onTouchStart: function(e) {
         var startTouches,
             startTouch;
 
         if (this.callParent(arguments) === false) {
+            if (this.isStarted && this.lastMoveEvent !== null) {
+                this.onTouchEnd(this.lastMoveEvent);
+            }
             return false;
         }
 
@@ -40,6 +75,7 @@ Ext.define('Ext.event.recognizer.Drag', {
 
         this.lastTime = time;
         this.lastPoint = point;
+        this.lastMoveEvent = e;
 
         if (!this.isStarted) {
             this.isStarted = true;
@@ -75,6 +111,7 @@ Ext.define('Ext.event.recognizer.Drag', {
             this.startPoint = null;
             this.previousPoint = null;
             this.lastPoint = null;
+            this.lastMoveEvent = null;
         }
     },
 

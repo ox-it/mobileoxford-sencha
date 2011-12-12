@@ -2,7 +2,7 @@
 The checkbox field is an enhanced version of the native browser checkbox and is great for enabling your user to
 choose one or more items from a set (for example choosing toppings for a pizza order). It works like any other
 {@link Ext.field.Field field} and is usually found in the context of a form:
-    
+
 ## Example
 
     @example preview
@@ -31,8 +31,8 @@ choose one or more items from a set (for example choosing toppings for a pizza o
                         handler: function() {
                             var form = Ext.ComponentQuery.query('formpanel')[0],
                                 values = form.getValues();
-                            
-                            Ext.Msg.alert(null, 
+
+                            Ext.Msg.alert(null,
                                 "Tomato: " + ((values.tomato) ? "yes" : "no")
                                 + "<br />Salami: " + ((values.salami) ? "yes" : "no")
                             );
@@ -67,13 +67,16 @@ Ext.define('Ext.field.Checkbox', {
      * @event check
      * Fires when the checkbox is checked.
      * @param {Ext.field.Checkbox} this This checkbox
+     * @param {Ext.EventObject} e This event object
      */
 
     /**
      * @event uncheck
      * Fires when the checkbox is unchecked.
      * @param {Ext.field.Checkbox} this This checkbox
+     * @param {Ext.EventObject} e This event object
      */
+
     config: {
         // @inherit
         ui: 'checkbox',
@@ -101,7 +104,7 @@ Ext.define('Ext.field.Checkbox', {
             xtype   : 'input',
             type    : 'checkbox',
             useMask : true,
-            inputCls: Ext.baseCSSPrefix + 'input-checkbox'
+            cls     : Ext.baseCSSPrefix + 'input-checkbox'
         }
     },
 
@@ -109,7 +112,7 @@ Ext.define('Ext.field.Checkbox', {
     initialize: function() {
         var me = this;
 
-        me.callParent(arguments);
+        me.callParent();
 
         me.getComponent().on({
             scope: me,
@@ -199,9 +202,10 @@ Ext.define('Ext.field.Checkbox', {
 
         //calling getchecked will sync the new checked value
         if (me.getChecked()) {
-            me.fireAction('check', [me, e], 'doChecked');
-        } else {
-            me.fireAction('uncheck', [me, e], 'doUnChecked');
+            me.fireEvent('check', me, e);
+        }
+        else {
+            me.fireEvent('uncheck', me, e);
         }
 
         //return false so the mask does not disappear

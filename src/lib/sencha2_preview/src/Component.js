@@ -23,7 +23,7 @@
  * ### Navigation components
  * * {@link Ext.Toolbar}
  * * {@link Ext.Button}
- * * {@link Ext.NavigationBar}
+ * * {@link Ext.TitleBar}
  * * {@link Ext.SegmentedButton}
  * * {@link Ext.Title}
  * * {@link Ext.Spacer}
@@ -154,6 +154,7 @@ Ext.define('Ext.Component', {
         'Ext.ComponentManager',
         'Ext.XTemplate',
         'Ext.dom.Element',
+        'Ext.behavior.Translatable',
         'Ext.behavior.Draggable'
     ],
 
@@ -214,24 +215,12 @@ Ext.define('Ext.Component', {
         styleHtmlCls: clsPrefix + 'html',
 
         /**
-         * @cfg {Boolean} styleHtmlContent
+         * @cfg {Boolean} [styleHtmlContent=false]
          * True to automatically style the html inside the content target of this component (body for panels).
          * @accessor
          */
         styleHtmlContent: null,
 
-        /**
-         * @cfg {Boolean} masked
-         * True to mask this component.
-         * @accessor
-         */
-        masked: null,
-
-        /**
-         * @cfg {Boolean} hidden
-         * True to hide this component
-         * @accessor
-         */
         hidden: false
     },
 
@@ -335,6 +324,13 @@ Ext.define('Ext.Component', {
         draggable: null,
 
         /**
+         * @cfg {Object} translatable
+         * @private
+         * @accessor
+         */
+        translatable: null,
+
+        /**
          * @cfg {Object} droppable Configuration options to make this Component droppable
          * @accessor
          */
@@ -422,11 +418,23 @@ Ext.define('Ext.Component', {
         contentEl: null,
 
         /**
-         * @private
          * @cfg {String} itemId
          * @accessor
          */
-        itemId: undefined
+        itemId: undefined,
+
+        /**
+         * @cfg {Object/Array} plugins
+         * @accessor
+         * An object or array of objects that will provide custom functionality for this component.  The only
+         * requirement for a valid plugin is that it contain an init method that accepts a reference of type Ext.Component.
+         * When a component is created, if any plugins are available, the component will call the init method on each
+         * plugin, passing a reference to itself.  Each plugin can then call methods or respond to events on the
+         * component as needed to provide its functionality.
+         */
+        plugins: null,
+
+        elementListeners: null
     },
 
     /**
@@ -451,6 +459,19 @@ Ext.define('Ext.Component', {
      * @event hide
      * Fires whenever the Component is hidden
      * @param {Ext.Component} this The component instance
+     */
+
+    /**
+     * @event fullscreen
+     * Fires whenever a Component with the fullscreen config is instantiated
+     * @param {Ext.Component} this The component instance
+     */
+
+    /**
+     * @event floatingchange
+     * Fires whenever there is a change in the floating status of a component
+     * @param {Ext.Component} this The component instance
+     * @param {Boolean} floating The component's new floating state
      */
 
     /**
@@ -482,21 +503,6 @@ Ext.define('Ext.Component', {
      * @private
      */
     rendered: false,
-
-    /**
-     * @private
-     */
-    maskText: null,
-
-    /**
-     * @private
-     */
-    maskTextCls: clsPrefix + 'mask-msg',
-
-    /**
-     * @private
-     */
-    loadingMask: false,
 
     /**
      * @readonly
@@ -534,7 +540,6 @@ Ext.define('Ext.Component', {
         /**
          * Force the component to take up 100% width and height available, by adding it to {@link Ext.viewport.Viewport}.
          * @cfg {Boolean} fullscren
-         * @deprecated 2.0.0 Please use Ext.Viewport.add instead
          */
         if ('fullscreen' in this.config) {
             this.fireEvent('fullscreen', this);
@@ -587,6 +592,42 @@ Ext.define('Ext.Component', {
         this.parent = parent;
 
         return this;
+    },
+
+    applyElementListeners: function(listeners) {
+        this.element.on(listeners);
+    },
+
+    applyPlugins: function(config) {
+        var ln, i;
+
+        if (!config) {
+            return config;
+        }
+
+        config = [].concat(config);
+
+        for (i = 0, ln = config.length; i < ln; i++) {
+            config[i] = Ext.factory(config[i], 'Ext.plugin.Plugin', null, 'plugin');
+        }
+
+        return config;
+    },
+
+    updatePlugins: function(newPlugins, oldPlugins) {
+        var ln, i;
+
+        if (newPlugins) {
+            for (i = 0, ln = newPlugins.length; i < ln; i++) {
+                newPlugins[i].init(this);
+            }
+        }
+
+        if (oldPlugins) {
+            for (i = 0, ln = oldPlugins.length; i < ln; i++) {
+                Ext.destroy(oldPlugins[i]);
+            }
+        }
     },
 
     updateRenderTo: function(newContainer) {
@@ -666,6 +707,10 @@ Ext.define('Ext.Component', {
                 innerElement.replaceCls(oldHtmlCls, newHtmlCls);
             }
         }
+    },
+
+    applyStyleHtmlContent: function(config) {
+        return Boolean(config);
     },
 
     updateStyleHtmlContent: function(styleHtmlContent) {
@@ -1017,7 +1062,7 @@ Ext.define('Ext.Component', {
                 tplWriteMode = me.getTplWriteMode();
 
             if (tpl) {
-                tpl[tplWriteMode](me.element, newData);
+                tpl[tplWriteMode](me.getInnerHtmlElement(), newData);
             }
         }
     },
@@ -1111,6 +1156,35 @@ alert(t.getXTypes());  // alerts 'component/field/textfield'
 
     getDraggable: function() {
         return this.getDraggableBehavior().getDraggable();
+    },
+
+    getTranslatableBehavior: function() {
+        var behavior = this.translatableBehavior;
+
+        if (!behavior) {
+            behavior = this.translatableBehavior = new Ext.behavior.Translatable(this);
+        }
+
+        return behavior;
+    },
+
+    applyTranslatable: function(config) {
+        this.getTranslatableBehavior().setConfig(config);
+    },
+
+    getTranslatable: function() {
+        return this.getTranslatableBehavior().getTranslatable();
+    },
+
+    translate: function() {
+        var translatable = this.getTranslatable();
+
+        if (!translatable) {
+            this.setTranslatable(true);
+            translatable = this.getTranslatable();
+        }
+
+        translatable.translate.apply(translatable, arguments);
     },
 
     setRendered: function(rendered) {
@@ -1336,102 +1410,6 @@ var owningTabPanel = grid.up('tabpanel');
         return result;
     },
 
-    updateMasked: function(newMasked) {
-        var me          = this,
-            element     = me.element,
-            maskEl      = me.maskEl,
-            loadingMask = me.loadingMask,
-            maskText    = me.maskText,
-            maskTextCls = me.maskTextCls,
-            prefix      = Ext.baseCSSPrefix,
-            cls         = [prefix + 'mask'],
-            children    = [];
-
-        if (newMasked) {
-            if (!maskEl) {
-                //create the maskEl in this components element
-                me.maskEl = element.createChild({
-                    cls: cls.join(' '),
-                    children: [
-                        {
-                            cls: 'x-mask-inner',
-                            children: [
-                                {
-                                    cls: prefix + 'loading-spinner-outer',
-                                    html: Ext.LoadingSpinner
-                                },
-                                {
-                                    cls : prefix + 'mask-msg',
-                                    html: maskText
-                                }
-                            ]
-                        }
-                    ]
-                });
-
-                //check if it is a loadingMask
-                if (loadingMask) {
-                    me.maskEl.addCls(prefix + 'mask-loading');
-                }
-
-                //check if there is maskText, if so, add it as a child
-                if (maskText) {
-                    me.maskEl.addCls(prefix + 'mask-text');
-                }
-            }
-
-            //add the masked cls to this component
-            me.addCls('masked', prefix);
-
-            //show the mask
-            me.maskEl.show();
-        } else if (maskEl) {
-            me.removeCls('masked', prefix);
-            maskEl.hide();
-        }
-    },
-
-    updateMaskText: function(newMaskText) {
-        var me = this,
-            maskEl      = me.maskEl,
-            maskTextCls = me.maskTextCls,
-            el;
-
-        if (newMaskText && maskEl) {
-            el = maskEl.down('.x-mask-msg');
-            el.update(newMaskText);
-
-            maskEl.addCls('x-mask-text');
-        } else if (maskEl) {
-            maskEl.removeCls('x-mask-text');
-        }
-
-        this.maskText = newMaskText;
-    },
-
-    updateLoadingMask: function(newLoadingMask) {
-        var maskText = this.maskText,
-            maskEl = this.maskEl;
-
-        if (newLoadingMask && maskEl) {
-            maskEl.addCls('x-mask-loading');
-        } else if (maskEl) {
-            maskEl.removeCls('x-mask-loading');
-        }
-
-        this.loadingMask = newLoadingMask;
-    },
-
-    mask: function(msg, msgCls, loadingMask) {
-        this.updateLoadingMask(loadingMask);
-        this.updateMaskText(msg);
-        this.updateMasked(true);
-    },
-
-    unmask: function() {
-        this.updateMasked(false);
-    },
-
     /**
      * Destroys this Component. If it is currently added to a Container it will first be removed from that Container.
      * All Ext.Element references are also deleted and the Component is de-registered from Ext.ComponentManager
@@ -1459,8 +1437,6 @@ var owningTabPanel = grid.up('tabpanel');
     }
 
 }, function() {
-    Ext.LoadingSpinner = '<div class="x-loading-spinner"><span class="x-loading-top"></span><span class="x-loading-right"></span><span class="x-loading-bottom"></span><span class="x-loading-left"></span></div>';
-
    //<deprecated product=touch since=2.0>
     var emptyFn = Ext.emptyFn;
 
@@ -1476,11 +1452,20 @@ var owningTabPanel = grid.up('tabpanel');
                     config.disabled = !config.enabled;
                 }
 
-                if (config.scroll || this.config.scroll) {
+                if ((config.scroll || this.config.scroll || this.scrollable || this.config.scrollable) && !this.isContainer) {
                     //<debug warn>
-                    Ext.Logger.deprecate("'scroll' config is deprecated, please use 'scrollable' config instead", this);
+                    Ext.Logger.deprecate("You are no longer able to scroll a component. Please use a Ext.Container instead.", this);
                     //</debug>
-                    config.scrollable = config.scroll || this.config.scroll;
+                    delete config.scrollable;
+                    delete config.scroll;
+                }
+
+                if (config.dock) {
+                    //<debug warn>
+                    Ext.Logger.deprecate("'dock' config for docked items is deprecated, please use 'docked' instead");
+                    //</debug>
+                    config.docked = config.dock;
+                    delete config.dock;
                 }
 
                 /**

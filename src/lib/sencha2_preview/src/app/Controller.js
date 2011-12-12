@@ -210,7 +210,7 @@ Ext.define('Ext.app.Controller', {
 
     /**
      * A template method like {@link #init}, but called after the viewport is created.
-     * This is called after the {@link Ext.app.Application#launch launch} method of Application is executed.
+     * This is called after the {@link Ext.app.Application#property-launch launch} method of Application is executed.
      *
      * @param {Ext.app.Application} application
      * @protected

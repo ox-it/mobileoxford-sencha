@@ -1,7 +1,9 @@
 /**
- * A core util class to bring Draggable behavior to any DOM element,
- * acts as a base class for Scroller and Sortable.
+ * @class Ext.util.Draggable
+ *
+ * A core util class to bring Draggable behavior to any DOM element
  */
+
 Ext.define('Ext.util.Draggable', {
     isDraggable: true,
 
@@ -9,12 +11,39 @@ Ext.define('Ext.util.Draggable', {
         'Ext.mixin.Observable'
     ],
 
+    requires: [
+        'Ext.util.SizeMonitor',
+        'Ext.util.Translatable'
+    ],
+
+    /**
+     * @event dragstart
+     * @preventable initDragStart
+     * Fires whenever the component starts to be dragged
+     * @param {Ext.util.Draggable} this
+     * @param {Ext.EventObject} e the event object
+     * @param {Object} offset The offset object
+     */
+
+    /**
+     * @event drag
+     * Fires whenever the component is dragged
+     * @param {Ext.util.Draggable} this
+     * @param {Ext.EventObject} e the event object
+     * @param {Object} offset The offset object
+     */
+
+    /**
+     * @event dragend
+     * Fires whenever the component is dragged
+     * @param {Ext.util.Draggable} this
+     * @param {Ext.EventObject} e the event object
+     */
+
     config: {
         cls: Ext.baseCSSPrefix + 'draggable',
 
         draggingCls: Ext.baseCSSPrefix + 'dragging',
-
-        proxyCls: Ext.baseCSSPrefix + 'draggable-proxy',
 
         element: null,
 
@@ -29,55 +58,8 @@ Ext.define('Ext.util.Draggable', {
          */
         direction: 'both',
 
-        /**
-         * @cfg {Number} delay
-         * How many milliseconds a user must hold the draggable before starting a
-         * drag operation.
-         * @accessor
-         */
-        delay: 0,
-
-        /**
-         * @cfg {String} cancelSelector
-         * A simple CSS selector that represents elements within the draggable
-         * that should NOT initiate a drag.
-         * @accessor
-         */
-        cancelSelector: null,
-
-        /**
-         * @cfg {Boolean} revert
-         * Whether or not the element or it's proxy will be reverted back (with animation)
-         * when it's not dropped and held by a Droppable
-         * @accessor
-         */
-        revert: false,
-
-        /**
-         * @cfg {String} group
-         * Draggable and Droppable objects can participate in a group which are
-         * capable of interacting.
-         * @accessor
-         */
-        group: 'base',
-
-        translateMethod: 'auto',
-
-        initialOffset: 'auto',
-
-        containerConstraint: 'auto',
-
-        autoRefresh: true,
-
-        offset: {
-            x: 0,
-            y: 0
-        }
+        translatable: {}
     },
-
-    CSS_POSITION: 'cssposition',
-
-    CSS_TRANSFORM: 'csstransform',
 
     DIRECTION_BOTH: 'both',
 
@@ -95,7 +77,14 @@ Ext.define('Ext.util.Draggable', {
 
         this.sizeMonitors = {};
 
+        this.extraConstraint = {};
+
         this.initialConfig = config;
+
+        this.offset = {
+            x: 0,
+            y: 0
+        };
 
         this.listeners = {
             dragstart: 'onDragStart',
@@ -104,8 +93,6 @@ Ext.define('Ext.util.Draggable', {
 
             scope: this
         };
-
-        this.isAxisEnabledFlags = { x: false, y: false };
 
         if (config && config.element) {
             element = config.element;
@@ -119,7 +106,6 @@ Ext.define('Ext.util.Draggable', {
 
     applyElement: function(element) {
         if (!element) {
-            this.container = null;
             return;
         }
 
@@ -127,155 +113,76 @@ Ext.define('Ext.util.Draggable', {
     },
 
     updateElement: function(element) {
-        if (!this.initialized) {
-            this.initialized = true;
-
-            this.initConfig(this.initialConfig);
-
-            element.on(this.listeners);
-
-            if (this.getAutoRefresh()) {
-                this.sizeMonitors.element = new Ext.util.SizeMonitor({
-                    element: element,
-                    callback: this.doRefresh,
-                    scope: this
-                });
-            }
-
-            this.onConfigUpdate('containerConstraint', 'refreshConstraint');
-            this.onConfigUpdate('constraint', 'refreshOffset');
-        }
-        else {
-            this.refresh();
-        }
-
+        element.on(this.listeners);
         element.addCls(this.getCls());
+
+        this.sizeMonitors.element = new Ext.util.SizeMonitor({
+            element: element,
+            callback: this.doRefresh,
+            scope: this
+        });
+
+        this.initConfig(this.initialConfig);
+    },
+
+    applyTranslatable: function(translatable, currentInstance) {
+        translatable = Ext.factory(translatable, Ext.util.Translatable, currentInstance);
+        translatable.setElement(this.getElement());
+
+        return translatable;
+    },
+
+    setExtraConstraint: function(constraint) {
+        this.extraConstraint = constraint || {};
+
+        this.refreshConstraint();
+
+        return this;
+    },
+
+    addExtraConstraint: function(constraint) {
+        Ext.merge(this.extraConstraint, constraint);
+
+        this.refreshConstraint();
 
         return this;
     },
 
     applyConstraint: function(newConstraint, currentConstraint) {
-        var initialOffset = this.getInitialOffset(),
-            initialOffsetX, initialOffsetY, constraint, containerConstraint;
-
-        this.givenConstraint = newConstraint;
-
-        constraint = {
-            min: { x: -Infinity, y: -Infinity },
-            max: { x: Infinity, y: Infinity }
-        };
+        this.currentConstraint = newConstraint;
 
         if (newConstraint === 'container') {
-            containerConstraint = this.getContainerConstraint();
-
-            initialOffsetX = initialOffset.x;
-            initialOffsetY = initialOffset.y;
-
-            constraint.min.x = containerConstraint.min.x - initialOffsetX;
-            constraint.min.y = containerConstraint.min.y - initialOffsetY;
-            constraint.max.x = containerConstraint.max.x - initialOffsetX;
-            constraint.max.y = containerConstraint.max.y - initialOffsetY;
-        }
-        else if (Ext.isSimpleObject(newConstraint)) {
-            Ext.merge(constraint, currentConstraint || {}, newConstraint);
+            return Ext.merge(this.getContainerConstraint(), this.extraConstraint);
         }
 
-        return constraint;
+        return Ext.merge({}, this.extraConstraint, newConstraint);
     },
 
-    applyContainerConstraint: function(newConstraint, currentConstraint) {
-        var constraint, container,
-            containerDom, dom, containerStyle, min, max,
-            width, height, containerWidth, containerHeight,
-            paddingTop, paddingLeft, paddingRight, paddingBottom,
-            borderTop, borderLeft, borderRight, borderBottom;
+    updateConstraint: function() {
+        this.refreshOffset();
+    },
 
-        constraint = {
-            min: { x: -Infinity, y: -Infinity },
-            max: { x: Infinity, y: Infinity }
-        };
+    getContainerConstraint: function() {
+        var container = this.getContainer();
 
-        this.givenContainerConstraint = newConstraint;
+        if (!container) {
+            return {
+                min: { x: -Infinity, y: -Infinity },
+                max: { x: Infinity, y: Infinity }
+            };
+        }
 
-        if (newConstraint === 'auto' && (container = this.getContainer())) {
-            dom = this.getElement().dom;
-            containerDom = container.dom;
-
-            containerStyle = window.getComputedStyle(containerDom);
-
-            min = constraint.min;
-            max = constraint.max;
-
-            width = dom.offsetWidth;
-            height = dom.offsetHeight;
-
-            paddingLeft   = this.getNumberValue(containerStyle.paddingLeft);
-            paddingTop    = this.getNumberValue(containerStyle.paddingTop);
-            paddingRight  = this.getNumberValue(containerStyle.paddingRight);
-            paddingBottom = this.getNumberValue(containerStyle.paddingBottom);
-
-            borderTop     = this.getNumberValue(containerStyle.borderTopWidth);
-            borderLeft    = this.getNumberValue(containerStyle.borderLeftWidth);
-            borderRight   = this.getNumberValue(containerStyle.borderRightWidth);
-            borderBottom  = this.getNumberValue(containerStyle.borderBottomWidth);
-
-            containerWidth = containerDom.offsetWidth;
+        var dom = this.getElement().dom,
+            containerDom = container.dom,
+            width = dom.offsetWidth,
+            height = dom.offsetHeight,
+            containerWidth = containerDom.offsetWidth,
             containerHeight = containerDom.offsetHeight;
 
-            min.x = paddingLeft;
-            min.y = paddingTop;
-
-            max.x = Math.max(min.x, containerWidth - paddingRight - borderLeft - borderRight - width);
-            max.y = Math.max(min.y, containerHeight - paddingBottom - borderTop - borderBottom - height);
-        }
-        else if (Ext.isSimpleObject(newConstraint)) {
-            Ext.merge(constraint, currentConstraint || {}, newConstraint);
-        }
-
-        return constraint;
-    },
-
-    getNumberValue: function(value) {
-        value = parseInt(value, 10);
-
-        if (isNaN(value)) {
-            value = 0;
-        }
-
-        return value;
-    },
-
-    applyTranslateMethod: function(method) {
-        var cssPosition = this.CSS_POSITION,
-            cssTransform = this.CSS_TRANSFORM;
-
-        if (method === 'auto') {
-            if (Ext.os.is.Android2) {
-                method = cssPosition;
-            }
-            else {
-                method = cssTransform;
-            }
-        }
-
-        if (method !== cssPosition && method !== cssTransform) {
-            method = cssTransform;
-        }
-
-        return method;
-    },
-
-    updateTranslateMethod: function(newMethod, oldMethod) {
-        if (oldMethod) {
-            if (oldMethod === this.CSS_TRANSFORM) {
-                this.translateWithCssTransform(0, 0);
-            }
-            else {
-                this.translateWithCssPosition(0, 0);
-            }
-        }
-
-        this.updateOffset(this.getOffset());
+        return {
+            min: { x: 0, y: 0 },
+            max: { x: containerWidth - width, y: containerHeight - height }
+        };
     },
 
     getContainer: function() {
@@ -285,13 +192,11 @@ Ext.define('Ext.util.Draggable', {
             container = this.getElement().getParent();
 
             if (container) {
-                if (this.getAutoRefresh()) {
-                    this.sizeMonitors.container = new Ext.util.SizeMonitor({
-                        element: container,
-                        callback: this.doRefresh,
-                        scope: this
-                    });
-                }
+                this.sizeMonitors.container = new Ext.util.SizeMonitor({
+                    element: container,
+                    callback: this.doRefresh,
+                    scope: this
+                });
 
                 this.container = container;
             }
@@ -300,37 +205,18 @@ Ext.define('Ext.util.Draggable', {
         return container;
     },
 
-    applyInitialOffset: function(offset) {
-        var dom, style;
-
-        if (offset === 'auto') {
-            dom = this.getElement().dom;
-            style = window.getComputedStyle(dom);
-
-            offset = {
-                x: dom.offsetLeft - this.getNumberValue(style.marginLeft),
-                y: dom.offsetTop - this.getNumberValue(style.marginTop)
-            };
-        }
-
-        return offset;
-    },
-
     detachListeners: function() {
         this.getElement().un(this.listeners);
     },
 
-    updateDirection: function(direction) {
-        var isAxisEnabled = this.isAxisEnabledFlags;
-
-        isAxisEnabled.x = (direction === this.DIRECTION_BOTH || direction === this.DIRECTION_HORIZONTAL);
-        isAxisEnabled.y = (direction === this.DIRECTION_BOTH || direction === this.DIRECTION_VERTICAL);
-    },
-
     isAxisEnabled: function(axis) {
-        this.getDirection();
+        var direction = this.getDirection();
 
-        return this.isAxisEnabledFlags[axis];
+        if (axis === 'x') {
+            return (direction === this.DIRECTION_BOTH || direction === this.DIRECTION_HORIZONTAL);
+        }
+
+        return (direction === this.DIRECTION_BOTH || direction === this.DIRECTION_VERTICAL);
     },
 
     onDragStart: function(e) {
@@ -338,11 +224,14 @@ Ext.define('Ext.util.Draggable', {
             return false;
         }
 
-        this.fireAction('dragstart', [this, e, this.getOffset()], 'initDragStart');
+        this.fireAction('dragstart', [this, e, this.offset], this.initDragStart);
     },
 
     initDragStart: function(me, e, startOffset) {
-        this.dragStartOffset = startOffset;
+        this.dragStartOffset = {
+            x: startOffset.x,
+            y: startOffset.y
+        };
 
         this.isDragging = true;
 
@@ -356,12 +245,14 @@ Ext.define('Ext.util.Draggable', {
 
         var startOffset = this.dragStartOffset;
 
-        this.setOffset({
+        this.fireAction('drag', [this, e, {
             x: startOffset.x + e.deltaX,
             y: startOffset.y + e.deltaY
-        });
+        }], this.doDrag);
+    },
 
-        this.fireEvent('drag', this, e, this.getOffset());
+    doDrag: function(me, e, offset) {
+        me.setOffset(offset);
     },
 
     onDragEnd: function(e) {
@@ -378,8 +269,9 @@ Ext.define('Ext.util.Draggable', {
         this.getElement().removeCls(this.getDraggingCls());
     },
 
-    applyOffset: function(offset, oldOffset) {
-        var x = offset.x,
+    setOffset: function(offset, animation) {
+        var currentOffset = this.offset,
+            x = offset.x,
             y = offset.y,
             constraint = this.getConstraint(),
             minOffset = constraint.min,
@@ -391,77 +283,47 @@ Ext.define('Ext.util.Draggable', {
             x = min(max(x, minOffset.x), maxOffset.x);
         }
         else {
-            x = oldOffset ? oldOffset.x : 0;
+            x = currentOffset.x;
         }
 
         if (this.isAxisEnabled('y') && typeof y == 'number') {
             y = min(max(y, minOffset.y), maxOffset.y);
         }
         else {
-            y = oldOffset ? oldOffset.y : 0;
+            y = currentOffset.y;
         }
 
-        return {
-            x: x,
-            y: y
-        };
+        currentOffset.x = x;
+        currentOffset.y = y;
+
+        this.getTranslatable().translate(currentOffset, animation);
     },
 
-    updateOffset: function(offset, oldOffset) {
-        var x = offset.x,
-            y = offset.y;
-
-        if (!oldOffset || x !== oldOffset.x || y !== oldOffset.y) {
-            this.moveTo(x, y);
-        }
-    },
-
-    moveTo: function(x, y) {
-        var method = this.getTranslateMethod();
-
-        if (method === this.CSS_POSITION) {
-            return this.translateWithCssPosition.apply(this, arguments);
-        }
-        else {
-            return this.translateWithCssTransform.apply(this, arguments);
-        }
-    },
-
-    translateWithCssPosition: function(x, y) {
-        var initialOffset = this.getInitialOffset(),
-            domStyle = this.getElement().dom.style;
-
-        domStyle.left = (x + initialOffset.x) + 'px';
-        domStyle.top = (y + initialOffset.y) + 'px';
-    },
-
-    translateWithCssTransform: function(x, y) {
-        var domStyle = this.getElement().dom.style;
-
-        domStyle.webkitTransform = 'translate3d(' + x + 'px, ' + y + 'px, 0px)';
+    getOffset: function() {
+        return this.offset;
     },
 
     refreshConstraint: function() {
-        this.setConstraint(this.givenConstraint);
+        this.setConstraint(this.currentConstraint);
     },
 
     refreshOffset: function() {
-        this.setOffset(this.getOffset());
+        this.setOffset(this.offset);
     },
 
     doRefresh: function() {
-        this.setContainerConstraint(this.givenContainerConstraint);
         this.refreshConstraint();
+        this.getTranslatable().refresh();
         this.refreshOffset();
     },
 
     refresh: function() {
         var sizeMonitors = this.sizeMonitors;
 
-        if (sizeMonitors.element) { 
+        if (sizeMonitors.element) {
             sizeMonitors.element.refresh();
         }
-        
+
         if (sizeMonitors.container) {
             sizeMonitors.container.refresh();
         }
@@ -486,7 +348,8 @@ Ext.define('Ext.util.Draggable', {
     },
 
     destroy: function() {
-        var sizeMonitors = this.sizeMonitors;
+        var sizeMonitors = this.sizeMonitors,
+            translatable = this.getTranslatable();
 
         if (sizeMonitors.element) {
             sizeMonitors.element.destroy();
@@ -498,6 +361,10 @@ Ext.define('Ext.util.Draggable', {
 
         this.getElement().removeCls(this.getCls());
         this.detachListeners();
+
+        if (translatable) {
+            translatable.destroy();
+        }
     }
 
 }, function() {

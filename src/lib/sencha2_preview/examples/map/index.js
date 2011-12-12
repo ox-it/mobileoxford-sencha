@@ -17,7 +17,7 @@ Ext.setup({
         var position = new google.maps.LatLng(37.44885, -122.158592),  //Sencha HQ
 
             infowindow = new google.maps.InfoWindow({
-                content: 'Sencha Touch HQ'
+                content: 'Sencha HQ'
             }),
 
             //Tracking Marker Image
@@ -37,43 +37,50 @@ Ext.setup({
 
             trackingButton = Ext.create('Ext.Button', {
                 iconMask: true,
-                iconCls : 'locate'
+                iconCls: 'locate'
+            }),
+
+            trafficButton = Ext.create('Ext.Button', {
+                iconMask: true,
+                pressed: true,
+                iconCls: 'maps'
             }),
 
             toolbar = Ext.create('Ext.Toolbar', {
                 docked: 'top',
-                ui : 'light',
+                ui: 'light',
                 defaults: {
                     iconMask: true
                 },
                 items : [
                     {
-                        position : position,
-                        iconCls  : 'home',
-                        handler : function() {
+                        position: position,
+                        iconCls: 'home',
+                        handler: function() {
                             //disable tracking
-                            toolbar.setActiveItem(trackingButton, false);
-                            mapdemo.map.panTo(this.position);
+                            var newPressed = trafficButton.pressed ? [trafficButton] : [];
+                            Ext.getCmp('segmented').setPressedButtons(newPressed);
+                            mapdemo.getMap().panTo(this.position);
                         }
                     },
                     {
-                        xtype : 'segmentedbutton',
-                        allowMultiple : true,
-                        listeners : {
-                            toggle : function(buttons, button, active) {
-                                if (button.iconCls == 'maps') {
-                                    mapdemo.traffic[active ? 'show' : 'hide']();
-                                } else if (button.iconCls == 'locate') {
-                                    mapdemo.geo[active ? 'resumeUpdates' : 'suspendUpdates']();
+                        id: 'segmented',
+                        xtype: 'segmentedbutton',
+                        allowMultiple: true,
+                        listeners: {
+                            toggle: function(buttons, button, active) {
+                                if (button == trafficButton) {
+                                    mapdemo.getPlugins()[1].setHidden(!active);
+                                }
+                                else if (button == trackingButton) {
+                                    var tracker = mapdemo.getPlugins()[0];
+                                    tracker.setTrackSuspended(!active);
+                                    tracker.getMarker().setVisible(active);
                                 }
                             }
                         },
-                        items : [
-                            trackingButton,
-                            {
-                                iconMask: true,
-                                iconCls: 'maps'
-                            }
+                        items: [
+                            trackingButton, trafficButton
                         ]
                     }
                 ]
@@ -93,20 +100,20 @@ Ext.setup({
 
             plugins : [
                 new Ext.plugin.GMap.Tracker({
-                    trackSuspended : true,   //suspend tracking initially
-                    highAccuracy   : false,
-                    marker : new google.maps.Marker({
+                    trackSuspended: true,   //suspend tracking initially
+                    allowHighAccuracy: false,
+                    marker: new google.maps.Marker({
                         position: position,
-                        title : 'My Current Location',
+                        title: 'My Current Location',
                         shadow: shadow,
-                        icon  : image
+                        icon: image
                     })
                 }),
-                new Ext.plugin.GMap.Traffic({ hidden : true })
+                new Ext.plugin.GMap.Traffic()
             ],
 
-            listeners : {
-                maprender : function(comp, map) {
+            listeners: {
+                maprender: function(comp, map) {
                     var marker = new google.maps.Marker({
                         position: position,
                         title : 'Sencha HQ',

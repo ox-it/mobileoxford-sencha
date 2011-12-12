@@ -55,7 +55,7 @@ var Observable = Ext.define('Ext.mixin.Observable', {
 
     REMOVE_LISTENER_ACTION: 'doRemoveListener',
 
-    listenerOptionsRegex: /^(?:delay|buffer|single|args|delegate)$/,
+    listenerOptionsRegex: /^(?:delegate|single|delay|buffer|args|prepend)$/,
 
     config: {
         /**
@@ -74,7 +74,7 @@ var Observable = Ext.define('Ext.mixin.Observable', {
     },
 
     constructor: function(config) {
-        if (config) {
+        if (Ext.isObject(config)) {
             if ('listeners' in config) {
                 this.setListeners(config.listeners);
                 delete config.listeners;
@@ -187,6 +187,15 @@ var Observable = Ext.define('Ext.mixin.Observable', {
         return this.doFireEvent(eventName, args);
     },
 
+    /**
+     * Fires the specified event with the passed parameters and execute a function (action)
+     * at the end if there are no listeners that return false.
+     *
+     * @param {String} eventName The name of the event to fire.
+     * @param {Array} args Arguments to pass to handers
+     * @param {Function} fn Action
+     * @param {Object} scope scope of fn
+     */
     fireAction: function(eventName, args, fn, scope, options, order) {
         var actions = [];
 
@@ -206,7 +215,7 @@ var Observable = Ext.define('Ext.mixin.Observable', {
         return this.doFireEvent(eventName, args, actions);
     },
 
-    doFireEvent: function(eventName, args, actions) {
+    doFireEvent: function(eventName, args, actions, connectedController) {
         if (this.eventFiringSuspended) {
             return;
         }
@@ -214,7 +223,7 @@ var Observable = Ext.define('Ext.mixin.Observable', {
         var id = this.getObservableId(),
             dispatcher = this.getEventDispatcher();
 
-        return dispatcher.dispatchEvent(this.observableType, id, eventName, args, actions);
+        return dispatcher.dispatchEvent(this.observableType, id, eventName, args, actions, connectedController);
     },
 
     /**
@@ -638,6 +647,7 @@ var Observable = Ext.define('Ext.mixin.Observable', {
         if (typeof events == 'string') {
             events = [events];
         }
+
         if (Ext.isArray(events)) {
             for (i = 0,ln = events.length; i < ln; i++) {
                 oldName = events[i];

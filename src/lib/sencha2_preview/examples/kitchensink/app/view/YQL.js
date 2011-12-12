@@ -24,7 +24,6 @@ Ext.YQL = {
 Ext.define('Kitchensink.view.YQL', {
     extend: 'Ext.Container',
     config: {
-        layout: 'fit',
         scrollable: true,
         items: [
             {
@@ -46,7 +45,9 @@ Ext.define('Kitchensink.view.YQL', {
                                 '</tpl>'
                         ]);
 
-                        panel.element.mask('Loading...', 'x-mask-loading', false);
+                        panel.getParent().setMask({
+                            message: 'Loading...'
+                        });
 
                         Ext.YQL.request({
                             query: "select * from rss where url='http://feeds.feedburner.com/extblog' limit 5",
@@ -58,7 +59,7 @@ Ext.define('Kitchensink.view.YQL', {
                                     alert('There was an error retrieving the YQL request.');
                                 }
 
-                                panel.element.unmask();
+                                panel.getParent().unmask();
                             }
                         });
                     }

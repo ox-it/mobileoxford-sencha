@@ -60,33 +60,56 @@
  */
 Ext.define('Ext.field.Text', {
     extend: 'Ext.field.Field',
-    alias : 'widget.textfield',
+    xtype: 'textfield',
     alternateClassName: 'Ext.form.Text',
 
     /**
      * @event focus
-     * Fires when this field receives input focus.
+     * Fires when this field receives input focus
      * @param {Ext.field.Text} this This field
      * @param {Ext.event.Event} e
      */
 
     /**
      * @event blur
-     * Fires when this field loses input focus.
+     * Fires when this field loses input focus
+     * @param {Ext.field.Text} this This field
+     * @param {Ext.event.Event} e
+     */
+
+    /**
+     * @event paste
+     * Fires when this field is pasted.
+     * @param {Ext.field.Text} this This field
+     * @param {Ext.event.Event} e
+     */
+
+    /**
+     * @event mousedown
+     * Fires when this field receives a mousedown
      * @param {Ext.field.Text} this This field
      * @param {Ext.event.Event} e
      */
 
     /**
      * @event keyup
-     * Fires when a key is released on the input element.
+     * @preventable doKeyUp
+     * Fires when a key is released on the input element
+     * @param {Ext.field.Text} this This field
+     * @param {Ext.event.Event} e
+     */
+
+    /**
+     * @event clearicontap
+     * @preventable doClearIconTap
+     * Fires when the clear icon is tapped
      * @param {Ext.field.Text} this This field
      * @param {Ext.event.Event} e
      */
 
     /**
      * @event change
-     * Fires just before the field blurs if the field value has changed.
+     * Fires just before the field blurs if the field value has changed
      * @param {Ext.field.Text} this This field
      * @param {Mixed} newValue The new value
      * @param {Mixed} oldValue The original value
@@ -94,6 +117,7 @@ Ext.define('Ext.field.Text', {
 
     /**
      * @event action
+     * @preventable doAction
      * Fires whenever the return key or go is pressed. FormPanel listeners
      * for this event, and submits itself whenever it fires. Also note
      * that this event bubbles up to parent containers.
@@ -148,7 +172,9 @@ Ext.define('Ext.field.Text', {
          */
         readOnly: null,
 
-        // @inherit
+        /**
+         * @cfg {Object} component The inner component for this field, which defaults to an input text.
+         */
         component: {
             xtype: 'input',
             type : 'text'
@@ -159,7 +185,7 @@ Ext.define('Ext.field.Text', {
     initialize: function() {
         var me = this;
 
-        me.callParent(arguments);
+        me.callParent();
 
         me.getComponent().on({
             scope: this,
@@ -217,6 +243,12 @@ Ext.define('Ext.field.Text', {
 
     // @private
     updateReadOnly: function(newReadOnly) {
+        if (newReadOnly) {
+            this.hideClearIcon();
+        } else {
+            this.showClearIcon();
+        }
+
         this.getComponent().setReadOnly(newReadOnly);
     },
 
@@ -246,74 +278,42 @@ Ext.define('Ext.field.Text', {
 
     // @inherit
     doSetDisabled: function(disabled) {
-        this.callParent(arguments);
+        var me = this;
 
-        var component = this.getComponent();
+        me.callParent(arguments);
+
+        var component = me.getComponent();
         if (component) {
             component.setDisabled(disabled);
         }
 
         if (disabled) {
-            this.hideClearIcon();
+            me.hideClearIcon();
         } else {
-            this.showClearIcon();
+            me.showClearIcon();
         }
-    },
-
-    // @private
-    doClearIconTap: function() {
-        this.setValue('');
     },
 
     // @private
     showClearIcon: function() {
-        var me = this,
-            clearIcon = this.getClearIcon();
+        var me = this;
 
-        if (!me.getDisabled() && me.getValue() && clearIcon) {
-            this.element.addCls(Ext.baseCSSPrefix + 'field-clearable');
+        if (!me.getDisabled() && !me.getReadOnly() && me.getValue() && me.getClearIcon()) {
+            me.element.addCls(Ext.baseCSSPrefix + 'field-clearable');
         }
 
-        return this;
+        return me;
     },
 
     // @private
     hideClearIcon: function() {
-        var clearIcon = this.getClearIcon();
-
-        if (clearIcon) {
+        if (this.getClearIcon()) {
             this.element.removeCls(Ext.baseCSSPrefix + 'field-clearable');
         }
     },
 
-    onChange: function(e) {
-        this.fireAction('change', [this, e], 'doChange');
-    },
-
-    doChange: Ext.emptyFn,
-
     onKeyUp: function(e) {
         this.fireAction('keyup', [this, e], 'doKeyUp');
-    },
-
-    onFocus: function(e) {
-        this.fireAction('focus', [this, e]);
-    },
-
-    onBlur: function(e) {
-        this.fireAction('blur', [this, e]);
-    },
-
-    onPaste: function(e) {
-        this.fireAction('paste', [this, e]);
-    },
-
-    onMouseDown: function(e) {
-        this.fireAction('mousedown', [this, e]);
-    },
-
-    onClearIconTap: function(e) {
-        this.fireAction('clearicontap', [this, e], 'doClearIconTap');
     },
 
     /**
@@ -325,7 +325,7 @@ Ext.define('Ext.field.Text', {
         var value = me.getValue();
 
         // show the {@link #clearIcon} if it is being used
-        this[value ? 'showClearIcon' : 'hideClearIcon']();
+        me[value ? 'showClearIcon' : 'hideClearIcon']();
 
         if (e.browserEvent.keyCode === 13) {
             me.fireAction('action', [me, e], 'doAction');
@@ -333,6 +333,35 @@ Ext.define('Ext.field.Text', {
     },
 
     doAction: Ext.emptyFn,
+
+    onClearIconTap: function(e) {
+        this.fireAction('clearicontap', [this, e], 'doClearIconTap');
+    },
+
+    // @private
+    doClearIconTap: function(me, e) {
+        me.setValue('');
+    },
+
+    onChange: function(me, value, startValue) {
+        me.fireEvent('change', this, value, startValue);
+    },
+
+    onFocus: function(e) {
+        this.fireEvent('focus', this, e);
+    },
+
+    onBlur: function(e) {
+        this.fireEvent('blur', this, e);
+    },
+
+    onPaste: function(e) {
+        this.fireEvent('paste', this, e);
+    },
+
+    onMouseDown: function(e) {
+        this.fireEvent('mousedown', this, e);
+    },
 
     /**
      * Attempts to set the field as the active input focus.

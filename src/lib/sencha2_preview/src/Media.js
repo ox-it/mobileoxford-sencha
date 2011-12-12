@@ -62,7 +62,7 @@ Ext.define('Ext.Media', {
 
     initialize: function() {
         var me = this;
-        me.callParent(arguments);
+        me.callParent();
 
         me.on({
             scope: me,

@@ -85,7 +85,7 @@ The above used a new capability of Touch 2.0, which enables you to specify liste
 
 ## Submitting forms
 
-There are a few ways to submit form data. In our example above we have a Model instance that we have updated, giving us the option to use the Model's {@link Ext.data.Model#save save} method to persist the changes back to our server, without using a traditional form submission. Alternatively, we can send a normal browser form submit using the {@link Ext.form.Panel#submit submit} method:
+There are a few ways to submit form data. In our example above we have a Model instance that we have updated, giving us the option to use the Model's {@link Ext.data.Model#save save} method to persist the changes back to our server, without using a traditional form submission. Alternatively, we can send a normal browser form submit using the {@link Ext.form.Panel#method-submit submit} method:
 
     form.submit({
         url: 'url/to/submit/to',
@@ -95,4 +95,4 @@ There are a few ways to submit form data. In our example above we have a Model i
         }
     });
 
-In this case we provided the url to submit the form to inside the submit call - alternatively you can just set the {@link Ext.form.Panel#url url} configuration when you create the form. We can specify other parameters (see {@link Ext.form.Panel#submit submit} for a full list), including callback functions for success and failure, which are called depending on whether or not the form submission was successful. These functions are usually used to take some action in your app after your data has been saved to the server side.
+In this case we provided the url to submit the form to inside the submit call - alternatively you can just set the {@link Ext.form.Panel#url url} configuration when you create the form. We can specify other parameters (see {@link Ext.form.Panel#method-submit submit} for a full list), including callback functions for success and failure, which are called depending on whether or not the form submission was successful. These functions are usually used to take some action in your app after your data has been saved to the server side.

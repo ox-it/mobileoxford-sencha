@@ -199,6 +199,22 @@ Ext.define('Ext.Button', {
 
     xtype: 'button',
 
+    /**
+     * @event tap
+     * @preventable doTap
+     * Fires whenever a button is tapped
+     * @param {Ext.Button} this The item added to the Container
+     * @param {Ext.EventObject} e The event object
+     */
+
+    /**
+     * @event release
+     * @preventable doRelease
+     * Fires whenever the button is released
+     * @param {Ext.Button} this The item added to the Container
+     * @param {Ext.EventObject} e The event object
+     */
+
     cachedConfig: {
         /**
          * @cfg {String} pressedCls
@@ -339,6 +355,8 @@ Ext.define('Ext.Button', {
     ],
 
     initialize: function() {
+        this.callParent();
+
         this.element.on({
             scope      : this,
             tap        : 'onTap',
@@ -544,7 +562,9 @@ Ext.define('Ext.Button', {
 
             if (pressedDelay > 0) {
                 this.pressedTimeout = setTimeout(function() {
-                    element.addCls(pressedCls);
+                    if (element) {
+                        element.addCls(pressedCls);
+                    }
                 }, pressedDelay);
             }
             else {
@@ -559,18 +579,16 @@ Ext.define('Ext.Button', {
     },
 
     // @private
-    doRelease: function(e) {
-        var me = this;
-
+    doRelease: function(me, e) {
         if (!me.isPressed) {
             return;
         }
 
         me.isPressed = true;
 
-        if (this.hasOwnProperty('pressedTimeout')) {
-            clearTimeout(this.pressedTimeout);
-            delete this.pressedTimeout;
+        if (me.hasOwnProperty('pressedTimeout')) {
+            clearTimeout(me.pressedTimeout);
+            delete me.pressedTimeout;
         }
 
         me.releasedTimeout = setTimeout(function() {
@@ -592,9 +610,9 @@ Ext.define('Ext.Button', {
     /**
      * @private
      */
-    doTap: function() {
-        var handler = this.getHandler(),
-            scope   = this.getScope() || this;
+    doTap: function(me, e) {
+        var handler = me.getHandler(),
+            scope = me.getScope() || me;
 
         if (!handler) {
             return;

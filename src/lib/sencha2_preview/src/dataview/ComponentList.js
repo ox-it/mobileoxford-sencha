@@ -11,6 +11,16 @@ Ext.define('Ext.dataview.ComponentList', {
         'Ext.dataview.IndexBar'
     ],
 
+    /**
+     * @event disclose
+     * @preventable doDisclose
+     * Fires whenever a disclosure is handled
+     * @param {Ext.data.Model} record The record assosciated with the DataItem
+     * @param {Ext.dataview.ListItem} listItem The list item this belongs to
+     * @param {Number} index The index of the listItem in the list
+     * @param {Ext.EventObject} e The event object
+     */
+
     config: {
         /**
          * @cfg {Boolean/Object} indexBar
@@ -320,19 +330,22 @@ Ext.define('Ext.dataview.ComponentList', {
         var me = this,
             listItem = disclosure.ownerCt,
             index = me.getViewItems().indexOf(listItem),
-            record = me.getStore().getAt(index),
-            onItemDisclosure = me.getOnItemDisclosure();
+            record = me.getStore().getAt(index);
+
         if (me.getPreventSelectionOnDisclose()) {
             e.stopEvent();
         }
         me.fireAction('disclose', [record, listItem, index, e], 'doDisclose');
+    },
+
+    doDisclose: function(record, listItem, index, e) {
+        var me = this,
+            onItemDisclosure = me.getOnItemDisclosure();
 
         if (onItemDisclosure && onItemDisclosure.handler) {
             onItemDisclosure.handler.call(me, record, listItem, index);
         }
     },
-
-    doDisclose: Ext.emptyFn,
 
     updateItemTpl: function(newTpl) {
         this.getItemConfig().tpl = newTpl;

@@ -147,13 +147,15 @@ this.ExtBootstrapData = {
         ],
         "Ext.Container":["widget.container"
         ],
+        "Ext.Decorator":[],
         "Ext.EventedBase":[],
         "Ext.Img":["widget.image"
         ],
         "Ext.ItemCollection":[],
         "Ext.Label":["widget.label"
         ],
-        "Ext.LoadMask":[],
+        "Ext.LoadMask":["widget.loadmask"
+        ],
         "Ext.Map":["widget.map"
         ],
         "Ext.Mask":["widget.mask"
@@ -161,8 +163,6 @@ this.ExtBootstrapData = {
         "Ext.Media":["widget.media"
         ],
         "Ext.MessageBox":[],
-        "Ext.NavigationBar":["widget.navigationbar"
-        ],
         "Ext.Panel":["widget.panel"
         ],
         "Ext.SegmentedButton":["widget.segmentedbutton"
@@ -175,6 +175,8 @@ this.ExtBootstrapData = {
         "Ext.TaskQueue":[],
         "Ext.Title":["widget.title"
         ],
+        "Ext.TitleBar":["widget.titlebar"
+        ],
         "Ext.Toolbar":["widget.toolbar"
         ],
         "Ext.Validator":[],
@@ -185,10 +187,12 @@ this.ExtBootstrapData = {
         "Ext.behavior.Behavior":[],
         "Ext.behavior.Draggable":[],
         "Ext.behavior.Scrollable":[],
+        "Ext.behavior.Translatable":[],
         "Ext.carousel.Carousel":["widget.carousel"
         ],
         "Ext.carousel.Indicator":["widget.carouselindicator"
         ],
+        "Ext.carousel.Item":[],
         "Ext.dataview.ComponentList":["widget.componentlist"
         ],
         "Ext.dataview.ComponentView":["widget.componentview"
@@ -283,6 +287,7 @@ this.ExtBootstrapData = {
         "Ext.form.Panel":["widget.formpanel"
         ],
         "Ext.fx.Animation":[],
+        "Ext.fx.Easing":[],
         "Ext.fx.Runner":[],
         "Ext.fx.State":[],
         "Ext.fx.animation.Abstract":[],
@@ -301,6 +306,16 @@ this.ExtBootstrapData = {
         "Ext.fx.animation.SlideOut":[],
         "Ext.fx.animation.Wipe":[],
         "Ext.fx.animation.WipeOut":[],
+        "Ext.fx.easing.Abstract":[],
+        "Ext.fx.easing.Bounce":[],
+        "Ext.fx.easing.BoundMomentum":[],
+        "Ext.fx.easing.EaseIn":["easing.ease-in"
+        ],
+        "Ext.fx.easing.EaseOut":["easing.ease-out"
+        ],
+        "Ext.fx.easing.Linear":["easing.linear"
+        ],
+        "Ext.fx.easing.Momentum":[],
         "Ext.fx.layout.Card":[],
         "Ext.fx.layout.card.Abstract":[],
         "Ext.fx.layout.card.Cube":["fx.layout.card.cube"
@@ -321,6 +336,8 @@ this.ExtBootstrapData = {
         "Ext.fx.runner.CssTransition":[],
         "Ext.layout.AbstractBox":[],
         "Ext.layout.Card":["layout.card"
+        ],
+        "Ext.layout.Carousel":["layout.carousel"
         ],
         "Ext.layout.Default":["layout.auto",
             "layout.default"
@@ -348,11 +365,18 @@ this.ExtBootstrapData = {
         "Ext.mixin.Observable":[],
         "Ext.mixin.Selectable":[],
         "Ext.mixin.Traversable":[],
+        "Ext.navigation.Bar":["widget.navigationbar"
+        ],
+        "Ext.navigation.View":["widget.navigationview"
+        ],
         "Ext.picker.Date":["widget.datepicker"
         ],
         "Ext.picker.Picker":["widget.picker"
         ],
         "Ext.picker.Slot":["widget.pickerslot"
+        ],
+        "Ext.plugin.ListPaging":[],
+        "Ext.plugin.PullRefresh":["plugin.pullrefresh"
         ],
         "Ext.scroll.Indicator":[],
         "Ext.scroll.Scroller":[],
@@ -375,6 +399,7 @@ this.ExtBootstrapData = {
         ],
         "Ext.slider.Thumb":["widget.thumb"
         ],
+        "Ext.slider.Toggle":[],
         "Ext.tab.Bar":["widget.tabbar"
         ],
         "Ext.tab.Panel":["widget.tabpanel"
@@ -390,6 +415,10 @@ this.ExtBootstrapData = {
         "Ext.util.SizeMonitor":[],
         "Ext.util.TapRepeater":[],
         "Ext.util.Timeline":[],
+        "Ext.util.Translatable":[],
+        "Ext.util.translatable.Abstract":[],
+        "Ext.util.translatable.CssTransform":[],
+        "Ext.util.translatable.ScrollPosition":[],
         "Ext.viewport.Android":[],
         "Ext.viewport.Default":["widget.viewport"
         ],
@@ -477,9 +506,11 @@ this.ExtBootstrapData = {
         "Ext.layout.VBoxLayout":"Ext.layout.VBox",
         "Ext.util.Observable":"Ext.mixin.Observable",
         "Ext.AbstractStoreSelectionModel":"Ext.mixin.Selectable",
+        "Ext.NavigationView":"Ext.navigation.View",
         "Ext.DatePicker":"Ext.picker.Date",
         "Ext.Picker":"Ext.picker.Picker",
         "Ext.Picker.Slot":"Ext.picker.Slot",
+        "Ext.plugins.ListPagingPlugin":"Ext.plugin.ListPaging",
         "Ext.util.Indicator":"Ext.scroll.Indicator",
         "Ext.util.Scroller":"Ext.scroll.Scroller",
         "Ext.util.ScrollView":"Ext.scroll.View",

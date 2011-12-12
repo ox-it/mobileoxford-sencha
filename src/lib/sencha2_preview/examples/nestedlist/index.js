@@ -134,23 +134,26 @@ Ext.setup({
             store: store,
             listeners: {
                 leafitemtap: function(list, index, item, e) {
-                     var me = list.getParent(),
-                         store = list.getStore(),
-                         record  = store.getAt(index),
-                         detailCard = me.getDetailCard();
+                    var me = list.getParent(),
+                        store = list.getStore(),
+                        record  = store.getAt(index),
+                        detailCard = me.getDetailCard();
+                    
+                    list.setMask({
+                        message: 'Loading'
+                    });
 
-                     list.mask('Loading', null, true);
-                     Ext.Ajax.request({
-                         url: '../../src/' + record.get('id'),
-                         success: function(response) {
-                             detailCard.setHtml(response.responseText);
-                             list.unmask();
-                         },
-                         failure: function() {
-                             detailCard.setHtml("Loading failed.");
-                             list.unmask();
-                         }
-                     });
+                    Ext.Ajax.request({
+                        url: '../../src/' + record.get('id'),
+                        success: function(response) {
+                            detailCard.setHtml(response.responseText);
+                            list.unmask();
+                        },
+                        failure: function() {
+                            detailCard.setHtml("Loading failed.");
+                            list.unmask();
+                        }
+                    });
 
                 }
             }

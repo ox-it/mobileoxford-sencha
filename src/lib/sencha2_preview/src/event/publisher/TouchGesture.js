@@ -12,7 +12,7 @@ Ext.define('Ext.event.publisher.TouchGesture', {
     moveEventName: 'touchmove',
 
     config: {
-        moveThrottle: 3,
+        moveThrottle: 1,
         buffering: {
             enabled: false,
             interval: 10
@@ -82,6 +82,8 @@ Ext.define('Ext.event.publisher.TouchGesture', {
         // All touch events bubble
         return true;
     },
+
+    eventLogs: [],
 
     onEvent: function(e) {
         var buffering = this.getBuffering();
@@ -172,7 +174,7 @@ Ext.define('Ext.event.publisher.TouchGesture', {
 
         return list;
     },
-    
+
     registerRecognizer: function(recognizer) {
         var map = this.eventToRecognizerMap,
             activeRecognizers = this.activeRecognizers,
@@ -284,20 +286,49 @@ Ext.define('Ext.event.publisher.TouchGesture', {
             currentTouches = this.currentTouches,
             currentTouchesCount = this.currentTouchesCount,
             changedTouches = e.changedTouches,
+            touches = e.touches,
+            touchesLn = touches.length,
+            currentIdentifiers = {},
             ln = changedTouches.length,
-            i, touch, identifier;
+            i, touch, identifier, fakeEndEvent;
 
-        // Fix for a bug found in Motorola Droid X (Gingerbread) and similar
-        // where there are 2 touchstarts but just one touchend
         currentTouchesCount += ln;
-        if (currentTouchesCount > e.touches.length) {
-            return;
+
+        if (currentTouchesCount > touchesLn) {
+            for (i = 0; i < touchesLn; i++) {
+                touch = touches[i];
+                identifier = touch.identifier;
+                currentIdentifiers[identifier] = true;
+            }
+
+            for (identifier in currentTouches) {
+                if (currentTouches.hasOwnProperty(identifier)) {
+                    if (!currentIdentifiers[identifier]) {
+                        currentTouchesCount--;
+                        fakeEndEvent = e.clone();
+                        touch = currentTouches[identifier];
+                        touch.targets = this.getBubblingTargets(this.getElementTarget(touch.target));
+                        fakeEndEvent.changedTouches = [touch];
+                        this.onTouchEnd(fakeEndEvent);
+                    }
+                }
+            }
+
+            // Fix for a bug found in Motorola Droid X (Gingerbread) and similar
+            // where there are 2 touchstarts but just one touchend
+            if (currentTouchesCount > touchesLn) {
+                return;
+            }
         }
 
         for (i = 0; i < ln; i++) {
-            this.currentTouchesCount++;
             touch = changedTouches[i];
             identifier = touch.identifier;
+
+            if (!currentTouches.hasOwnProperty(identifier)) {
+                this.currentTouchesCount++;
+            }
+
             currentTouches[identifier] = touch;
             currentTargets[identifier] = this.getBubblingTargets(this.getElementTarget(touch.target));
         }
@@ -425,6 +456,10 @@ Ext.define('Ext.event.publisher.TouchGesture', {
             lastEventType: null,
 
             onEvent: function(e) {
+                if ('button' in e && e.button !== 0) {
+                    return;
+                }
+
                 var type = e.type,
                     touchList = [e];
 

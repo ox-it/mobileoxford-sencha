@@ -1,6 +1,20 @@
+/**
+ * A simple event recogniser which knows when you tap.
+ * 
+ * @private
+ */
 Ext.define('Ext.event.recognizer.Tap', {
 
     handledEvents: ['tap'],
+
+    /**
+     * @member Ext.dom.Element
+     * @event tap
+     * Fires when you tap
+     * @param {Ext.event.Event} event The {@link Ext.event.Event} event encapsulating the DOM event.
+     * @param {HTMLElement} node The target of the event.
+     * @param {Object} options The options object passed to Ext.util.Observable.addListener.
+     */
 
     extend: 'Ext.event.recognizer.SingleTouch',
 

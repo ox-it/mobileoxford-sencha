@@ -1,7 +1,7 @@
 /**
  * @private
  *
- * A general {@link Ext.picker.Picker} slot class.  Slots are used to organize multiple scrollable slots into 
+ * A general {@link Ext.picker.Picker} slot class.  Slots are used to organize multiple scrollable slots into
  * a single {@link Ext.picker.Picker}.
  *
  *     {
@@ -27,6 +27,13 @@ Ext.define('Ext.picker.Slot', {
         'Ext.Component',
         'Ext.data.StoreManager'
     ],
+
+    /**
+     * @event slotpick
+     * Fires whenever an slot is picked
+     * @param {Mixed} value The value of the pick
+     * @param {HTMLElement} node The node element of the pick
+     */
 
     isSlot: true,
 
@@ -75,6 +82,8 @@ Ext.define('Ext.picker.Slot', {
 
         /**
          * @cfg {String} align
+         * The horizontal alignment of the slot's contents. Valid values are "left", "center",
+         * and "right". Defaults to "left".
          * @accessor
          */
         align: 'left',
@@ -113,11 +122,24 @@ Ext.define('Ext.picker.Slot', {
         }
     },
 
-    /**
-     * @private
-     * The current selectedIndex of the picker slot
-     */
-    selectedIndex: 0,
+    constructor: function() {
+        /**
+         * @property selectedIndex
+         * @type Number
+         * The current selectedIndex of the picker slot
+         * @private
+         */
+        this.selectedIndex = 0;
+
+        /**
+         * @property picker
+         * @type Ext.picker.Picker
+         * A reference to the owner Picker
+         * @private
+         */
+
+        this.callParent(arguments);
+    },
 
     /**
      * Sets the title for this dataview by creating element
@@ -211,7 +233,7 @@ Ext.define('Ext.picker.Slot', {
         var me = this,
             scroller = this.getScrollable().getScroller();
 
-        me.callParent(arguments);
+        me.callParent();
 
         me.on({
             scope: this,
@@ -230,6 +252,18 @@ Ext.define('Ext.picker.Slot', {
         this.setupBar();
     },
 
+    /**
+     * Returns an instance of the owner picker
+     * @private
+     */
+    getPicker: function() {
+        if (!this.picker) {
+            this.picker = this.getParent();
+        }
+
+        return this.picker;
+    },
+
     // @private
     setupBar: function() {
         if (!this.rendered) {
@@ -239,7 +273,7 @@ Ext.define('Ext.picker.Slot', {
 
         var element = this.element,
             innerElement = this.innerElement,
-            picker = this.picker,
+            picker = this.getPicker(),
             bar = picker.bar,
             value = this.getValue(),
             showTitle = this.getShowTitle(),
@@ -280,7 +314,7 @@ Ext.define('Ext.picker.Slot', {
         this.selectedNode = item;
         this.scrollToItem(item, true);
 
-        this.fireAction('slotpick', [this.getValue(), this.selectedNode]);
+        this.fireEvent('slotpick', this.getValue(), this.selectedNode);
     },
 
     // @private
@@ -315,7 +349,7 @@ Ext.define('Ext.picker.Slot', {
             this.selectedIndex = index;
             this.selectedNode = item;
 
-            this.fireAction('slotpick', [this.getValue(), this.selectedNode]);
+            this.fireEvent('slotpick', this.getValue(), this.selectedNode);
         }
     },
 

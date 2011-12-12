@@ -5,12 +5,65 @@ Ext.define('Ext.field.Input', {
     extend: 'Ext.Component',
     xtype : 'input',
 
+    /**
+     * @event clearicontap
+     * Fires whenever the clear icon is tapped
+     * @param {Ext.field.Input} this
+     * @param {Ext.EventObject} e The event object
+     */
+
+    /**
+     * @event masktap
+     * @preventable doMaskTap
+     * Fires whenever a mask is tapped
+     * @param {Ext.field.Input} this
+     * @param {Ext.EventObject} e The event object
+     */
+
+    /**
+     * @event focus
+     * @preventable doFocus
+     * Fires whenever the input get focus
+     * @param {Ext.EventObject} e The event object
+     */
+
+    /**
+     * @event blur
+     * @preventable doBlur
+     * Fires whenever the input loses focus
+     * @param {Ext.EventObject} e The event object
+     */
+
+    /**
+     * @event click
+     * Fires whenever the input is clicked
+     * @param {Ext.EventObject} e The event object
+     */
+
+    /**
+     * @event keyup
+     * Fires whenever keyup is detected
+     * @param {Ext.EventObject} e The event object
+     */
+
+    /**
+     * @event paste
+     * Fires whenever paste is detected
+     * @param {Ext.EventObject} e The event object
+     */
+
+    /**
+     * @event mousedown
+     * Fires whenever the input has a mousedown occur
+     * @param {Ext.EventObject} e The event object
+     */
+
     cachedConfig: {
         /**
-         * @cfg {String} inputCls The className to be applied to this input
+         * @cfg {String} cls The className to be applied to this input
          * @accessor
          */
-        inputCls: Ext.baseCSSPrefix + 'form-field',
+        cls: Ext.baseCSSPrefix + 'form-field',
 
         /**
          * @cfg {String} focusCls The CSS class to use when the field receives focus
@@ -20,7 +73,7 @@ Ext.define('Ext.field.Input', {
 
         // @private
         maskCls: Ext.baseCSSPrefix + 'field-mask',
-        
+
         /**
          * True to use a mask on this field, or `auto` to automatically select when you should use it.
          * @cfg {String/Boolean} useMask
@@ -57,7 +110,7 @@ Ext.define('Ext.field.Input', {
         /**
          * @cfg {String} name The field's HTML name attribute
          * <b>Note</b>: this property must be set if this field is to be automatically included with
-         * {@link Ext.form.Panel#submit form submit()}.
+         * {@link Ext.form.Panel#method-submit form submit()}.
          * @accessor
          */
         name: null,
@@ -67,7 +120,7 @@ Ext.define('Ext.field.Input', {
          * @accessor
          */
         value: null,
-        
+
         /**
          * @property {Boolean} <tt>True</tt> if the field currently has focus.
          * @accessor
@@ -150,14 +203,14 @@ Ext.define('Ext.field.Input', {
         /**
          * @cfg {Boolean} disabled True to disable the field (defaults to false).
          * <p>Be aware that conformant with the <a href="http://www.w3.org/TR/html401/interact/forms.html#h-17.12.1">HTML specification</a>,
-         * disabled Fields will not be {@link Ext.form.Panel#submit submitted}.</p>
+         * disabled Fields will not be {@link Ext.form.Panel#method-submit submitted}.</p>
          * @accessor
          */
 
         /**
          * <p>The value that the Field had at the time it was last focused. This is the value that is passed
          * to the {@link Ext.field.Text#change} event which is fired if the value has been changed when the Field is blurred.</p>
-         * <p><b>This will be undefined until the Field has been visited.</b> Compare {@link #originalValue}.</p>
+         * <p><b>This will be undefined until the Field has been visited.</b> Compare {@link #property-originalValue}.</p>
          * @cfg {Mixed} startValue
          * @accessor
          */
@@ -263,11 +316,11 @@ Ext.define('Ext.field.Input', {
     },
 
     /**
-     * Updates the {@link #inputCls} configuration
+     * Updates the {@link #cls} configuration
      */
-    updateInputCls: function(newInputCls, oldInputCls) {
+    updateCls: function(newCls, oldCls) {
         this.input.addCls(Ext.baseCSSPrefix + 'input-el');
-        this.input.replaceCls(oldInputCls, newInputCls);
+        this.input.replaceCls(oldCls, newCls);
     },
 
     /**
@@ -523,23 +576,18 @@ Ext.define('Ext.field.Input', {
     },
 
     // @private
-    onClearIconTap: function(e) {
-        this.fireEvent('clearicontap', this, e);
-    },
-
-    // @private
     onMaskTap: function(e) {
         this.fireAction('masktap', [this, e], 'doMaskTap');
     },
 
     // @private
-    doMaskTap: function() {
-        if (this.getDisabled()) {
+    doMaskTap: function(me, e) {
+        if (me.getDisabled()) {
             return false;
         }
 
-        this.maskCorrectionTimer = Ext.defer(this.showMask, 1000, this);
-        this.hideMask();
+        me.maskCorrectionTimer = Ext.defer(me.showMask, 1000, me);
+        me.hideMask();
     },
 
     // @private
@@ -584,16 +632,8 @@ Ext.define('Ext.field.Input', {
         return me;
     },
 
-    onClick: function() {
-        this.fireAction('click', arguments);
-    },
-
-    onChange: function() {
-        this.fireAction('change', arguments);
-    },
-
-    onFocus: function() {
-        this.fireAction('focus', arguments, 'doFocus');
+    onFocus: function(e) {
+        this.fireAction('focus', [e], 'doFocus');
     },
 
     // @private
@@ -613,8 +653,8 @@ Ext.define('Ext.field.Input', {
         }
     },
 
-    onBlur: function() {
-        this.fireAction('blur', arguments, 'doBlur');
+    onBlur: function(e) {
+        this.fireAction('blur', [e], 'doBlur');
     },
 
     // @private
@@ -634,15 +674,37 @@ Ext.define('Ext.field.Input', {
         // Ext.currentlyFocusedField = null;
     },
 
-    onKeyUp: function() {
-        this.fireAction('keyup', arguments);
+    // @private
+    onClearIconTap: function(e) {
+        var oldValue = this.getValue(),
+            newValue;
+
+        this.fireEvent('clearicontap', this, e);
+
+        newValue = this.getValue();
+
+        if (String(newValue) != String(oldValue)) {
+            this.onChange(this, newValue, oldValue);
+        }
     },
 
-    onPaste: function() {
-        this.fireAction('paste', arguments);
+    onClick: function(e) {
+        this.fireEvent('click', e);
     },
 
-    onMouseDown: function() {
-        this.fireAction('mousedown', arguments);
+    onChange: function(me, value, startValue) {
+        this.fireEvent('change', me, value, startValue);
+    },
+
+    onKeyUp: function(e) {
+        this.fireEvent('keyup', e);
+    },
+
+    onPaste: function(e) {
+        this.fireEvent('paste', e);
+    },
+
+    onMouseDown: function(e) {
+        this.fireEvent('mousedown', e);
     }
 });

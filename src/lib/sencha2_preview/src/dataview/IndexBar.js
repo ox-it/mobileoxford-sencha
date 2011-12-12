@@ -62,10 +62,18 @@ Ext.define('Ext.dataview.IndexBar', {
     extend: 'Ext.Component',
     alternateClassName: 'Ext.IndexBar',
 
+    /**
+     * @event index
+     * Fires when an item in the index bar display has been tapped.
+     * @param {String} html The HTML inside the tapped node.
+     * @param {Ext.dom.Element} target The node on the indexbar that has been tapped.
+     */
+
     config: {
         baseCls: Ext.baseCSSPrefix + 'indexbar',
 
         /**
+         * @private
          * @cfg {String} direction
          * Layout direction, can be either 'vertical' or 'horizontal'
          * @accessor
@@ -159,7 +167,6 @@ Ext.define('Ext.dataview.IndexBar', {
     onTouchMove: function(e) {
         var point = Ext.util.Point.fromEvent(e),
             target,
-            record,
             pageBox = this.pageBox;
 
         if (!pageBox) {
@@ -180,12 +187,6 @@ Ext.define('Ext.dataview.IndexBar', {
         }
 
         if (target) {
-            /**
-             * @event index
-             * Fires when an item in the index bar display has been tapped.
-             * @param {String} html The HTML inside the tapped node.
-             * @param {Ext.dom.Element} target The node on the indexbar that has been tapped.
-             */
             this.fireEvent('index', target.dom.innerHTML, target);
         }
     }

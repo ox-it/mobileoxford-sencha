@@ -166,7 +166,7 @@ Ext.define('Ext.data.Field', {
      *
      *   The data object containing the Model as read so far by the Reader. Note that the Model may not be fully populated
      *   at this point as the fields are read in the order that they are defined in your
-     *   {@link Ext.data.Model#fields fields} array.
+     *   {@link Ext.data.Model#cfg-fields fields} array.
      *
      * Example of convert functions:
      *

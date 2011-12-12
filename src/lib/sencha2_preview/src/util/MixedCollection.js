@@ -37,6 +37,12 @@ Ext.define('Ext.util.MixedCollection', {
     },
 
     /**
+     * @event sort
+     * Fires whenever MixedCollection is sorted
+     * @param {Ext.util.MixedCollection} this
+     */
+
+    /**
      * Creates new MixedCollection.
      * @param {Boolean} allowFunctions Specify <tt>true</tt> if the {@link #addAll}
      * function should add function references to the collection. Defaults to

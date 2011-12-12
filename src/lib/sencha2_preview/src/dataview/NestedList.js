@@ -177,7 +177,7 @@ Ext.define('Ext.dataview.NestedList', {
          */
         toolbar: {
             docked: 'top',
-            xtype: 'navigationbar',
+            xtype: 'titlebar',
             ui: 'light',
             inline: true
         },
@@ -243,7 +243,7 @@ Ext.define('Ext.dataview.NestedList', {
     /**
      * @event itemtap
      * Fires when a node is tapped on
-     * @param {Ext.List} list The Ext.List that is currently active
+     * @param {Ext.dataview.List} list The Ext.dataview.List that is currently active
      * @param {Number} index The index of the item that was tapped
      * @param {Ext.Element} item The item element
      * @param {Ext.event.Event} e The event object
@@ -252,7 +252,7 @@ Ext.define('Ext.dataview.NestedList', {
     /**
      * @event itemdoubletap
      * Fires when a node is double tapped on
-     * @param {Ext.List} list The Ext.List that is currently active
+     * @param {Ext.dataview.List} list The Ext.dataview.List that is currently active
      * @param {Number} index The index of the item that was tapped
      * @param {Ext.Element} item The item element
      * @param {Ext.event.Event} e The event object
@@ -261,21 +261,21 @@ Ext.define('Ext.dataview.NestedList', {
     /**
      * @event containertap
      * Fires when a tap occurs and it is not on a template node.
-     * @param {Ext.List} list The Ext.List that is currently active
+     * @param {Ext.dataview.List} list The Ext.dataview.List that is currently active
      * @param {Ext.event.Event} e The raw event object
      */
 
     /**
      * @event selectionchange
      * Fires when the selected nodes change.
-     * @param {Ext.List} list The Ext.List that is currently active
+     * @param {Ext.dataview.List} list The Ext.datavaie.List that is currently active
      * @param {Array} selections Array of the selected nodes
      */
 
     /**
      * @event beforeselect
      * Fires before a selection is made. If any handlers return false, the selection is cancelled.
-     * @param {Ext.List} list The Ext.List that is currently active
+     * @param {Ext.dataview.List} list The Ext.dataview.List that is currently active
      * @param {HTMLElement} node The node to be selected
      * @param {Array} selections Array of currently selected nodes
      */
@@ -283,7 +283,7 @@ Ext.define('Ext.dataview.NestedList', {
     /**
      * @event listchange
      * Fires when the user taps a list item
-     * @param {Ext.NestedList} this
+     * @param {Ext.dataview.NestedList} this
      * @param {Object} listitem
      */
 
@@ -294,6 +294,16 @@ Ext.define('Ext.dataview.NestedList', {
      * @param {Number} index The index of the item tapped
      * @param {Ext.Element} el The element of the item tapped
      * @param {Ext.event.Event} e The event
+     */
+
+    /**
+     * @event back
+     * @preventable doBack
+     * Fires when the user taps Back
+     * @param {Ext.dataview.NestedList} this
+     * @param {HTMLElement} node The node to be selected
+     * @param {Ext.dataview.List} lastActiveList The Ext.dataview.List that was last active
+     * @param {Boolean} detailCardActive Flag set if the detail card is currently active
      */
 
     /**
@@ -309,7 +319,7 @@ Ext.define('Ext.dataview.NestedList', {
         //@private
     initialize: function() {
         var me = this;
-        me.callParent(arguments);
+        me.callParent();
 
         me.on({
             delegate: '> list',
@@ -339,19 +349,15 @@ Ext.define('Ext.dataview.NestedList', {
             store = list.getStore(),
             node = store.getAt(index);
 
-        me.fireAction('itemtap', [list, index, item, e], 'doItemTap');
+        me.fireEvent('itemtap', list, index, item, e);
         if (node.isLeaf()) {
-            me.fireAction('leafitemtap', [list, index, item, e], 'doLeafItemTap');
+            me.fireEvent('leafitemtap', list, index, item, e);
             me.goToLeaf(node);
         }
         else {
             this.goToNode(node);
         }
     },
-
-    doItemTap: Ext.emptyFn,
-
-    doLeafItemTap: Ext.emptyFn,
 
     /**
      * Called when an list item has been tapped
@@ -361,10 +367,8 @@ Ext.define('Ext.dataview.NestedList', {
      * @param {Ext.event.Event} e The event
      */
     onItemDoubleTap: function(list, index, item, e) {
-        this.fireAction('itemdoubletap', [list, index, item, e], 'doItemDoubleTap');
+        this.fireEvent('itemdoubletap', list, index, item, e);
     },
-
-    doItemDoubleTap: Ext.emptyFn,
 
     /**
      * Called when the backButton has been tapped
@@ -470,7 +474,7 @@ Ext.define('Ext.dataview.NestedList', {
     },
 
     applyToolbar: function(config) {
-        return Ext.factory(config, Ext.NavigationBar, this.getToolbar());
+        return Ext.factory(config, Ext.TitleBar, this.getToolbar());
     },
 
     updateToolbar: function(newToolbar, oldToolbar) {

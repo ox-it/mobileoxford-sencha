@@ -112,14 +112,16 @@
 
     publish: function(subscribers, component, eventName) {
         var id = component.getId(),
+            needsDispatching = false,
             eventNames, items, i, ln, isPainted;
 
         if (subscribers[id]) {
             eventNames = this.eventNames;
+
             isPainted = component.isPainted();
 
             if ((eventName === eventNames.painted &amp;&amp; isPainted) || eventName === eventNames.erased &amp;&amp; !isPainted) {
-                this.dispatcher.doDispatchEvent(this.targetType, '#' + id, eventName, [component]);
+                needsDispatching = true;
             }
             else {
                 return this;
@@ -133,8 +135,14 @@
                 this.publish(subscribers, items[i], eventName);
             }
         }
-    }
+        else if (component.isDecorator) {
+            this.publish(subscribers, component.getComponent(), eventName);
+        }
 
+        if (needsDispatching) {
+            this.dispatcher.doDispatchEvent(this.targetType, '#' + id, eventName, [component]);
+        }
+    }
 });
 </pre>
 </body>

@@ -20,12 +20,22 @@ Ext.define('Kiva.view.LoansList', {
         deselectOnContainerClick: false
     },
 
+    /**
+     * Used so the "sorry something went wrong" message doesn't appear on first load
+     * @private
+     */
+    refreshed: false,
+
     doRefresh: function(me) {
         me.callParent(arguments);
 
         var store = me.getStore();
-        if (store.getCount() === 0) {
-            me.mask('Sorry, something went wrong!');
+        if (this.refreshed && store.getCount() === 0) {
+            me.setMask({
+                message: 'Sorry, something went wrong!'
+            });
         }
+        
+        this.refreshed = true;
     }
 });

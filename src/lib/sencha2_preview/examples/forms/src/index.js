@@ -89,35 +89,35 @@ Ext.setup({
                             xtype: 'textfield',
                             name : 'name',
                             label: 'Name',
-                            useClearIcon: true,
+                            clearIcon: true,
                             autoCapitalize : false
                         },
                         {
                             xtype: 'passwordfield',
                             name : 'password',
                             label: 'Password',
-                            useClearIcon: false
+                            clearIcon: false
                         },
                         {
                             xtype: 'textfield',
                             name : 'disabled',
                             label: 'Disabled',
                             disabled: true,
-                            useClearIcon: true
+                            clearIcon: true
                         },
                         {
                             xtype: 'emailfield',
                             name : 'email',
                             label: 'Email',
                             placeHolder: 'you@sencha.com',
-                            useClearIcon: true
+                            clearIcon: true
                         },
                         {
                             xtype: 'urlfield',
                             name : 'url',
                             label: 'Url',
                             placeHolder: 'http://sencha.com',
-                            useClearIcon: true
+                            clearIcon: true
                         },
                         {
                             xtype: 'checkboxfield',
@@ -205,13 +205,13 @@ Ext.setup({
                              xtype: 'emailfield',
                              name: 'email2',
                              label: 'Email',
-                             useClearIcon: true
+                             clearIcon: true
                          },
                          {
                              xtype: 'urlfield',
                              name: 'url2',
                              label: 'URL',
-                             useClearIcon: true
+                             clearIcon: true
                          }
                      ]
                 },
@@ -236,7 +236,7 @@ Ext.setup({
                          {
                              xtype: 'textfield',
                              name: 'single_text',
-                             useClearIcon: true
+                             clearIcon: true
                          }
                      ]
                 },

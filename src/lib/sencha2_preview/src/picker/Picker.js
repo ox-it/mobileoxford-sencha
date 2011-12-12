@@ -28,7 +28,7 @@ Remember, {@link Ext.picker.Slot} class extends from {@link Ext.dataview.DataVie
         ]
     });
     picker.show();
-    
+
 You can also customize the top toolbar on the {@link Ext.picker.Picker} by changing the {@link #doneButton} and {@link #cancelButton} configurations:
 
     @example preview
@@ -49,7 +49,7 @@ You can also customize the top toolbar on the {@link Ext.picker.Picker} by chang
         ]
     });
     picker.show();
-    
+
 Or by passing a custom {@link #toolbar} configuration:
 
         @example preview
@@ -271,7 +271,7 @@ Ext.define('Ext.picker.Picker', {
             //done to make sure it is inserted at the left
             //@todo remove this when toolbarlayout is fixed
             cancelButton = this.getCancelButton();
-        
+
         if (newDoneButton) {
             toolbar.add([
                 { xtype: 'spacer' },
@@ -336,10 +336,18 @@ Ext.define('Ext.picker.Picker', {
 
     /**
      * Adds any new {@link #slots} to this picker, and removes existing {@link #slots}
+     * @private
      */
-    updateSlots: function(newSlots, oldSlots) {
-        if (oldSlots) {
-            this.removeAll();
+    updateSlots: function(newSlots) {
+        var innerItems = this.getInnerItems(),
+            ln, i;
+
+        if (innerItems) {
+            ln = innerItems.length;
+
+            for (i = 0; i < ln; i++) {
+                this.remove(innerItems[i]);
+            }
         }
 
         if (newSlots) {
@@ -361,7 +369,7 @@ Ext.define('Ext.picker.Picker', {
         //     },
         //     scope: this
         // });
-        this.fireAction('change', [this, this.getValue()]);
+        this.fireEvent('change', this, this.getValue());
         this.hide();
     },
 
@@ -388,7 +396,7 @@ Ext.define('Ext.picker.Picker', {
      * Called when a slot has been picked.
      */
     onSlotPick: function(slot, value, node) {
-        this.fireAction('pick', [this, this.getValue(), slot]);
+        this.fireEvent('pick', this, this.getValue(), slot);
     },
 
     onShow: function() {

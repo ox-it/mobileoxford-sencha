@@ -44,11 +44,21 @@ Element.override({
 </span>      * Gets the current position of the element based on page coordinates.  Element must be part of the DOM tree to have page coordinates (display:none or elements not appended return false).
       * @return {Array} The XY position of the element
       */
+
     getXY: function() {
-        // @FEATUREDETECT
-        var point = window.webkitConvertPointFromNodeToPage(this.dom, new WebKitPoint(0, 0));
-        return [point.x, point.y];
-    },
+        var webkitConvert = window.webkitConvertPointFromNodeToPage;
+        if (webkitConvert) {
+            return function() {
+                var point = webkitConvert(this.dom, new WebKitPoint(0, 0));
+                return [point.x, point.y];
+            }
+        }
+        else return function() {
+            var rect = this.dom.getBoundingClientRect(),
+                rnd = Math.round;
+            return [rnd(rect.left + window.pageXOffset), rnd(rect.top + window.pageYOffset)];
+        }
+    }(),
 
 <span id='Ext-dom-AbstractElement-method-getOffsetsTo'>    /**
 </span>      * Returns the offsets of this element from the passed element. Both element must be part of the DOM tree and not have display:none to have page coordinates.

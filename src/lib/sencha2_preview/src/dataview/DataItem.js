@@ -34,6 +34,54 @@ Ext.define('Ext.dataview.DataItem', {
     extend: 'Ext.Container',
     xtype : 'dataitem',
 
+    /**
+     * @event tap
+     * Fires whenever the tap event is triggered on the DataItem
+     * @param {Ext.dataview.DataItem} this
+     * @param {Ext.data.Model} record The record assosciated with the DataItem
+     * @param {Ext.EventObject} e The event object
+     */
+
+    /**
+     * @event doubletap
+     * Fires whenever the doubletap event is triggered on the DataItem
+     * @param {Ext.dataview.DataItem} this
+     * @param {Ext.data.Model} record The record assosciated with the DataItem
+     * @param {Ext.EventObject} e The event object
+     */
+
+    /**
+     * @event touchstart
+     * Fires whenever the touchstart event is triggered on the DataItem
+     * @param {Ext.dataview.DataItem} this
+     * @param {Ext.data.Model} record The record assosciated with the DataItem
+     * @param {Ext.EventObject} e The event object
+     */
+
+    /**
+     * @event touchmove
+     * Fires whenever the touchmove event is triggered on the DataItem
+     * @param {Ext.dataview.DataItem} this
+     * @param {Ext.data.Model} record The record assosciated with the DataItem
+     * @param {Ext.EventObject} e The event object
+     */
+
+    /**
+     * @event touchend
+     * Fires whenever the touchend event is triggered on the DataItem
+     * @param {Ext.dataview.DataItem} this
+     * @param {Ext.data.Model} record The record assosciated with the DataItem
+     * @param {Ext.EventObject} e The event object
+     */
+
+    /**
+     * @event swipe
+     * Fires whenever the swipe event is triggered on the DataItem
+     * @param {Ext.dataview.DataItem} this
+     * @param {Ext.data.Model} record The record assosciated with the DataItem
+     * @param {Ext.EventObject} e The event object
+     */
+
     config: {
         baseCls: Ext.baseCSSPrefix + 'data-item',
 

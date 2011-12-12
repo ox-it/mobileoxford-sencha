@@ -16,6 +16,20 @@ Ext.define('Ext.mixin.Selectable', {
         }
     },
 
+    /**
+     * @deprecated
+     * @event beforeselectionchange
+     * @preventable selectionchange
+     * Fires before an item is selected
+     */
+
+    /**
+     * @event selectionchange
+     * Fires when a selection changes
+     * @param {Ext.mixin.Selectable} this
+     * @param {Ext.data.Model[]} records The records whose selection has changed
+     */
+
     config: {
         /**
          * @cfg {Boolean} locked
@@ -76,6 +90,16 @@ Ext.define('Ext.mixin.Selectable', {
         MULTI: true
     },
 
+    selectableEventHooks: {
+        add: 'onSelectionStoreAdd',
+        remove: 'onSelectionStoreRemove',
+        update: 'onSelectionStoreUpdate',
+        clear: 'onSelectionStoreClear',
+        load: 'refreshSelection',
+        sort: 'refreshSelection',
+        filter: 'refreshSelection'
+    },
+
     constructor: function() {
         this._selected = new Ext.util.MixedCollection();
         this.callParent(arguments);
@@ -101,13 +125,7 @@ Ext.define('Ext.mixin.Selectable', {
 
     applyStore: function(store) {
         var me = this,
-            bindEvents = {
-                add   : 'onSelectionStoreAdd',
-                remove: 'onSelectionStoreRemove',
-                update: 'onSelectionStoreUpdate',
-                clear : 'onSelectionStoreClear',
-                scope: me
-            };
+            bindEvents = Ext.apply({}, me.selectableEventHooks, { scope: me });
 
         if (store) {
             store = Ext.data.StoreManager.lookup(store);
@@ -119,13 +137,7 @@ Ext.define('Ext.mixin.Selectable', {
 
     updateStore: function(newStore, oldStore) {
         var me = this,
-            bindEvents = {
-                add   : 'onSelectionStoreAdd',
-                remove: 'onSelectionStoreRemove',
-                update: 'onSelectionStoreUpdate',
-                clear : 'onSelectionStoreClear',
-                scope: me
-            };
+            bindEvents = Ext.apply({}, me.selectableEventHooks, { scope: me });
 
         if (oldStore && Ext.isObject(oldStore) && oldStore.isStore) {
             if (oldStore.autoDestroy) {
@@ -254,7 +266,11 @@ Ext.define('Ext.mixin.Selectable', {
         }
 
         if (typeof records === "number") {
-            records = [me.store.getAt(records)];
+            records = [me.getStore().getAt(records)];
+        }
+
+        if (!records) {
+            return;
         }
 
         if (me.getMode() == "SINGLE" && records) {
@@ -342,7 +358,7 @@ Ext.define('Ext.mixin.Selectable', {
         }
 
         if (typeof records === "number") {
-            records = [me.store.getAt(records)];
+            records = [me.getStore().getAt(records)];
         }
 
         if (!Ext.isArray(records)) {
@@ -378,14 +394,12 @@ Ext.define('Ext.mixin.Selectable', {
             //<deprecated product=touch since=2.0>
             me.fireAction('beforeselectionchange', [], function() {
             //</deprecated>
-                me.fireAction('selectionchange', [me, me.getSelection()], 'doSelectionChange');
+                me.fireEvent('selectionchange', me, me.getSelection());
             //<deprecated product=touch since=2.0>
             });
             //</deprecated>
         }
     },
-
-    doSelectionChange: Ext.emptyFn,
 
     /**
      * Returns an array of the currently selected records.

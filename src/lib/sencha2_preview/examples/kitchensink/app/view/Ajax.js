@@ -1,7 +1,6 @@
 Ext.define('Kitchensink.view.Ajax', {
     extend: 'Ext.Container',
     config: {
-        layout    : 'fit',
         scrollable: true,
         items: [
             {
@@ -18,12 +17,15 @@ Ext.define('Kitchensink.view.Ajax', {
                         handler: function() {
                             var panel = Ext.getCmp('Ajax');
 
-                            panel.element.mask('Loading...', 'x-mask-loading', false);
+                            panel.getParent().setMask({
+                                message: 'Loading...'
+                            });
+
                             Ext.Ajax.request({
                                 url: 'test.json',
                                 success: function(response) {
                                     panel.update(response.responseText);
-                                    panel.element.unmask();
+                                    panel.getParent().unmask();
                                 }
                             });
                         }

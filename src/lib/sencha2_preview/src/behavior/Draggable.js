@@ -25,7 +25,9 @@ Ext.define('Ext.behavior.Draggable', {
 
         if (config) {
             if (!draggable) {
+                component.setTranslatable(true);
                 this.draggable = draggable = new Ext.util.Draggable(config);
+                draggable.setTranslatable(component.getTranslatable());
                 draggable.setElement(component.renderElement);
                 draggable.on('destroy', 'onDraggableDestroy', this);
 
@@ -42,6 +44,8 @@ Ext.define('Ext.behavior.Draggable', {
         else if (draggable) {
             draggable.destroy();
         }
+
+        return this;
     },
 
     getDraggable: function() {
@@ -51,6 +55,15 @@ Ext.define('Ext.behavior.Draggable', {
     onDraggableDestroy: function() {
         var component = this.component;
 
+        delete this.draggable;
         component.un(this.listeners);
+    },
+
+    onComponentDestroy: function() {
+        var draggable = this.draggable;
+
+        if (draggable) {
+            draggable.destroy();
+        }
     }
 });

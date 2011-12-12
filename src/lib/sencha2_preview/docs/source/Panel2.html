@@ -109,7 +109,7 @@
  * There are a few ways to submit form data. In our example above we have a Model instance that we have updated, giving
  * us the option to use the Model's {@link Ext.data.Model#save save} method to persist the changes back to our server,
  * without using a traditional form submission. Alternatively, we can send a normal browser form submit using the
- * {@link #submit} method:
+ * {@link #method-submit} method:
  *
  *     form.submit({
  *         url: 'url/to/submit/to',
@@ -120,7 +120,7 @@
  *     });
  *
  * In this case we provided the url to submit the form to inside the submit call - alternatively you can just set the
- * {@link #url} configuration when you create the form. We can specify other parameters (see {@link #submit} for a
+ * {@link #url} configuration when you create the form. We can specify other parameters (see {@link #method-submit} for a
  * full list), including callback functions for success and failure, which are called depending on whether or not the
  * form submission was successful. These functions are usually used to take some action in your app after your data
  * has been saved to the server side.
@@ -133,13 +133,16 @@ Ext.define('Ext.form.Panel', {
 
 <span id='Ext-form-Panel-event-submit'>    /**
 </span>     * @event submit
+     * @preventable doSubmit
      * Fires upon successful (Ajax-based) form submission
      * @param {Ext.form.Panel} this This FormPanel
      * @param {Object} result The result object as returned by the server
+     * @param {Ext.EventObject} e The event object
      */
 
 <span id='Ext-form-Panel-event-beforesubmit'>    /**
 </span>     * @event beforesubmit
+     * @preventable doBeforeSubmit
      * Fires immediately preceding any Form submit action.
      * Implementations may adjust submitted form values or options prior to execution.
      * A return value of &lt;tt&gt;false&lt;/tt&gt; from this listener will abort the submission
@@ -230,6 +233,7 @@ Ext.define('Ext.form.Panel', {
     // @private
     initialize: function() {
         var me = this;
+        me.callParent();
 
         me.on({
             action: 'onFieldAction',
@@ -240,8 +244,6 @@ Ext.define('Ext.form.Panel', {
             submit: 'onSubmit',
             scope : this
         });
-
-        me.callParent(arguments);
     },
 
 <span id='Ext-form-Panel-method-applyWaitTpl'>    /**
@@ -278,14 +280,19 @@ Ext.define('Ext.form.Panel', {
     // @private
     onSubmit: function(e) {
         var me = this;
-        if (!me.getStandardSubmit() || me.fireAction('submit', [me, me.getValues(true)], 'doSubmit') === false) {
-            if (e) {
-                e.stopEvent();
-            }
+        if (e &amp;&amp; !me.getStandardSubmit()) {
+            e.stopEvent();
         }
+
+        me.fireAction('submit', [me, me.getValues(true), e], 'doSubmit');
+
     },
 
-    doSubmit: Ext.emptyFn,
+    doSubmit: function(me, values, e) {
+        if (e) {
+            e.stopEvent();
+        }
+    },
 
     // @private
     onFieldAction: function(field) {
@@ -391,68 +398,70 @@ Ext.define('Ext.form.Panel', {
 
         formValues = me.getValues(me.getStandardSubmit() || !options.submitDisabled);
 
+        return me.fireAction('beforesubmit', [me, formValues, options], 'doBeforeSubmit');
+    },
+
+    doBeforeSubmit: function(me, formValues, options) {
+        var form = me.element.dom || {};
+
         if (me.getStandardSubmit()) {
             if (options.url &amp;&amp; Ext.isEmpty(form.action)) {
                 form.action = options.url;
             }
 
             form.method = (options.method || form.method).toLowerCase();
-
-            if (me.fireEvent('beforesubmit', me, formValues, options) !== false) {
-                form.submit();
-            }
+            form.submit();
         }
         else {
-            if (me.fireEvent('beforesubmit', me, formValues, options) !== false) {
-                if (options.waitMsg) {
-                    me.showMask(options.waitMsg);
-                }
+            if (options.waitMsg) {
+                me.showMask(options.waitMsg);
+            }
 
-                return Ext.Ajax.request({
-                    url: options.url,
-                    method: options.method,
-                    rawData: Ext.urlEncode(Ext.apply(
-                        Ext.apply({}, me.getBaseParams() || {}),
-                        options.params || {},
-                        formValues
-                    )),
-                    autoAbort: options.autoAbort,
-                    headers: Ext.apply(
-                        {'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'},
-                        options.headers || {}),
-                    scope    : me,
-                    callback: function(callbackOptions, success, response) {
-                        var me = this,
-                            responseText = response.responseText,
-                            failureFn;
+            return Ext.Ajax.request({
+                url: options.url,
+                method: options.method,
+                rawData: Ext.urlEncode(Ext.apply(
+                    Ext.apply({}, me.getBaseParams() || {}),
+                    options.params || {},
+                    formValues
+                )),
+                autoAbort: options.autoAbort,
+                headers: Ext.apply(
+                    {'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'},
+                    options.headers || {}
+                ),
+                scope: me,
+                callback: function(callbackOptions, success, response) {
+                    var me = this,
+                        responseText = response.responseText,
+                        failureFn;
 
-                        me.hideMask();
+                    me.hideMask();
 
-                        failureFn = function() {
-                            if (Ext.isFunction(options.failure)) {
-                                options.failure.call(options.scope || me, me, response, responseText);
-                            }
-                            me.fireEvent('exception', me, response);
-                        };
-
-                        if (success) {
-                            response = Ext.decode(responseText);
-                            success = !!response.success;
-                            if (success) {
-                                if (Ext.isFunction(options.success)) {
-                                    options.success.call(options.scope || me, me, response, responseText);
-                                }
-                                me.fireEvent('submit', me, response);
-                            } else {
-                                failureFn();
-                            }
+                    failureFn = function() {
+                        if (Ext.isFunction(options.failure)) {
+                            options.failure.call(options.scope || me, me, response, responseText);
                         }
-                        else {
+                        me.fireEvent('exception', me, response);
+                    };
+
+                    if (success) {
+                        response = Ext.decode(responseText);
+                        success = !!response.success;
+                        if (success) {
+                            if (Ext.isFunction(options.success)) {
+                                options.success.call(options.scope || me, me, response, responseText);
+                            }
+                            me.fireEvent('submit', me, response);
+                        } else {
                             failureFn();
                         }
                     }
-                });
-            }
+                    else {
+                        failureFn();
+                    }
+                }
+            });
         }
     },
 
@@ -586,7 +595,7 @@ Ext.define('Ext.form.Panel', {
                             }
                         }
 
-                        
+
                     }
                 } else {
                     field = fields[name];
@@ -738,7 +747,7 @@ Ext.define('Ext.form.Panel', {
     hideMask: function() {
         var me = this,
             maskTarget = me.getMaskTarget();
-        
+
         if (maskTarget) {
             maskTarget.unmask();
             me.setMaskTarget(null);
@@ -777,7 +786,7 @@ Ext.define('Ext.form.Panel', {
     });
     //&lt;/deprecated&gt;
 
-<span id='Ext-form-Panel-property-load'>    /**
+<span id='Ext-form-Panel-method-load'>    /**
 </span>     * (Shortcut to {@link #loadRecord} method) Loads matching fields from a model instance into this form
      * @param {Ext.data.Model} instance The model instance
      * @return {Ext.form.Panel} this

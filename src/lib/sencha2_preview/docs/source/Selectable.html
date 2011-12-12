@@ -33,6 +33,20 @@ Ext.define('Ext.mixin.Selectable', {
         }
     },
 
+<span id='Ext-mixin-Selectable-event-beforeselectionchange'>    /**
+</span>     * @deprecated
+     * @event beforeselectionchange
+     * @preventable selectionchange
+     * Fires before an item is selected
+     */
+
+<span id='Ext-mixin-Selectable-event-selectionchange'>    /**
+</span>     * @event selectionchange
+     * Fires when a selection changes
+     * @param {Ext.mixin.Selectable} this
+     * @param {Ext.data.Model[]} records The records whose selection has changed
+     */
+
     config: {
 <span id='Ext-mixin-Selectable-cfg-locked'>        /**
 </span>         * @cfg {Boolean} locked
@@ -93,6 +107,16 @@ Ext.define('Ext.mixin.Selectable', {
         MULTI: true
     },
 
+    selectableEventHooks: {
+        add: 'onSelectionStoreAdd',
+        remove: 'onSelectionStoreRemove',
+        update: 'onSelectionStoreUpdate',
+        clear: 'onSelectionStoreClear',
+        load: 'refreshSelection',
+        sort: 'refreshSelection',
+        filter: 'refreshSelection'
+    },
+
     constructor: function() {
         this._selected = new Ext.util.MixedCollection();
         this.callParent(arguments);
@@ -118,13 +142,7 @@ Ext.define('Ext.mixin.Selectable', {
 
     applyStore: function(store) {
         var me = this,
-            bindEvents = {
-                add   : 'onSelectionStoreAdd',
-                remove: 'onSelectionStoreRemove',
-                update: 'onSelectionStoreUpdate',
-                clear : 'onSelectionStoreClear',
-                scope: me
-            };
+            bindEvents = Ext.apply({}, me.selectableEventHooks, { scope: me });
 
         if (store) {
             store = Ext.data.StoreManager.lookup(store);
@@ -136,13 +154,7 @@ Ext.define('Ext.mixin.Selectable', {
 
     updateStore: function(newStore, oldStore) {
         var me = this,
-            bindEvents = {
-                add   : 'onSelectionStoreAdd',
-                remove: 'onSelectionStoreRemove',
-                update: 'onSelectionStoreUpdate',
-                clear : 'onSelectionStoreClear',
-                scope: me
-            };
+            bindEvents = Ext.apply({}, me.selectableEventHooks, { scope: me });
 
         if (oldStore &amp;&amp; Ext.isObject(oldStore) &amp;&amp; oldStore.isStore) {
             if (oldStore.autoDestroy) {
@@ -271,7 +283,11 @@ Ext.define('Ext.mixin.Selectable', {
         }
 
         if (typeof records === &quot;number&quot;) {
-            records = [me.store.getAt(records)];
+            records = [me.getStore().getAt(records)];
+        }
+
+        if (!records) {
+            return;
         }
 
         if (me.getMode() == &quot;SINGLE&quot; &amp;&amp; records) {
@@ -359,7 +375,7 @@ Ext.define('Ext.mixin.Selectable', {
         }
 
         if (typeof records === &quot;number&quot;) {
-            records = [me.store.getAt(records)];
+            records = [me.getStore().getAt(records)];
         }
 
         if (!Ext.isArray(records)) {
@@ -395,14 +411,12 @@ Ext.define('Ext.mixin.Selectable', {
             //&lt;deprecated product=touch since=2.0&gt;
             me.fireAction('beforeselectionchange', [], function() {
             //&lt;/deprecated&gt;
-                me.fireAction('selectionchange', [me, me.getSelection()], 'doSelectionChange');
+                me.fireEvent('selectionchange', me, me.getSelection());
             //&lt;deprecated product=touch since=2.0&gt;
             });
             //&lt;/deprecated&gt;
         }
     },
-
-    doSelectionChange: Ext.emptyFn,
 
 <span id='Ext-mixin-Selectable-method-getSelection'>    /**
 </span>     * Returns an array of the currently selected records.

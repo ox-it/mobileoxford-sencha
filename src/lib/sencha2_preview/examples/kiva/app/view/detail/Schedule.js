@@ -1,11 +1,12 @@
 Ext.define('Kiva.view.detail.Schedule', {
-    extend: 'Ext.Component',
+    extend: 'Ext.Container',
     xtype: 'detailSchedule',
     requires: ['Ext.DateExtras'],
 
     config: {
         cls: 'detail-card',
         styleHtmlContent: true,
+        scrollable: 'auto',
 
         tpl: Ext.create('Ext.XTemplate', 
             '<h1>Repayment Schedule</h1>',

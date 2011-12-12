@@ -15,45 +15,52 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js"><span id='Ext-fx-layout-card-Abstract'>/**
-</span> * @private
- */
-Ext.define('Ext.fx.layout.card.Abstract', {
+  <pre class="prettyprint lang-js">Ext.define('Ext.fx.easing.Abstract', {
 
     config: {
-        layout: null
+        startTime: 0,
+        startValue: 0
     },
 
-    updateLayout: function() {
-        this.enable();
+    isEnded: false,
+
+    constructor: function(config) {
+        this.initConfig(config);
+
+        return this;
     },
 
-    enable: function() {
-        var layout = this.getLayout();
+    clone: function() {
+        var config = this.config,
+            cloneConfig = {},
+            name;
 
-        if (layout) {
-            layout.on(layout.eventNames.activeItemChange, 'onActiveItemChange', this);
+        for (name in config) {
+            if (config.hasOwnProperty(name)) {
+                cloneConfig[name] = this[name];
+            }
         }
+
+        return new this.self(cloneConfig);
     },
 
-    disable: function() {
-        var layout = this.getLayout();
-
-        if (layout) {
-            layout.un(layout.eventNames.activeItemChange, 'onActiveItemChange', this);
+    applyStartTime: function(startTime) {
+        if (!startTime) {
+            startTime = Ext.Date.now();
         }
+
+        return startTime;
     },
 
-    onActiveItemChange: Ext.emptyFn,
+    updateStartTime: function(startTime) {
+        this.reset();
+    },
 
-    destroy: function() {
-        var layout = this.getLayout();
+    reset: function() {
+        this.isEnded = false;
+    },
 
-        if (layout) {
-            this._layout = null;
-            layout.un(layout.eventNames.activeItemChange, 'onActiveItemChange', this);
-        }
-    }
+    getValue: Ext.emptyFn
 });
 </pre>
 </body>

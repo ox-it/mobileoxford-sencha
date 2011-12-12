@@ -9,6 +9,7 @@ Ext.require(['Ext.data.Store', 'Kitchensink.model.User'], function() {
         config: {
             scrollable: true,
             styleHtmlContent: true,
+            layout: 'fit',
             items: [
                 {
                     docked: 'top',
@@ -31,7 +32,7 @@ Ext.require(['Ext.data.Store', 'Kitchensink.model.User'], function() {
                                         width: 250,
                                         height: 250,
                                         styleHtmlContent: true,
-                                        scroll: 'vertical',
+                                        scroll: true,
                                         items: {
                                             docked : 'top',
                                             xtype: 'toolbar',
@@ -56,6 +57,8 @@ Ext.require(['Ext.data.Store', 'Kitchensink.model.User'], function() {
                     xtype: 'dataview',
                     id: 'NestedLoadingDataView',
                     scrollable: false,
+                    layout: 'fit',
+                    emptyText: 'No Data Loaded',
                     /*
                      * The XTemplate allows us to easily render the data from our User model, as well as
                      * iterating over each User's Orders and OrderItems:

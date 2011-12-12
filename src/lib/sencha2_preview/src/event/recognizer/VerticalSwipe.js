@@ -1,7 +1,16 @@
+/**
+ * A event recogniser created to recognise vertical swipe movements.
+ * 
+ * This is disabled by default in Sencha Touch as it has a performance inpect when your application
+ * has vertical scrollers, plus, in most cases it is not very useful.
+ * 
+ * If you wish to recognise vertical swipe movements in your application, please refer to the documentation of
+ * {@link Ext.event.recognizer.Recognizer} and {@link Ext#setup}.
+ * 
+ * @private
+ */
 Ext.define('Ext.event.recognizer.VerticalSwipe', {
     extend: 'Ext.event.recognizer.Swipe',
-
-    handledEvents: ['swipeup', 'swipedown'],
 
     onTouchStart: function(e) {
         if (this.callParent(arguments) === false) {
@@ -49,9 +58,10 @@ Ext.define('Ext.event.recognizer.VerticalSwipe', {
 
             direction = (deltaY < 0) ? 'up' : 'down';
 
-            this.fire('swipe' + direction, e, [touch], {
+            this.fire('swipe', e, [touch], {
                 touch: touch,
                 distance: distance,
+                duration: duration,
                 duration: duration
             });
         }

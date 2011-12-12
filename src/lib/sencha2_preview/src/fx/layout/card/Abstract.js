@@ -2,6 +2,7 @@
  * @private
  */
 Ext.define('Ext.fx.layout.card.Abstract', {
+    isAnimation: true,
 
     config: {
         layout: null

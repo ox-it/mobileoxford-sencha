@@ -10,6 +10,23 @@ Ext.define('Ext.viewport.Default', {
 
     LANDSCAPE: 'landscape',
 
+    /**
+     * @event ready
+     * Fires when the ViewPort is in the DOM and ready
+     */
+
+    /**
+     * @event maximize
+     * Fires when the ViewPort is maximized
+     */
+
+    /**
+     * @event resize
+     * Fires when the ViewPort is resized
+     * @param {Number} width The width of the Viewport
+     * @param {Number} height The height of the Viewport
+     */
+
     config: {
         /**
          * @cfg {Boolean} autoMaximize
@@ -424,5 +441,33 @@ Ext.define('Ext.viewport.Default', {
     onItemFullscreenChange: function(item) {
         item.addCls(this.fullscreenItemCls);
         this.add(item);
+    },
+    
+    keyboardHideField: null,
+
+    hideKeyboard: function() {
+        var me = this;
+
+        if (Ext.os.is.iOS) {
+            document.activeElement.blur();
+            
+            setTimeout(function() {
+                Ext.Viewport.scrollToTop();
+            }, 50);
+        } else {
+            if (!me.keyboardHideField) {
+                me.keyboardHideField = document.createElement('input');
+                me.keyboardHideField.setAttribute('type', 'text');
+                me.keyboardHideField.setAttribute('style', 'position:absolute;top:-1000px');
+                document.body.appendChild(me.keyboardHideField);
+            }
+
+            setTimeout(function() {
+                me.keyboardHideField.focus();
+                setTimeout(function() {
+                    me.keyboardHideField.setAttribute('style', 'display:none;');
+                }, 50);
+            }, 50);
+        }
     }
 });

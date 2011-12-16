@@ -4,7 +4,7 @@ Ext.Loader.setConfig({
 
 Ext.application({
     name: "MobileOxford",
-    controllers: ['home'],
+    controllers: ['home', 'webcams', 'places', 'library'],
     stores: ['webcams'],
     appFolder: 'app',
     autoCreateViewport: true,

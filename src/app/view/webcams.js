@@ -7,29 +7,14 @@ Ext.define('MobileOxford.view.webcams', {
 		title: 'Webcams',
 		items: [
 			{
-				xtype: 'toolbar',
-				docked: 'top',
-				title: 'Webcams',
-				layout: {
-					type: 'hbox',
-				},
-				items: [
-					{
-						xtype: 'button',
-						text: 'Home',
-						go: 'home',
-						ui: 'back'
-					}
-				]
-			},
-			{
 				xtype: 'list',
 				//xtype: 'componentview',
 				id: 'webcamsList',			
 				store: 'webcams',
-				itemTpl: '<div>{title}</div>',
+				itemTpl: '{title}',
 				flex: 1,
 				layout: 'fit',
+				allowDeselect: true,
 				//layout: {
 				//	type: 'vbox',
 				//	align: 'middle',
@@ -50,8 +35,8 @@ Ext.define('MobileOxford.view.webcams', {
 		// * this is fired when application start because this view is init when application start (good thing?)
 		// * it is automatically hidden when store is ready (because bound to store)
 		//console.log('Webcam view loaded.');
-		Ext.Viewport.setMask({message:"Wait!"});
-		Ext.Viewport.setMask(false);
+		//Ext.Viewport.setMask({message:"Wait!"});
+		
 	}
 });
 

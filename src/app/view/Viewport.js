@@ -7,21 +7,20 @@ http://www.sencha.com/forum/showthread.php?150668-ExtJS4-to-ST2
 */
 
 Ext.define('MobileOxford.view.Viewport', {
-	extend: 'Ext.Container',
+	extend: 'Ext.NavigationView',
 	xtype: 'my-viewport',
 	config: {
 		layout: 'card',
 		fullscreen: true,
 		items: [
 			{
+				xtype: 'toolbar',
+				docked: 'bottom',
+				title: 'Online:' + navigator.onLine
+			},
+			{
 				xtype: 'home'
 			},
-			{
-				xtype: 'webcams',
-			},
-			{
-				xtype: 'webcam',
-			}
 		]
 	}
 });

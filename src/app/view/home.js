@@ -1,40 +1,27 @@
 Ext.define('MobileOxford.view.home', {
     extend: 'Ext.Panel',
     alias: 'widget.home',
-    title: 'App list',
+    title: 'Mobile Oxford',
     layout: 'vbox',
     config: {
-	title: 'Homepage',
-        items: [
-		{
-			xtype: 'toolbar',
-			docked: 'top',
-			title: 'Mobile Oxford',
-			layout: {
-				type: 'hbox',
-			},
-		},
-                {
+    	padding: 10,
+	items: [
+               	{
                     xtype: 'button',
 		    text: 'Places',
-		    id: 'placesButton'
+		    go: 'places',
                 },
                 {
                     xtype: 'button',
 		    text: 'Webcams',
-		    id: 'webcamsButton',
 		    go: 'webcams',
                 },
-		{
-			xtype: 'label',
-			html: 'Online:' + navigator.onLine
-		}
+                {
+                    xtype: 'button',
+		    text: 'Library search',
+		    go: 'librarysearch',
+                }
             ],
     },
-    
-    initialize: function() {
-        console.log('initialize home view');
-        this.callParent();
-    }
     
 })

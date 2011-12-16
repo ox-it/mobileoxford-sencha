@@ -8,8 +8,4 @@ Ext.application({
     stores: ['webcams'],
     appFolder: 'app',
     autoCreateViewport: true,
-
-    launch: function() {
-        console.log('app launch');
-    }
 })

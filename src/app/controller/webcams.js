@@ -10,7 +10,7 @@ Ext.define('MobileOxford.controller.webcams', {
 	{
 		ref: 'webcamsList',
 		selector: '#webcamsList'
-	}
+	},
     ],
 
     init: function() {
@@ -42,12 +42,11 @@ Ext.define('MobileOxford.controller.webcams', {
 			callback: function(result) {
 				if (result.eis) {
 					var src = 'http://m.ox.ac.uk' + result.eis._url;
-					viewport.push({ xtype: 'webcam', title: webcam.get('title') });
-					
-					Ext.getCmp('webcamDescription').updateHtml(webcam.get('description'));
-					Ext.getCmp('webcamCredit').updateHtml(webcam.get('credit'));
-					Ext.getCmp('webcamImage').setHtml("<img src=\"" + src + "\" />");	// temp ugly fix
-					//Ext.getCmp('webcamImage').updateSrc(src);
+					var w = new Object();
+					w.url = src;
+					w.description = webcam.get('description');
+					w.credit = webcam.get('credit');
+					viewport.push({ xtype: 'webcam', title: webcam.get('title'), data: w });
 				}
 				else {
 					alert('There was an error retrieving the webcam details.');

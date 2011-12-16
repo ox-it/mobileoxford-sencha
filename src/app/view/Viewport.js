@@ -16,7 +16,7 @@ Ext.define('MobileOxford.view.Viewport', {
 			{
 				xtype: 'toolbar',
 				docked: 'bottom',
-				title: 'Online:' + navigator.onLine
+				title: 'Online:' + navigator.onLine + " Webkit:" + Ext.browser.is.WebKit
 			},
 			{
 				xtype: 'home'

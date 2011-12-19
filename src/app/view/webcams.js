@@ -14,7 +14,7 @@ Ext.define('MobileOxford.view.webcams', {
 				itemTpl: '{title}',
 				flex: 1,
 				layout: 'fit',
-				allowDeselect: true,
+				//allowDeselect: true,
 				//layout: {
 				//	type: 'vbox',
 				//	align: 'middle',

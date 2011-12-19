@@ -16,7 +16,23 @@ Ext.define('MobileOxford.view.Viewport', {
 			{
 				xtype: 'toolbar',
 				docked: 'bottom',
-				title: 'Online:' + navigator.onLine + " Webkit:" + Ext.browser.is.WebKit
+				title: 'Online:' + navigator.onLine + " Webkit:" + Ext.browser.is.WebKit,
+				items: [
+					{
+						text: 'Menu',
+						handler: function() {
+							var overlay = Ext.create('MobileOxford.view.home', {
+							    floating        : true,
+							    modal           : true,
+							    hidden          : true,
+							    height          : 300,
+							    width           : '50%',
+							    scrollable      : true,
+							});
+							overlay.show();
+						}
+					}
+				]
 			},
 			{
 				xtype: 'home'

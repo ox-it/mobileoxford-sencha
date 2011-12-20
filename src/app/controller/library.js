@@ -21,6 +21,7 @@ Ext.define('MobileOxford.controller.library', {
         this.control({
 		'#btn-search': {
 			tap: function(btn) {
+				// TODO form validation
 				this.doSearch(this.getSearchform().getValues());
 			}
 		},

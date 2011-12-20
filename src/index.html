@@ -6,53 +6,8 @@
 	<title>Mobile Oxford</title>
 	<link rel="stylesheet" href="lib/sencha2_preview/resources/css/sencha-touch.css" type="text/css">
 	<script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=true"></script>
-	<script type="text/javascript" src="lib/sencha2_preview/sencha-touch-all-debug-w-comments.js"></script>
-	<script type="text/javascript" src="app.js"></script>
+	<script type="text/javascript" src="app-all.js"></script>
 </head>
 <body>
-	<script type="text/javascript">
-		<!-- Begin debug offline app cache -->
-		var cacheStatusValues = [];
-		cacheStatusValues[0] = 'uncached';
-		cacheStatusValues[1] = 'idle';
-		cacheStatusValues[2] = 'checking';
-		cacheStatusValues[3] = 'downloading';
-		cacheStatusValues[4] = 'updateready';
-		cacheStatusValues[5] = 'obsolete';
-
-		var cache = window.applicationCache;
-		cache.addEventListener('cached', logEvent, false);
-		cache.addEventListener('checking', logEvent, false);
-		cache.addEventListener('downloading', logEvent, false);
-		cache.addEventListener('error', logEvent, false);
-		cache.addEventListener('noupdate', logEvent, false);
-		cache.addEventListener('obsolete', logEvent, false);
-		cache.addEventListener('progress', logEvent, false);
-		cache.addEventListener('updateready', logEvent, false);
-
-		function logEvent(e) {
-		    var online, status, type, message;
-		    online = (navigator.onLine) ? 'yes' : 'no';
-		    status = cacheStatusValues[cache.status];
-		    type = e.type;
-		    message = 'online: ' + online;
-		    message+= ', event: ' + type;
-		    message+= ', status: ' + status;
-		    if (type == 'error' && navigator.onLine) {
-			message+= ' (prolly a syntax error in manifest)';
-		    }
-		    console.log('DOAC: ' + message);
-		}
-
-		<!-- End debug offline app cache -->
-
-		window.addEventListener('load', function (e) {
-		    window.applicationCache.addEventListener('updateready', function (e) {
-			window.applicationCache.swapCache();
-			window.location.reload(); 	// force the load of the new version
-			console.log('Swapping cache (HTML5 Offline App Cache)');
-		    }, false);
-		}, false);
-	</script>
 </body>
 </html>

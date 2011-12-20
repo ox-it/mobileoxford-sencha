@@ -9,7 +9,8 @@ Ext.define('MobileOxford.view.webcams', {
 			{
 				xtype: 'list',
 				//xtype: 'componentview',
-				id: 'webcamsList',			
+				id: 'webcamsList',
+				loadingText: 'Loading...',
 				store: 'webcams',
 				itemTpl: '{title}',
 				flex: 1,

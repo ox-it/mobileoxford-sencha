@@ -2,6 +2,7 @@ Ext.define('MobileOxford.view.librarysearch', {
 	extend: 'Ext.form.Panel',
 	alias: 'widget.librarysearch',
 	title: 'Library search',
+	requires: ['Ext.form.FieldSet', 'Ext.field.Text', 'Ext.Button', 'Ext.dataview.List'],
 	//layout: 'vbox',
 	scrollable: 'vertical',	// TODO check why we can still scroll
 	fullscreen: true,

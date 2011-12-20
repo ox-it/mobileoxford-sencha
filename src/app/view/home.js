@@ -2,6 +2,7 @@ Ext.define('MobileOxford.view.home', {
     extend: 'Ext.Panel',
     alias: 'widget.home',
     title: 'Mobile Oxford',
+    requires: ['Ext.Button'],
     layout: 'vbox',
     config: {
     	padding: 10,

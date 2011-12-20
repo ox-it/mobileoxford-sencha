@@ -53,6 +53,6 @@ Ext.define('MobileOxford.controller.webcams', {
 				}
 				Ext.Viewport.setMask(false);
 			}
-		});	
+		});
 	}
 })

@@ -2,8 +2,9 @@ Ext.define('MobileOxford.view.webcams', {
 	extend: 'Ext.Panel',
 	alias: 'widget.webcams',
 	title: 'Webcams',
-	scroll: 'vertical',
+	scrollable: 'vertical',
 	fullscreen: true,
+	layout: 'fit',
 	config: {
 		title: 'Webcams',
 		items: [
@@ -14,7 +15,7 @@ Ext.define('MobileOxford.view.webcams', {
 				store: 'webcams',
 				layout: 'fit',
 				itemTpl: '{title}',				
-				height: 400,	// TODO fix hard-coded height
+				height: 500,	// TODO fix hard-coded height
 			}
 			]
 	},

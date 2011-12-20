@@ -3,13 +3,12 @@ Ext.Loader.setConfig({
 	paths: { 'MobileOxford': 'app', }
 })
 
-Ext.require('MobileOxford.store.books');
 Ext.require('MobileOxford.store.webcams');
 
 Ext.application({
     name: "MobileOxford",
     controllers: ['home', 'webcams', 'places', 'library'],
-    stores: ['webcams', 'books'],
+    stores: ['webcams'],
     appFolder: 'app',
     autoCreateViewport: true,
 })

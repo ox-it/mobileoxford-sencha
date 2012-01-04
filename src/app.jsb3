@@ -1,0 +1,87 @@
+{
+    "projectName": "Mobile Oxford",
+    "licenseText": "Copyright(c) 2011 Oxford University Computing Services",
+    "builds": [
+        {
+            "name": "All Classes",
+            "target": "all-classes.js",
+            "options": {
+                "debug": true
+            },
+            "files": [
+                {
+                    "path": "app/model/",
+                    "name": "webcam.js"
+                },
+                {
+                    "path": "app/store/",
+                    "name": "webcams.js"
+                },
+                {
+                    "path": "app/view/",
+                    "name": "Viewport.js"
+                },
+                {
+                    "path": "app/view/",
+                    "name": "home.js"
+                },
+                {
+                    "path": "app/view/",
+                    "name": "webcams.js"
+                },
+                {
+                    "path": "app/view/",
+                    "name": "webcam.js"
+                },
+                {
+                    "path": "app/view/",
+                    "name": "places.js"
+                },
+                {
+                    "path": "app/view/",
+                    "name": "librarysearch.js"
+                },
+                {
+                    "path": "app/view/",
+                    "name": "librarydetail.js"
+                },
+                {
+                    "path": "app/controller/",
+                    "name": "home.js"
+                },
+                {
+                    "path": "app/controller/",
+                    "name": "webcams.js"
+                },
+                {
+                    "path": "app/controller/",
+                    "name": "places.js"
+                },
+                {
+                    "path": "app/controller/",
+                    "name": "library.js"
+                }
+            ]
+        },
+        {
+            "name": "Application - Production",
+            "target": "app-all.js",
+            "compress": true,
+            "files": [
+		{
+		    "path": "lib/sencha2_preview/",
+		    "name": "sencha-touch-debug.js"
+		},
+                {
+                    "path": "",
+                    "name": "all-classes.js"
+                },
+                {
+                    "path": "",
+                    "name": "app.js"
+                },
+            ]
+        }
+    ],
+    "resources": []
+}

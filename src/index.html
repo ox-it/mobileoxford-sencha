@@ -1,12 +1,20 @@
 <!DOCTYPE html>
-<!-- manifest="app.manifest" -->
-<html>
+<html manifest="app.manifest">
 <head>
 	<meta charset="utf-8">
 	<title>Mobile Oxford</title>
 	<link rel="stylesheet" href="lib/sencha2_preview/resources/css/sencha-touch.css" type="text/css">
 	<script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=true"></script>
 	<script type="text/javascript" src="app-all.js"></script>
+	<script type="text/javascript">
+                window.addEventListener('load', function (e) {
+                    window.applicationCache.addEventListener('updateready', function (e) {
+                        window.applicationCache.swapCache();
+                        window.location.reload();       // force the load of the new version
+                        console.log('Swapping cache (HTML5 Offline App Cache)');
+                    }, false);
+                }, false);
+        </script>
 </head>
 <body>
 </body>

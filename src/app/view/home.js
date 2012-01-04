@@ -21,6 +21,11 @@ Ext.define('MobileOxford.view.home', {
                     xtype: 'button',
 		    text: 'Library search',
 		    go: 'librarysearch',
+                },
+                {
+                    xtype: 'button',
+		    text: 'Podcasts',
+		    go: 'podcasts',
                 }
             ],
     },

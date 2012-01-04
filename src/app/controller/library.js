@@ -21,7 +21,6 @@ Ext.define('MobileOxford.controller.library', {
         this.control({
 		'#btn-search': {
 			tap: function(btn) {
-				// TODO form validation
 				this.doSearch(this.getSearchform().getValues());
 			}
 		},
@@ -35,6 +34,10 @@ Ext.define('MobileOxford.controller.library', {
     	},
 
 	doSearch: function(formValues) {
+		if(!(formValues.title || formValues.author || formValues.isbn)) {
+			alert('One field must be filled at least...');
+			return false;
+		}
 		Ext.Viewport.setMask({message:"Wait!"});
 		var results = this.getResults();
 		Ext.util.JSONP.request({

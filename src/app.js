@@ -3,7 +3,10 @@ Ext.Loader.setConfig({
 	paths: { 'MobileOxford': 'app', }
 })
 
-Ext.require('MobileOxford.store.webcams');
+Ext.require([
+    'MobileOxford.store.webcams',
+    'MobileOxford.config'
+]);
 
 Ext.application({
     name: "MobileOxford",

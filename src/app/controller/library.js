@@ -41,7 +41,7 @@ Ext.define('MobileOxford.controller.library', {
 		Ext.Viewport.setMask({message:"Wait!"});
 		var results = this.getResults();
 		Ext.util.JSONP.request({
-			url: 'http://m.ox.ac.uk/library/search/',
+			url: MobileOxford.config.getEndpoint().url + 'library/search/',
 			callbackKey: 'callback',
 			params: {
 				format: 'js',
@@ -72,7 +72,7 @@ Ext.define('MobileOxford.controller.library', {
 	displayBookDetails: function(bookid) {
 		Ext.Viewport.setMask({message:"Wait!"});
 		var viewport = this.getViewport();
-		var url = 'http://m.ox.ac.uk/library/item:' + bookid + '/';
+		var url = MobileOxford.config.getEndpoint().url + 'library/item:' + bookid + '/';
 		Ext.util.JSONP.request({
 			url: url,
 			callbackKey: 'callback',

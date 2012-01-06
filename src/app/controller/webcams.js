@@ -32,7 +32,7 @@ Ext.define('MobileOxford.controller.webcams', {
 	showWebcam: function(webcam) {
 		Ext.Viewport.setMask({message:"Wait!"});
 		var viewport = this.getViewport();
-		var url = 'http://m.ox.ac.uk/webcams/' + webcam.get('slug') + '/';
+		var url = MobileOxford.config.getEndpoint().url + 'webcams/' + webcam.get('slug') + '/';
 		Ext.util.JSONP.request({
 			url: url,
 			callbackKey: 'callback',
@@ -41,7 +41,7 @@ Ext.define('MobileOxford.controller.webcams', {
 			},
 			callback: function(result) {
 				if (result.eis) {
-					var src = 'http://m.ox.ac.uk' + result.eis._url;
+					var src = MobileOxford.config.getEndpoint().url + result.eis._url;
 					var w = new Object();
 					w.url = src;
 					w.description = webcam.get('description');

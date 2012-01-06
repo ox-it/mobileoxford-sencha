@@ -5,7 +5,7 @@ Ext.define('MobileOxford.store.webcams', {
 	autoLoad: true,
 	proxy: {
 		type: 'jsonp',
-		url: 'http://m.ox.ac.uk/webcams/?format=js',
+		url: MobileOxford.config.getEndpoint().url + 'webcams/?format=js',
 		callbackKey: 'callback',
 		reader: {
 			type: 'json',

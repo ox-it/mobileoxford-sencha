@@ -1,3 +1,10 @@
 = Mobile Oxford Sencha Touch 2 Demo Application =
 
 An application to investigate the use of Sencha Touch 2 preview as a basis for a Mobile Oxford/Molly Web application.
+
+== How to ==
+
+== Styling ==
+
+Compass and SASS need to be installed. Once installed, you can do `compass compile` in `src/resources`to compile CSS. 
+

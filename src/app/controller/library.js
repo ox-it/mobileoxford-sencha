@@ -50,7 +50,8 @@ Ext.define('MobileOxford.controller.library', {
 				isbn: formValues.isbn,
 			},
 			callback: function(result) {
-				if (result.page.objects) {
+                results.getStore().removeAll(false);
+                if (result.page.objects) {
 					var bo;
 					for(book in result.page.objects) {
 						bo = result.page.objects[book];

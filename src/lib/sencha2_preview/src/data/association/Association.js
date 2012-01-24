@@ -36,7 +36,7 @@ Ext.define('Order', {
  *   <li>{@link Ext.data.association.HasOne hasOne associations}</li>
  *   <li>{@link Ext.data.Model using Models}</li>
  * </ul>
- * 
+ *
  * <b>Self association models</b>
  * <p>We can also have models that create parent/child associations between the same type. Below is an example, where
  * groups can be nested inside other groups:</p>
@@ -99,51 +99,76 @@ Ext.define('Group', {
 
 
 Ext.onReady(function(){
-    
+
     Group.load(10, {
         success: function(group){
             console.log(group.getGroup().get('name'));
-            
+
             group.groups().each(function(rec){
                 console.log(rec.get('name'));
             });
         }
     });
-    
+
 });
  * </code></pre>
  *
  */
 Ext.define('Ext.data.association.Association', {
     alternateClassName: 'Ext.data.Association',
-    
-    /**
-     * @cfg {String} ownerModel The string name of the model that owns the association. Required
-     */
 
-    /**
-     * @cfg {String} associatedModel The string name of the model that is being associated with. Required
-     */
+    requires: ['Ext.data.ModelManager'],
 
-    /**
-     * @cfg {String} primaryKey The name of the primary key on the associated model. Defaults to 'id'.
-     * In general this will be the {@link Ext.data.Model#idProperty} of the Model.
-     */
-    primaryKey: 'id',
+    config: {
+        /**
+         * @cfg {String} ownerModel The string name of the model that owns the association. Required
+         */
+        ownerModel: null,
 
-    /**
-     * @cfg {Ext.data.reader.Reader} reader A special reader to read associated data
-     */
-    
-    /**
-     * @cfg {String} associationKey The name of the property in the data to read the association from.
-     * Defaults to the name of the associated model.
-     */
+        ownerName: undefined,
 
-    defaultReaderType: 'json',
+        /**
+         * @cfg {String} associatedModel The string name of the model that is being associated with. Required
+         */
+        associatedModel: null,
+
+        associatedName: undefined,
+
+
+        /**
+         * @cfg {String} associationKey The name of the property in the data to read the association from.
+         * Defaults to the name of the associated model.
+         */
+        associationKey: undefined,
+
+        /**
+         * @cfg {String} primaryKey The name of the primary key on the associated model. Defaults to 'id'.
+         * In general this will be the {@link Ext.data.Model#idProperty} of the Model.
+         */
+        primaryKey: 'id',
+
+        /**
+         * @cfg {Ext.data.reader.Reader} reader A special reader to read associated data
+         */
+        reader: null,
+
+        /**
+         * @cfg {String} type The type configuration can be used when creating associations using a configuration object.
+         * Use 'hasMany' to create a HasMany association
+         * <pre><code>
+    associations: [{
+        type: 'hasMany',
+        model: 'User'
+    }]
+         * </code></pre>
+         */
+        type: null,
+
+        name: undefined
+    },
 
     statics: {
-        create: function(association){
+        create: function(association) {
             if (!association.isAssociation) {
                 if (Ext.isString(association)) {
                     association = {
@@ -158,15 +183,13 @@ Ext.define('Ext.data.association.Association', {
                         return Ext.create('Ext.data.association.HasMany', association);
                     case 'hasOne':
                         return Ext.create('Ext.data.association.HasOne', association);
-                    //TODO Add this back when it's fixed
-//                    case 'polymorphic':
-//                        return Ext.create('Ext.data.PolymorphicAssociation', association);
                     default:
                         //<debug>
                         Ext.Error.raise('Unknown Association type: "' + association.type + '"');
                         //</debug>
                 }
             }
+
             return association;
         }
     },
@@ -176,70 +199,75 @@ Ext.define('Ext.data.association.Association', {
      * @param {Object} config (optional) Config object.
      */
     constructor: function(config) {
-        Ext.apply(this, config);
-
-        var types           = Ext.ModelManager.types,
-            ownerName       = config.ownerModel,
-            associatedName  = config.associatedModel,
-            ownerModel      = types[ownerName],
-            associatedModel = types[associatedName],
-            ownerProto;
-
-        //<debug>
-        if (ownerModel === undefined) {
-            Ext.Error.raise("The configured ownerModel was not valid (you tried " + ownerName + ")");
-        }
-        if (associatedModel === undefined) {
-            Ext.Error.raise("The configured associatedModel was not valid (you tried " + associatedName + ")");
-        }
-        //</debug>
-
-        this.ownerModel = ownerModel;
-        this.associatedModel = associatedModel;
-
-        /**
-         * The name of the model that 'owns' the association
-         * @property ownerName
-         * @type String
-         */
-
-        /**
-         * The name of the model is on the other end of the association (e.g. if a User model hasMany Orders, this is 'Order')
-         * @property associatedName
-         * @type String
-         */
-
-        Ext.applyIf(this, {
-            ownerName : ownerName,
-            associatedName: associatedName
-        });
+        this.initConfig(config);
     },
 
-    /**
-     * Get a specialized reader for reading associated data
-     * @return {Ext.data.reader.Reader} The reader, null if not supplied
-     */
-    getReader: function(){
-        var me = this,
-            reader = me.reader,
-            model = me.associatedModel;
+    applyName: function(name) {
+        if (!name) {
+            name = this.getAssociatedName();
+        }
+        return name;
+    },
 
+    applyOwnerModel: function(ownerName) {
+        var ownerModel = Ext.data.ModelManager.getModel(ownerName);
+        if (ownerModel === undefined) {
+            Ext.Logger.error('The configured ownerModel was not valid (you tried ' + ownerName + ')');
+        }
+        return ownerModel;
+    },
+
+    applyOwnerName: function(ownerName) {
+        if (!ownerName) {
+            ownerName = this.getOwnerModel().modelName;
+        }
+        ownerName = ownerName.slice(ownerName.lastIndexOf('.')+1);
+        return ownerName;
+    },
+
+    updateOwnerModel: function(ownerModel) {
+        this.setOwnerName(ownerModel.modelName);
+    },
+
+    applyAssociatedModel: function(associatedName) {
+        var associatedModel = Ext.data.ModelManager.types[associatedName];
+        if (associatedModel === undefined) {
+            Ext.Logger.error('The configured associatedModel was not valid (you tried ' + associatedName + ')');
+        }
+        return associatedModel;
+    },
+
+    applyAssociatedName: function(associatedName) {
+        if (!associatedName) {
+            associatedName = this.getAssociatedModel().modelName;
+        }
+        associatedName = associatedName.slice(associatedName.lastIndexOf('.')+1);
+        return associatedName;
+    },
+
+    updateAssociatedModel: function(associatedModel) {
+        this.setAssociatedName(associatedModel.modelName);
+    },
+
+    applyReader: function(reader) {
         if (reader) {
             if (Ext.isString(reader)) {
                 reader = {
                     type: reader
                 };
             }
-            if (reader.isReader) {
-                reader.setModel(model);
-            } else {
+
+            if (!reader.isReader) {
                 Ext.applyIf(reader, {
-                    model: model,
-                    type : me.defaultReaderType
+                    type: 'json'
                 });
             }
-            me.reader = Ext.createByAlias('reader.' + reader.type, reader);
         }
-        return me.reader || null;
+
+        return Ext.factory(reader, Ext.data.Reader, this.getReader(), 'reader');
+    },
+
+    updateReader: function(reader) {
+        reader.setModel(this.getAssociatedModel());
     }
 });

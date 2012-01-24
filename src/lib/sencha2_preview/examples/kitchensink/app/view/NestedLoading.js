@@ -7,7 +7,6 @@ Ext.require(['Ext.data.Store', 'Kitchensink.model.User'], function() {
     Ext.define('Kitchensink.view.NestedLoading', {
         extend: 'Ext.Container',
         config: {
-            scrollable: true,
             styleHtmlContent: true,
             layout: 'fit',
             items: [
@@ -56,8 +55,6 @@ Ext.require(['Ext.data.Store', 'Kitchensink.model.User'], function() {
                 {
                     xtype: 'dataview',
                     id: 'NestedLoadingDataView',
-                    scrollable: false,
-                    layout: 'fit',
                     emptyText: 'No Data Loaded',
                     /*
                      * The XTemplate allows us to easily render the data from our User model, as well as

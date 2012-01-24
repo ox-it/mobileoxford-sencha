@@ -9,7 +9,7 @@
  *  - {@link #retweets}: used to display the number of retweets, if specified
  */
 Ext.define('Twitter.view.TweetListItem', {
-    extend: 'Ext.dataview.DataItem',
+    extend: 'Ext.dataview.component.DataItem',
     xtype : 'tweetlistitem',
     requires: [
         'Twitter.view.TweetListItemText'

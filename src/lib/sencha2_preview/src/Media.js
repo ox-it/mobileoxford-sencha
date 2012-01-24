@@ -5,6 +5,56 @@ Ext.define('Ext.Media', {
     extend: 'Ext.Component',
     xtype: 'media',
 
+    /**
+     * @event play
+     * Fires whenever the media is played
+     * @param {Ext.Media} this
+     */
+
+    /**
+     * @event paused
+     * Fires whenever the media is pause
+     * @param {Ext.Media} this
+     * @param {Number} time The time at which the media was paused at in seconds
+     */
+
+    /**
+     * @event ended
+     * Fires whenever the media playback has ended
+     * @param {Ext.Media} this
+     * @param {Number} time The time at which the media ended at in seconds
+     */
+
+    /**
+     * @event stop
+     * Fires whenever the media is stopped.
+     * The pause event will also fire after the stop event if the media is currently playing.
+     * The timeupdate event will also fire after the stop event regardless of playing status.
+     * @param {Ext.Media} this
+     */
+
+    /**
+     * @event volumechange
+     * Fires whenever the volume is changed
+     * @param {Ext.Media} this
+     * @param {Number} volume The volume level from 0 to 1
+     */
+
+    /**
+     * @event mutedchange
+     * Fires whenever the muted status is changed.
+     * The volumechange event will also fire after the mutedchange event fires.
+     * @param {Ext.Media} this
+     * @param {Boolean} muted The muted status
+     */
+
+    /**
+     * @event timeupdate
+     * Fires when the media is playing every 15 to 250ms.
+     * @param {Ext.Media} this
+     * @param {Number} time The current time in seconds
+     */
+
     config: {
         /**
          * @cfg {String} url
@@ -57,7 +107,21 @@ Ext.define('Ext.Media', {
         media: null,
 
         // @private
-        playing: false
+        playing: false,
+
+        /**
+         * @cfg {Number} volume
+         * The volume of the media from 0.0 to 1.0. Default is 1.
+         * @accessor
+         */
+        volume: 1,
+
+        /**
+         * @cfg {Boolean} muted
+         * Whether or not the media is muted. This will also set the volume to zero. Default is false.
+         * @accessor
+         */
+        muted: false
     },
 
     initialize: function() {
@@ -70,6 +134,58 @@ Ext.define('Ext.Media', {
             activate  : me.onActivate,
             deactivate: me.onDeactivate
         });
+
+        me.addMediaListener({
+            play         : 'onPlay',
+            pause        : 'onPause',
+            ended        : 'onEnd',
+            volumechange : 'onVolumeChange',
+            timeupdate   : 'onTimeUpdate'
+        });
+    },
+
+    addMediaListener: function(event, fn) {
+        var me   = this,
+            dom  = me.media.dom,
+            bind = Ext.Function.bind;
+
+        if (!Ext.isObject(event)) {
+            var oldEvent = event;
+            event = {};
+            event[oldEvent] = fn;
+        }
+
+        Ext.Object.each(event, function(e, fn) {
+            if (typeof fn !== 'function') {
+                fn = me[fn];
+            }
+
+            if (typeof fn == 'function') {
+                fn = bind(fn, me);
+
+                dom.addEventListener(e, fn);
+            }
+        });
+    },
+
+    onPlay: function() {
+        this.fireEvent('play', this);
+    },
+
+    onPause: function() {
+        this.fireEvent('pause', this, this.getCurrentTime());
+    },
+
+    onEnd: function() {
+        this.fireEvent('ended', this, this.getCurrentTime());
+    },
+
+    onVolumeChange: function() {
+        this.fireEvent('volumechange', this, this.media.dom.volume);
+    },
+
+    onTimeUpdate: function() {
+        this.fireEvent('timeupdate', this, this.getCurrentTime());
     },
 
     /**
@@ -150,5 +266,54 @@ Ext.define('Ext.Media', {
      */
     toggle: function() {
         this.isPlaying() ? this.pause() : this.play();
+    },
+
+    /**
+     * Stops media playback and returns to the beginning
+     */
+    stop: function() {
+        var me = this;
+
+        me.setCurrentTime(0);
+
+        me.fireEvent('stop', me);
+
+        me.pause();
+    },
+
+    //@private
+    updateVolume: function(volume) {
+        this.media.dom.volume = volume;
+    },
+
+    //@private
+    updateMuted: function(muted) {
+        this.fireEvent('mutedchange', this, muted);
+
+        this.media.dom.muted = muted;
+    },
+
+    /**
+     * Returns the current time of the media in seconds;
+     */
+    getCurrentTime: function() {
+        return this.media.dom.currentTime;
+    },
+
+    /*
+     * Set the current time of the media.
+     * @param {Number} time The time in seconds
+     */
+    setCurrentTime: function(time) {
+        this.media.dom.currentTime = time;
+
+        return time;
+    },
+
+    /**
+     * Returns the duration of the media in seconds;
+     */
+    getDuration: function() {
+        return this.media.dom.duration;
     }
 });

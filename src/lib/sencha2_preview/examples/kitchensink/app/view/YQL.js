@@ -45,7 +45,7 @@ Ext.define('Kitchensink.view.YQL', {
                                 '</tpl>'
                         ]);
 
-                        panel.getParent().setMask({
+                        panel.getParent().setMasked({
                             message: 'Loading...'
                         });
 

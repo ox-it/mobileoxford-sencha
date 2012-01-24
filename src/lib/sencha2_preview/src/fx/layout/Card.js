@@ -12,8 +12,12 @@ Ext.define('Ext.fx.layout.Card', {
     ],
 
     constructor: function(config) {
-        var defaultClass = Ext.fx.layout.card.Css,
+        var defaultClass = Ext.fx.layout.card.Abstract,
             type;
+
+        if (!config) {
+            return null;
+        }
 
         if (typeof config == 'string') {
             type = config;

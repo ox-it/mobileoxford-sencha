@@ -110,7 +110,7 @@ Ext.define('Ext.Img', {
      */
     updateSrc: function(newSrc) {
         if (this.getMode() === 'background') {
-            this.element.dom.style.backgroundImage = newSrc ? 'url(' + newSrc + ')' : '';
+            this.element.dom.style.backgroundImage = newSrc ? 'url("' + newSrc + '")' : '';
         }
         else {
             this.imageElement.dom.setAttribute('src', newSrc);
@@ -118,23 +118,25 @@ Ext.define('Ext.Img', {
     },
 
     doSetWidth: function(width) {
-        if (this.getMode() === 'background') {
-            this.imageElement.setWidth(width);
-        }
+        var sizingElement = (this.getMode() === 'background') ? this.element : this.imageElement;
+
+        sizingElement.setWidth(width);
 
         this.callParent(arguments);
     },
 
     doSetHeight: function(height) {
-        if (this.getMode() === 'background') {
-            this.imageElement.setHeight(height);
-        }
+        var sizingElement = (this.getMode() === 'background') ? this.element : this.imageElement;
+
+        sizingElement.setHeight(height);
 
         this.callParent(arguments);
     },
 
     destroy: function() {
-        this.imageElement.destroy();
+        if (this.imageElement) {
+            this.imageElement.destroy();
+        }
 
         this.callParent();
     }

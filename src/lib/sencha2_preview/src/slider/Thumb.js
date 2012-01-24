@@ -21,7 +21,7 @@ Ext.define('Ext.slider.Thumb', {
     initialize: function() {
         this.callParent();
 
-        this.getDraggable().on({
+        this.getDraggable().onBefore({
             dragstart: 'onDragStart',
             drag: 'onDrag',
             dragend: 'onDragEnd',
@@ -31,19 +31,16 @@ Ext.define('Ext.slider.Thumb', {
         this.on('painted', 'onPainted');
     },
 
-    onDragStart: function(draggable, e, offset, options, controller) {
-        // @TODO Temporary only, better API to replace this later
-        this.doFireEvent('dragstart', [this, e, offset], null, controller);
+    onDragStart: function() {
+        this.relayEvent(arguments);
     },
 
-    onDrag: function(draggable, e, offset, options, controller) {
-        // @TODO Temporary only, better API to replace this later
-        this.doFireEvent('drag', [this, e, offset], null, controller);
+    onDrag: function() {
+        this.relayEvent(arguments);
     },
 
-    onDragEnd: function(draggable, e, options, controller) {
-        // @TODO Temporary only, better API to replace this later
-        this.doFireEvent('dragend', [this, e], null, controller);
+    onDragEnd: function() {
+        this.relayEvent(arguments);
     },
 
     onPainted: function() {

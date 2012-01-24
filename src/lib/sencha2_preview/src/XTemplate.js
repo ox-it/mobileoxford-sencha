@@ -8,7 +8,7 @@
  * - Custom member functions
  * - Many special tags and built-in operators that aren't defined as part of the API, but are supported in the templates that can be created
  *
- * XTemplate provides the templating mechanism built into {@link Ext.dataview.DataView}.
+ * XTemplate provides the templating mechanism built into {@link Ext.view.View}.
  *
  * The {@link Ext.Template} describes the acceptable parameters to pass to the constructor. The following examples
  * demonstrate all of the supported features.
@@ -153,8 +153,8 @@
  * Examples:
  *
  *     var tpl = new Ext.XTemplate(
- *         "<tpl if='age > 1 && age < 10'>Child</tpl>",
- *         "<tpl if='age >= 10 && age < 18'>Teenager</tpl>",
+ *         "<tpl if='age &gt; 1 && age &lt; 10'>Child</tpl>",
+ *         "<tpl if='age &gt;= 10 && age &lt; 18'>Teenager</tpl>",
  *         "<tpl if='this.isGirl(name)'>...</tpl>",
  *         '<tpl if="id == \'download\'">...</tpl>',
  *         "<tpl if='needsIcon'><img src='{icon}' class='{iconCls}'/></tpl>",
@@ -302,5 +302,57 @@ Ext.define('Ext.XTemplate', {
      */
     compile: function() {
         return this;
+    },
+
+    statics: {
+        /**
+         * Gets an `XTemplate` from an object (an instance of an {@link Ext#define}'d class).
+         * Many times, templates are configured high in the class hierarchy and are to be
+         * shared by all classes that derive from that base. To further complicate matters,
+         * these templates are seldom actual instances but are rather configurations. For
+         * example:
+         *
+         *      Ext.define('MyApp.Class', {
+         *          someTpl: [
+         *              'tpl text here'
+         *          ]
+         *      });
+         *
+         * The goal being to share that template definition with all instances and even
+         * instances of derived classes, until `someTpl` is overridden. This method will
+         * "upgrade" these configurations to be real `XTemplate` instances *in place* (to
+         * avoid creating one instance per object).
+         *
+         * @param {Object} instance The object from which to get the `XTemplate` (must be
+         * an instance of an {@link Ext#define}'d class).
+         * @param {String} name The name of the property by which to get the `XTemplate`.
+         * @return {Ext.XTemplate} The `XTemplate` instance or null if not found.
+         * @protected
+         */
+        getTpl: function (instance, name) {
+            var tpl = instance[name], // go for it! 99% of the time we will get it!
+                proto;
+
+            if (tpl && !tpl.isTemplate) { // tpl is just a configuration (not an instance)
+                // create the template instance from the configuration:
+                tpl = Ext.ClassManager.dynInstantiate('Ext.XTemplate', tpl);
+
+                // and replace the reference with the new instance:
+                if (instance.hasOwnProperty(name)) { // the tpl is on the instance
+                    instance[name] = tpl;
+                } else { // must be somewhere in the prototype chain
+                    for (proto = instance.self.prototype; proto; proto = proto.superclass) {
+                        if (proto.hasOwnProperty(name)) {
+                            proto[name] = tpl;
+                            break;
+                        }
+                    }
+                }
+            }
+            // else !tpl (no such tpl) or the tpl is an instance already... either way, tpl
+            // is ready to return
+
+            return tpl || null;
+        }
     }
 });

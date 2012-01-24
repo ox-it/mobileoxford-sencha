@@ -1,11 +1,11 @@
 /**
  * @author Ed Spencer
  *
- * JsonPProxy is useful when you need to load data from a domain other than the one your application is running on. If
+ * The JsonP proxy is useful when you need to load data from a domain other than the one your application is running on. If
  * your application is running on http://domainA.com it cannot use {@link Ext.data.proxy.Ajax Ajax} to load its data
  * from http://domainB.com because cross-domain ajax requests are prohibited by the browser.
  *
- * We can get around this using a JsonPProxy. JsonPProxy injects a `<script>` tag into the DOM whenever an AJAX request
+ * We can get around this using a JsonP proxy. JsonP proxy injects a `<script>` tag into the DOM whenever an AJAX request
  * would usually be made. Let's say we want to load data from http://domainB.com/users - the script tag that would be
  * injected might look like this:
  *
@@ -29,7 +29,7 @@
  * As soon as the script finishes loading, the 'someCallback' function that we passed in the url is called with the JSON
  * object that the server returned.
  *
- * JsonPProxy takes care of all of this automatically. It formats the url you pass, adding the callback parameter
+ * JsonP proxy takes care of all of this automatically. It formats the url you pass, adding the callback parameter
  * automatically. It even creates a temporary callback function, waits for it to be called and then puts the data into
  * the Proxy making it look just like you loaded it through a normal {@link Ext.data.proxy.Ajax AjaxProxy}. Here's how
  * we might set that up:
@@ -49,7 +49,7 @@
  *
  *     store.load();
  *
- * That's all we need to do - JsonPProxy takes care of the rest. In this case the Proxy will have injected a script tag
+ * That's all we need to do - JsonP proxy takes care of the rest. In this case the Proxy will have injected a script tag
  * like this:
  *
  *     <script src="http://domainB.com/users?callback=callback1"></script>
@@ -131,44 +131,32 @@ Ext.define('Ext.data.proxy.JsonP', {
     alias: ['proxy.jsonp', 'proxy.scripttag'],
     requires: ['Ext.data.JsonP'],
 
-    defaultWriterType: 'base',
+    config: {
+        defaultWriterType: 'base',
 
-    /**
-     * @cfg {String} callbackKey
-     * See {@link Ext.data.JsonP#callbackKey}.
-     */
-    callbackKey : 'callback',
+        /**
+         * @cfg {String} callbackKey
+         * See {@link Ext.data.JsonP#callbackKey}.
+         */
+        callbackKey : 'callback',
 
-    /**
-     * @cfg {String} recordParam
-     * The param name to use when passing records to the server (e.g. 'records=someEncodedRecordString'). Defaults to
-     * 'records'
-     */
-    recordParam: 'records',
+        /**
+         * @cfg {String} recordParam
+         * The param name to use when passing records to the server (e.g. 'records=someEncodedRecordString'). Defaults to
+         * 'records'
+         */
+        recordParam: 'records',
 
-    /**
-     * @cfg {Boolean} autoAppendParams
-     * True to automatically append the request's params to the generated url. Defaults to true
-     */
-    autoAppendParams: true,
-
-    constructor: function(){
-        this.addEvents(
-            /**
-             * @event
-             * Fires when the server returns an exception
-             * @param {Ext.data.proxy.Proxy} this
-             * @param {Ext.data.Request} request The request that was sent
-             * @param {Ext.data.Operation} operation The operation that triggered the request
-             */
-            'exception'
-        );
-        this.callParent(arguments);
+        /**
+         * @cfg {Boolean} autoAppendParams
+         * True to automatically append the request's params to the generated url. Defaults to true
+         */
+        autoAppendParams: true
     },
 
     /**
      * @private
-     * Performs the read request to the remote domain. JsonPProxy does not actually create an Ajax request,
+     * Performs the read request to the remote domain. JsonP proxy does not actually create an Ajax request,
      * instead we write out a <script> tag based on the configuration of the internal Ext.data.Request object
      * @param {Ext.data.Operation} operation The {@link Ext.data.Operation Operation} object to execute
      * @param {Function} callback A callback function to execute when the Operation has been completed
@@ -179,30 +167,33 @@ Ext.define('Ext.data.proxy.JsonP', {
         var me      = this,
             writer  = me.getWriter(),
             request = me.buildRequest(operation),
-            params = request.params;
+            params  = request.getParams();
 
         if (operation.allowWrite()) {
             request = writer.write(request);
         }
 
-        //apply JsonPProxy-specific attributes to the Request
-        Ext.apply(request, {
-            callbackKey: me.callbackKey,
-            timeout: me.timeout,
+        // apply JsonP proxy-specific attributes to the Request
+        request.setConfig({
+            callbackKey: me.getCallbackKey(),
+            timeout: me.getTimeout(),
             scope: me,
-            disableCaching: false, // handled by the proxy
             callback: me.createRequestCallback(request, operation, callback, scope)
         });
 
-        // prevent doubling up
-        if (me.autoAppendParams) {
-            request.params = {};
+        // Prevent doubling up because the params are already added to the url in buildUrl
+        if (me.getAutoAppendParams()) {
+            request.setParams({});
         }
 
-        request.jsonp = Ext.data.JsonP.request(request);
-        // restore on the request
-        request.params = params;
+        request.setJsonP(Ext.data.JsonP.request(request.getCurrentConfig()));
+
+        // Set the params back once we have made the request though
+        request.setParams(params);
+
         operation.setStarted();
+
+        // @TODO: it seems like the proxy can handle only one request at a time this way?
         me.lastRequest = request;
 
         return request;
@@ -234,7 +225,7 @@ Ext.define('Ext.data.proxy.JsonP', {
 
     // inherit docs
     setException: function(operation, response) {
-        operation.setException(operation.request.jsonp.errorType);
+        operation.setException(operation.request.getJsonP().errorType);
     },
 
 
@@ -246,29 +237,29 @@ Ext.define('Ext.data.proxy.JsonP', {
     buildUrl: function(request) {
         var me      = this,
             url     = me.callParent(arguments),
-            params  = Ext.apply({}, request.params),
+            params  = Ext.apply({}, request.getParams()),
             filters = params.filters,
             records,
-            filter, i;
+            filter, i, value;
 
         delete params.filters;
 
-        if (me.autoAppendParams) {
+        if (me.getAutoAppendParams()) {
             url = Ext.urlAppend(url, Ext.Object.toQueryString(params));
         }
 
         if (filters && filters.length) {
             for (i = 0; i < filters.length; i++) {
                 filter = filters[i];
-
-                if (filter.value) {
-                    url = Ext.urlAppend(url, filter.property + "=" + filter.value);
+                value = filter.getValue();
+                if (value) {
+                    url = Ext.urlAppend(url, filter.getProperty() + "=" + value);
                 }
             }
         }
 
         //if there are any records present, append them to the url also
-        records = request.records;
+        records = request.getRecords();
 
         if (Ext.isArray(records) && records.length > 0) {
             url = Ext.urlAppend(url, Ext.String.format("{0}={1}", me.recordParam, me.encodeRecords(records)));
@@ -280,7 +271,7 @@ Ext.define('Ext.data.proxy.JsonP', {
     //inherit docs
     destroy: function() {
         this.abort();
-        this.callParent();
+        this.callParent(arguments);
     },
 
     /**
@@ -289,7 +280,7 @@ Ext.define('Ext.data.proxy.JsonP', {
     abort: function() {
         var lastRequest = this.lastRequest;
         if (lastRequest) {
-            Ext.data.JsonP.abort(lastRequest.jsonp);
+            Ext.data.JsonP.abort(lastRequest.getJsonP());
         }
     },
 
@@ -305,7 +296,7 @@ Ext.define('Ext.data.proxy.JsonP', {
             len = records.length;
 
         for (; i < len; i++) {
-            encoded += Ext.Object.toQueryString(records[i].data);
+            encoded += Ext.Object.toQueryString(records[i].getData());
         }
 
         return encoded;

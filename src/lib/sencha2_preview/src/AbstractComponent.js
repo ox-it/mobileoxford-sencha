@@ -2,7 +2,7 @@
  *
  */
 Ext.define('Ext.AbstractComponent', {
-    extend: 'Ext.EventedBase',
+    extend: 'Ext.Evented',
 
     onClassExtended: function(Class, members) {
         if (!members.hasOwnProperty('cachedConfig')) {
@@ -18,7 +18,7 @@ Ext.define('Ext.AbstractComponent', {
 
         delete members.cachedConfig;
 
-        prototype.cachedConfigList = cachedConfigList = (cachedConfigList) ? cachedConfigList.slice() : [],
+        prototype.cachedConfigList = cachedConfigList = (cachedConfigList) ? cachedConfigList.slice() : [];
         prototype.hasCachedConfig = hasCachedConfig = (hasCachedConfig) ? Ext.Object.chain(hasCachedConfig) : {};
 
         if (!config) {
@@ -39,72 +39,6 @@ Ext.define('Ext.AbstractComponent', {
         }
     },
 
-    initialized: false,
-
-    constructor: function(config) {
-        var prototype = this.self.prototype,
-            configNameCache, defaultConfig, cachedConfigList, initConfigList, hasInitConfigMap,
-            referenceList, reference, renderTemplate, renderElement, elements,
-            i, ln, element, name, nameMap, initializedName, internalName;
-
-        this.initialConfig = config;
-
-        this.initElement();
-
-        // This happens only *once* per class, during the very first instantiation
-        if (!prototype.hasOwnProperty('renderTemplate')) {
-            referenceList = this.referenceList;
-            configNameCache = Ext.Class.configNameCache;
-            defaultConfig = this.config;
-            cachedConfigList = this.cachedConfigList;
-            initConfigList = this.initConfigList;
-            hasInitConfigMap = this.hasInitConfigMap;
-
-            for (i = 0,ln = cachedConfigList.length; i < ln; i++) {
-                name = cachedConfigList[i];
-                nameMap = configNameCache[name];
-                initializedName = nameMap.initialized;
-
-                prototype[initializedName] = true;
-
-                if (hasInitConfigMap[name]) {
-                    delete hasInitConfigMap[name];
-                    Ext.Array.remove(initConfigList, name);
-                }
-
-                if (defaultConfig[name] !== null) {
-                    internalName = nameMap.internal;
-                    this[internalName] = null;
-                    this[nameMap.set](defaultConfig[name]);
-                    prototype[internalName] = this[internalName];
-                }
-            }
-
-            renderElement = this.renderElement.dom;
-            prototype.renderTemplate = renderTemplate = document.createDocumentFragment();
-            renderTemplate.appendChild(renderElement.cloneNode(true));
-
-            elements = renderTemplate.querySelectorAll('[id]');
-
-            for (i = 0,ln = elements.length; i < ln; i++) {
-                element = elements[i];
-                element.removeAttribute('id');
-            }
-
-            for (i = 0,ln = referenceList.length; i < ln; i++) {
-                reference = referenceList[i];
-                this[reference].dom.removeAttribute('reference');
-            }
-        }
-
-        this.initialize();
-    },
-
-    initialize: function() {
-        this.initConfig(this.initialConfig);
-        this.initialized = true;
-    },
-
     getElementConfig: Ext.emptyFn,
 
     referenceAttributeName: 'reference',
@@ -118,31 +52,37 @@ Ext.define('Ext.AbstractComponent', {
      * it's ever used
      */
     addReferenceNode: function(name, domNode) {
-        Ext.Object.redefineProperty(this, name,
-            function() {
+        Ext.Object.defineProperty(this, name, {
+            get: function() {
                 var reference;
 
                 delete this[name];
                 this[name] = reference = new Ext.Element(domNode);
                 return reference;
-            }
-        );
+            },
+            configurable: true
+        });
     },
 
     initElement: function() {
-        var id = this.getId(),
+        var prototype = this.self.prototype,
+            id = this.getId(),
             referenceList = [],
             cleanAttributes = true,
             referenceAttributeName = this.referenceAttributeName,
+            needsOptimization = false,
             renderTemplate, renderElement, element,
-            referenceNodes, i, ln, referenceNode, reference;
+            referenceNodes, i, ln, referenceNode, reference,
+            configNameCache, defaultConfig, cachedConfigList, initConfigList, initConfigMap, configList,
+            elements, name, nameMap, internalName;
 
-        if (this.self.prototype.hasOwnProperty('renderTemplate')) {
+        if (prototype.hasOwnProperty('renderTemplate')) {
             renderTemplate = this.renderTemplate.cloneNode(true);
             renderElement = renderTemplate.firstChild;
         }
         else {
-            cleanAttributes = false,
+            cleanAttributes = false;
+            needsOptimization = true;
             renderTemplate = document.createDocumentFragment();
             renderElement = Ext.Element.create(this.getElementConfig(), true);
             renderTemplate.appendChild(renderElement);
@@ -180,6 +120,60 @@ Ext.define('Ext.AbstractComponent', {
         }
         else {
             this.addReferenceNode('renderElement', renderElement);
+        }
+
+        // This happens only *once* per class, during the very first instantiation
+        // to optimize renderTemplate based on cachedConfig
+        if (needsOptimization) {
+            configNameCache = Ext.Class.configNameCache;
+            defaultConfig = this.config;
+            cachedConfigList = this.cachedConfigList;
+            initConfigList = this.initConfigList;
+            initConfigMap = this.initConfigMap;
+            configList = [];
+
+            for (i = 0,ln = cachedConfigList.length; i < ln; i++) {
+                name = cachedConfigList[i];
+                nameMap = configNameCache[name];
+
+                if (initConfigMap[name]) {
+                    initConfigMap[name] = false;
+                    Ext.Array.remove(initConfigList, name);
+                }
+
+                if (defaultConfig[name] !== null) {
+                    configList.push(name);
+                    this[nameMap.get] = this[nameMap.initGet];
+                }
+            }
+
+            for (i = 0,ln = configList.length; i < ln; i++) {
+                name = configList[i];
+                nameMap = configNameCache[name];
+                internalName = nameMap.internal;
+
+                this[internalName] = null;
+                this[nameMap.set].call(this, defaultConfig[name]);
+                delete this[nameMap.get];
+
+                prototype[internalName] = this[internalName];
+            }
+
+            renderElement = this.renderElement.dom;
+            prototype.renderTemplate = renderTemplate = document.createDocumentFragment();
+            renderTemplate.appendChild(renderElement.cloneNode(true));
+
+            elements = renderTemplate.querySelectorAll('[id]');
+
+            for (i = 0,ln = elements.length; i < ln; i++) {
+                element = elements[i];
+                element.removeAttribute('id');
+            }
+
+            for (i = 0,ln = referenceList.length; i < ln; i++) {
+                reference = referenceList[i];
+                this[reference].dom.removeAttribute('reference');
+            }
         }
 
         return this;

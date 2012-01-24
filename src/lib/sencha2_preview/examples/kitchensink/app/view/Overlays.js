@@ -52,26 +52,28 @@ Ext.define('Kitchensink.view.Overlays', {
             {
                 text: 'Overlay',
                 handler: function() {
-                    var popup = Ext.create('Ext.Panel', {
-                        floating        : true,
-                        modal           : true,
-                        centered        : true,
-                        width           : 300,
-                        height          : 200,
-                        styleHtmlContent: true,
-                        html: '<p>This is a modal, centered and floating panel. hideOnMaskTap is true by default so ' +
-                              'we can tap anywhere outside the overlay to hide it.</p>',
-                        items: [
-                            {
-                                docked: 'top',
-                                xtype : 'toolbar',
-                                title : 'Overlay Title'
-                            }
-                        ],
-                        scrollable: true
-                    });
+                    if (!this.overlay) {
+                        this.overlay = Ext.create('Ext.Panel', {
+                            floating        : true,
+                            modal           : true,
+                            centered        : true,
+                            width           : 300,
+                            height          : 200,
+                            styleHtmlContent: true,
+                            html: '<p>This is a modal, centered and floating panel. hideOnMaskTap is true by default so ' +
+                                  'we can tap anywhere outside the overlay to hide it.</p>',
+                            items: [
+                                {
+                                    docked: 'top',
+                                    xtype : 'toolbar',
+                                    title : 'Overlay Title'
+                                }
+                            ],
+                            scrollable: true
+                        });
+                    }
 
-                    popup.show();
+                    this.overlay.show();
                 }
             },
             {
@@ -95,22 +97,24 @@ Ext.define('Kitchensink.view.Overlays', {
             {
                 text: 'Picker',
                 handler: function() {
-                    var picker = Ext.create('Ext.Picker', {
-                        slots: [
-                            {
-                                name : 'limit_speed',
-                                title: 'Speed',
-                                data : [
-                                    {text: '50 KB/s', value: 50},
-                                    {text: '100 KB/s', value: 100},
-                                    {text: '200 KB/s', value: 200},
-                                    {text: '300 KB/s', value: 300}
-                                ]
-                            }
-                        ]
-                    });
+                    if (!this.picker) {
+                        this.picker = Ext.create('Ext.Picker', {
+                            slots: [
+                                {
+                                    name : 'limit_speed',
+                                    title: 'Speed',
+                                    data : [
+                                        {text: '50 KB/s', value: 50},
+                                        {text: '100 KB/s', value: 100},
+                                        {text: '200 KB/s', value: 200},
+                                        {text: '300 KB/s', value: 300}
+                                    ]
+                                }
+                            ]
+                        });
+                    }
 
-                    picker.show();
+                    this.picker.show();
                 }
             }
         ]

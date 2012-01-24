@@ -106,5 +106,29 @@ Ext.define('Ext.form.FieldSet', {
         if (oldInstructions) {
             this.remove(oldInstructions);
         }
+    },
+
+    applyItems: function(newItems) {
+        this.callParent(arguments);
+
+        var items = this.getItems().items,
+            ln = items.length,
+            item, i;
+
+        for (i = 0; i < ln; i++) {
+            item = items[i];
+            if (!item.isHidden()) {
+                item.addCls(this.getBaseCls() + '-item-first');
+                break;
+            }
+        }
+
+        for (i = (ln - 1); i > 0; i--) {
+            item = items[i];
+            if (!item.isHidden()) {
+                item.addCls(this.getBaseCls() + '-item-last');
+                break;
+            }
+        }
     }
 });

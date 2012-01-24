@@ -114,7 +114,7 @@ Ext.define('Ext.util.Draggable', {
 
     updateElement: function(element) {
         element.on(this.listeners);
-        element.addCls(this.getCls());
+        element.addCls(this.getCls() || this.config.cls);
 
         this.sizeMonitors.element = new Ext.util.SizeMonitor({
             element: element,

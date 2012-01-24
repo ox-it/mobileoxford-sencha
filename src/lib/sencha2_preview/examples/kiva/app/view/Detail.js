@@ -61,26 +61,6 @@ Ext.define('Kiva.view.Detail', {
         ]
     },
 
-    animationDuration: 300,
-
-    show: function(animation) {
-        this.callParent();
-
-        this.getParent().setMask(true);
-
-        Ext.Animator.run([{
-            element  : this.element,
-            xclass   : 'Ext.fx.animation.SlideIn',
-            direction: Ext.os.deviceType == "Phone" ? "up" : "left",
-            duration : this.animationDuration
-        }, {
-            element  : this.getParent().getMask().element,
-            xclass   : 'Ext.fx.animation.FadeIn',
-            direction: Ext.os.deviceType == "Phone" ? "up" : "left",
-            duration : this.animationDuration
-        }]);
-    },
-
     hide: function(animation) {
         var me = this;
 
@@ -88,29 +68,12 @@ Ext.define('Kiva.view.Detail', {
         me.fireEvent('hideanimationstart', me);
 
         //show the mask again
-        me.getParent().setMask(true);
-
-        Ext.Animator.run([{
-            element  : me.element,
-            xclass   : 'Ext.fx.animation.SlideOut',
-            duration : me.animationDuration,
-            preserveEndState: false,
-            direction: Ext.os.deviceType == "Phone" ? "down" : "right",
-            onEnd: function() {
-                me.setHidden(true);
-            }
-        }, {
-            element  : me.getParent().getMask().element,
-            xclass   : 'Ext.fx.animation.FadeOut',
-            direction: Ext.os.deviceType == "Phone" ? "up" : "left",
-            duration : me.animationDuration,
-            onEnd: function() {
-                me.getParent().setMask(false);
-            }
-        }]);
+        me.callParent();
     },
 
     initialize: function() {
+        this.callParent(arguments);
+
         this.on({
             scope: this,
 
@@ -142,15 +105,15 @@ Ext.define('Kiva.view.Detail', {
             this.mapMarker.setMap(null);
             delete this.mapMarker;
         }
-        
+
         //add a marker for the Loanee's position on the map
-        this.mapMarker = new google.maps.Marker({ 
-            map: map.map, 
+        this.mapMarker = new google.maps.Marker({
+            map: map.map,
             title : newLoan.get('name'),
-            position: new google.maps.LatLng(coords[0], coords[1])  
+            position: new google.maps.LatLng(coords[0], coords[1])
         });
-        
-        map.update(this.mapMarker.position);
+
+        map.setMapCenter(this.mapMarker.position);
     },
 
     updateLendButton: function() {
@@ -158,7 +121,7 @@ Ext.define('Kiva.view.Detail', {
             button = this.down('button'),
             link = Ext.getDom('linker'),
             clickEvent = document.createEvent('Event');
-        
+
         //http://www.sencha.com/forum/showthread.php?130358-window.open()-from-toolbar-button-opens-window-from-list-item-a-new-tab&p=639938#post639938
         clickEvent.initEvent('click', true, false);
 

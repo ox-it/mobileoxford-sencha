@@ -1,7 +1,18 @@
+Ext.Loader.setPath({
+    'Ext.data': '../../../src/data'
+});
+
 Ext.require([
     'Ext.data.Store',
     'Ext.List'
 ]);
+
+Ext.define('Contact', {
+    extend: 'Ext.data.Model',
+    config: {
+        fields: ['firstName', 'lastName']
+    }
+});
 
 Ext.setup({
     tabletStartupScreen: 'tablet_startup.png',
@@ -12,15 +23,11 @@ Ext.setup({
         autoMaximize: false
     },
     onReady : function() {
-        Ext.regModel('Contact', {
-            fields: ['firstName', 'lastName']
-        });
-
         var store = Ext.create('Ext.data.Store', {
             model: 'Contact',
 
             sorters: 'firstName',
-            getGroupString : function(record) {
+            grouper: function(record) {
                 return record.get('firstName')[0];
             },
 
@@ -167,10 +174,13 @@ Ext.setup({
             items: {
                 xtype: 'list',
                 store: store,
-                disclosure: true,
-                itemConfig: {
-                    tpl: '<div class="contact2"><strong>{firstName}</strong> {lastName}</div>'
-                }
+                onItemDisclosure: function(record, item) {
+                    alert('Disclose: ' + record.getId());
+                },
+                emptyText: 'No more records',
+                preventSelectionOnDisclose: true,
+                grouped: true,
+                itemTpl: '<div class="contact2"><strong>{firstName}</strong> {lastName}</div>'
             }
         });
     }

@@ -13,7 +13,7 @@
  *
  * * Float above other components (windows, message boxes and overlays)
  * * Change size and position on the screen with animation
- * * Dock other Components inside itself (useful for toolbars)
+ * * Dock other Components inside themselves (useful for toolbars)
  * * Align to other components, allow themselves to be dragged around, make their content scrollable & more
  *
  * ## Available Components
@@ -30,7 +30,6 @@
  *
  * ### Store-bound components
  * * {@link Ext.dataview.DataView}
- * * {@link Ext.dataview.ComponentView}
  * * {@link Ext.Carousel}
  * * {@link Ext.List}
  * * {@link Ext.NestedList}
@@ -112,6 +111,91 @@
  * child will be flexed to 100px wide and the second to 200px because the first one was given flex: 1 and the second
  * flex: 2.
  *
+ * ## Using xtype
+ *
+ * xtype is an easy way to create Components without using the full class name. This is especially useful when creating
+ * a {@link Ext.Container Container} that contains child Components. An xtype is simply a shorthand way of specifying a
+ * Component - for example you can use xtype: 'panel' instead of typing out Ext.panel.Panel.
+ *
+ * Sample usage:
+ *
+ *     @example miniphone
+ *     Ext.create('Ext.Container', {
+ *         fullscreen: true,
+ *         layout: 'fit',
+ *
+ *         items: [
+ *             {
+ *                 xtype: 'panel',
+ *                 html: 'This panel is created by xtype'
+ *             },
+ *             {
+ *                 xtype: 'toolbar',
+ *                 title: 'So is the toolbar',
+ *                 dock: 'top'
+ *             }
+ *         ]
+ *     });
+ *
+ *
+ * ### Common xtypes
+ *
+ * These are the xtypes that are most commonly used. For an exhaustive list please see the
+ * <a href="#!/guide/components">Components Guide</a>
+ *
+ * <pre>
+ xtype                   Class
+ -----------------       ---------------------
+ actionsheet             Ext.ActionSheet
+ audio                   Ext.Audio
+ button                  Ext.Button
+ image                   Ext.Img
+ label                   Ext.Label
+ loadmask                Ext.LoadMask
+ map                     Ext.Map
+ panel                   Ext.Panel
+ segmentedbutton         Ext.SegmentedButton
+ sheet                   Ext.Sheet
+ spacer                  Ext.Spacer
+ title                   Ext.Title
+ toolbar                 Ext.Toolbar
+ video                   Ext.Video
+ carousel                Ext.carousel.Carousel
+ navigationview          Ext.navigation.View
+ datepicker              Ext.picker.Date
+ picker                  Ext.picker.Picker
+ slider                  Ext.slider.Slider
+ thumb                   Ext.slider.Thumb
+ tabpanel                Ext.tab.Panel
+ viewport                Ext.viewport.Default
+
+ DataView Components
+ ---------------------------------------------
+ dataview                Ext.dataview.DataView
+ list                    Ext.dataview.List
+ nestedlist              Ext.dataview.NestedList
+
+ Form Components
+ ---------------------------------------------
+ checkboxfield           Ext.field.Checkbox
+ datepickerfield         Ext.field.DatePicker
+ emailfield              Ext.field.Email
+ hiddenfield             Ext.field.Hidden
+ numberfield             Ext.field.Number
+ passwordfield           Ext.field.Password
+ radiofield              Ext.field.Radio
+ searchfield             Ext.field.Search
+ selectfield             Ext.field.Select
+ sliderfield             Ext.field.Slider
+ spinnerfield            Ext.field.Spinner
+ textfield               Ext.field.Text
+ textareafield           Ext.field.TextArea
+ togglefield             Ext.field.Toggle
+ urlfield                Ext.field.Url
+ fieldset                Ext.form.FieldSet
+ formpanel               Ext.form.Panel
+ * </pre>
+ *
  * ## Configuring Components
  *
  * Whenever you create a new Component you can pass in configuration options. All of the configurations for a given
@@ -158,6 +242,51 @@ Ext.define('Ext.Component', {
         'Ext.behavior.Draggable'
     ],
 
+    /**
+     * @cfg {String} xtype
+     * The `xtype` configuration option can be used to optimize Component creation and rendering. It serves as a
+     * shortcut to the full componet name. For example, the component `Ext.button.Button` has an xtype of `button`.
+     *
+     * You can define your own xtype on a custom {@link Ext.Component component} by specifying the
+     * {@link Ext.Class#alias alias} config option with a prefix of `widget`. For example:
+     *
+     *     Ext.define('PressMeButton', {
+     *         extend: 'Ext.button.Button',
+     *         alias: 'widget.pressmebutton',
+     *         text: 'Press Me'
+     *     })
+     *
+     * Any Component can be created implicitly as an object config with an xtype specified, allowing it to be
+     * declared and passed into the rendering pipeline without actually being instantiated as an object. Not only is
+     * rendering deferred, but the actual creation of the object itself is also deferred, saving memory and resources
+     * until they are actually needed. In complex, nested layouts containing many Components, this can make a
+     * noticeable improvement in performance.
+     *
+     *     // Explicit creation of contained Components:
+     *     var panel = new Ext.Panel({
+     *        ...
+     *        items: [
+     *           Ext.create('Ext.button.Button', {
+     *              text: 'OK'
+     *           })
+     *        ]
+     *     };
+     *
+     *     // Implicit creation using xtype:
+     *     var panel = new Ext.Panel({
+     *        ...
+     *        items: [{
+     *           xtype: 'button',
+     *           text: 'OK'
+     *        }]
+     *     };
+     *
+     * In the first example, the button will always be created immediately during the panel's initialization. With
+     * many added Components, this approach could potentially slow the rendering of the page. In the second example,
+     * the button will not be created or rendered until the panel is actually displayed in the browser. If the panel
+     * is never displayed (for example, if it is a tab that remains hidden) then the button will never be created and
+     * will never consume any resources whatsoever.
+     */
     xtype: 'component',
 
     observableType: 'component',
@@ -170,13 +299,13 @@ Ext.define('Ext.Component', {
         /**
          * @cfg {String} baseCls
          * The base CSS class to apply to this components's element. This will also be prepended to
-         * other elements within this component. To add specific styling for sub-classes, use the `cls` config.
+         * other elements within this component. To add specific styling for sub-classes, use the {@link #cls} config.
          * @accessor
          */
         baseCls: null,
 
         /**
-         * @cfg {String} cls the CSS class to add to this component's element, in addition to the `baseCls`
+         * @cfg {String/String[]} cls The CSS class to add to this component's element, in addition to the {@link #baseCls}
          * @accessor
          */
         cls: null,
@@ -272,6 +401,21 @@ Ext.define('Ext.Component', {
         /**
          * @cfg {String} docked
          * The dock position of this component in its container. Can be 'left', 'top', 'right' or 'bottom'.
+         *
+         * <b>Notes</b>
+         *
+         * You must use a HTML5 doctype for {@link #docked} `bottom` to work. To do this, simply add the following code to the HTML file:
+         *
+         *     <!doctype html>
+         *
+         * So your index.html file should look a little like this:
+         *
+         *     <!doctype html>
+         *     <html>
+         *         <head>
+         *             <title>MY application title</title>
+         *             ...
+         *
          * @accessor
          * @evented
          */
@@ -350,11 +494,12 @@ Ext.define('Ext.Component', {
         zIndex: null,
 
         /**
-         * @cfg {Mixed} tpl
-         * An <bold>{@link Ext.Template}</bold>, <bold>{@link Ext.XTemplate}</bold>
-         * or an array of strings to form an Ext.XTemplate.
-         * Used in conjunction with the <code>{@link #data}</code> and
-         * <code>{@link #tplWriteMode}</code> configurations.
+         * @cfg {String/String[]/Ext.Template[]/Ext.XTemplate[]} tpl
+         * A {@link String}, {@link Ext.Template}, {@link Ext.XTemplate} or an {@link Array} of strings to form an {@link Ext.XTemplate}.
+         * Used in conjunction with the {@link #data} and {@link #tplWriteMode} configurations.
+         *
+         * <b>Note</b>
+         * The {@link #data} configuration <i>must</i> be set for any content to be shown in the component when using this configuration.
          * @accessor
          */
         tpl: null,
@@ -395,21 +540,6 @@ Ext.define('Ext.Component', {
         disabledCls: clsPrefix + 'item-disabled',
 
         /**
-         * @cfg {Boolean} modal True to make this Component modal. This will create a mask underneath the Component
-         * that covers the whole page and does not allow the user to interact with any other Components until this
-         * Component is dismissed
-         * @accessor
-         */
-        modal: null,
-
-        /**
-         * @cfg {Boolean} hideOnMaskTap When using a {@link #modal} Component, setting this to true (the default) will
-         * hide the modal mask and the Component when the mask is tapped on
-         * @accessor
-         */
-        hideOnMaskTap: true,
-
-        /**
          * @cfg {Ext.Element/HTMLElement/String} contentEl The configured element will automatically be added as the content of this
          * component. When you pass a string, we expect it to be an element id. If the content element is hidden, we will automatically
          * show it.
@@ -428,9 +558,69 @@ Ext.define('Ext.Component', {
          * @accessor
          * An object or array of objects that will provide custom functionality for this component.  The only
          * requirement for a valid plugin is that it contain an init method that accepts a reference of type Ext.Component.
+         *
          * When a component is created, if any plugins are available, the component will call the init method on each
          * plugin, passing a reference to itself.  Each plugin can then call methods or respond to events on the
          * component as needed to provide its functionality.
+         *
+         * For examples of plugins, see Ext.plugin.PullRefresh and Ext.plugin.ListPaging
+         *
+         * ## Example code
+         *
+         * A plugin by alias:
+         *
+         *     Ext.create('Ext.dataview.List', {
+         *         config: {
+         *             plugins: 'listpaging',
+         *             itemTpl: '<div class="item">{title}</div>',
+         *             store: 'Items'
+         *         }
+         *     });
+         *
+         * Multiple plugins by alias:
+         *
+         *     Ext.create('Ext.dataview.List', {
+         *         config: {
+         *             plugins: ['listpaging', 'pullrefresh'],
+         *             itemTpl: '<div class="item">{title}</div>',
+         *             store: 'Items'
+         *         }
+         *     });
+         *
+         * Single plugin by class name with config options:
+         *
+         *     Ext.create('Ext.dataview.List', {
+         *         config: {
+         *             plugins: {
+         *                 xclass: 'Ext.plugin.ListPaging', // Reference plugin by class
+         *                 autoPaging: true
+         *             },
+         *
+         *             itemTpl: '<div class="item">{title}</div>',
+         *             store: 'Items'
+         *         }
+         *     });
+         *
+         * Multiple plugins by class name with config options:
+         *
+         *     Ext.create('Ext.dataview.List', {
+         *         config: {
+         *             plugins: [
+         *                 {
+         *                     xclass: 'Ext.plugin.PullRefresh',
+         *                     pullRefreshText: 'Pull to refresh...'
+         *                 },
+         *                 {
+         *                     xclass: 'Ext.plugin.ListPaging',
+         *                     autoPaging: true
+         *                 }
+         *             ],
+         *
+         *             itemTpl: '<div class="item">{title}</div>',
+         *             store: 'Items'
+         *         }
+         *     });
+         *
          */
         plugins: null,
 
@@ -439,13 +629,23 @@ Ext.define('Ext.Component', {
 
     /**
      * @event painted
-     * Fires whenever the Component is moved into to the DOM body
+     * Fires whenever the Component is moved into to the DOM body.
+     *
+     * This event can not be listened to if you are using {@link Ext.ComponentQuery}. Instead, you should listen to the event
+     * directly on the component itself.
+     *
+     * This is because of performance implications when firing the event so many times.
      * @param {Ext.Component} this The component instance
      */
 
     /**
      * @event erased
      * Fires whenever the Component is moved out of the DOM body
+     *
+     * This event can not be listened to if you are using {@link Ext.ComponentQuery}. Instead, you should listen to the event
+     * directly on the component itself.
+     *
+     * This is because of performance implications when firing the event so many times.
      * @param {Ext.Component} this The component instance
      */
 
@@ -489,6 +689,8 @@ Ext.define('Ext.Component', {
         'br-tr'
     ],
 
+    listenerOptionsRegex: /^(?:delegate|single|delay|buffer|args|prepend|element)$/,
+
     /**
      * @private
      */
@@ -525,21 +727,39 @@ Ext.define('Ext.Component', {
      * @param {Object} config The standard configuration object.
      */
     constructor: function(config) {
-        if (config && config.id) {
-            this.id = config.id;
+        var currentConfig = this.config,
+            id;
+
+        this.onInitializedListeners = [];
+        this.initialConfig = config;
+
+        if (config !== undefined && 'id' in config) {
+            id = config.id;
             delete config.id;
         }
-        else {
-            this.getId();
+        else if ('id' in currentConfig) {
+            id = currentConfig.id;
         }
+        else {
+            id = this.getId();
+        }
+
+        this.setId(id);
 
         Ext.ComponentManager.register(this);
 
-        this.callParent(arguments);
+        this.initElement();
+
+        this.initialize();
+    },
+
+    initialize: function() {
+        this.initConfig(this.initialConfig);
+        this.triggerInitialized();
 
         /**
          * Force the component to take up 100% width and height available, by adding it to {@link Ext.viewport.Viewport}.
-         * @cfg {Boolean} fullscren
+         * @cfg {Boolean} fullscreen
          */
         if ('fullscreen' in this.config) {
             this.fireEvent('fullscreen', this);
@@ -555,6 +775,51 @@ Ext.define('Ext.Component', {
             reference: 'element',
             children: this.getTemplate()
         };
+    },
+
+    /**
+     * @private
+     */
+    triggerInitialized: function() {
+        var listeners = this.onInitializedListeners,
+            ln = listeners.length,
+            listener, i;
+
+        if (!this.initialized) {
+            this.initialized = true;
+
+            if (ln > 0) {
+                for (i = 0; i < ln; i++) {
+                    listener = listeners[i];
+                    listener.fn.call(listener.scope, this);
+                }
+
+                listeners.length = 0;
+            }
+        }
+    },
+
+    /**
+     * @private
+     * @param fn
+     * @param scope
+     */
+    onInitialized: function(fn, scope) {
+        var listeners = this.onInitializedListeners;
+
+        if (!scope) {
+            scope = this;
+        }
+
+        if (this.initialized) {
+            fn.call(scope, this);
+        }
+        else {
+            listeners.push({
+                fn: fn,
+                scope: scope
+            });
+        }
     },
 
     /**
@@ -635,7 +900,7 @@ Ext.define('Ext.Component', {
     },
 
     updateStyle: function(style) {
-        this.element.dom.setAttribute('style', style);
+        this.element.dom.style.cssText += style;
     },
 
     updateBorder: function(border) {
@@ -654,12 +919,12 @@ Ext.define('Ext.Component', {
         var baseCls = this.getBaseCls();
 
         if (baseCls) {
-            if (newUi) {
-                this.addCls(newUi, baseCls);
+            if (oldUi) {
+                this.element.removeCls(oldUi, baseCls);
             }
 
-            if (oldUi) {
-                this.removeCls(oldUi, baseCls);
+            if (newUi) {
+                this.element.addCls(newUi, baseCls);
             }
         }
     },
@@ -673,24 +938,162 @@ Ext.define('Ext.Component', {
             ui = me.getUi();
 
         if (newBaseCls) {
-            this.addCls(newBaseCls);
+            this.element.addCls(newBaseCls);
 
             if (ui) {
-                this.addCls(newBaseCls, null, ui);
+                this.element.addCls(newBaseCls, null, ui);
             }
         }
 
         if (oldBaseCls) {
-            this.removeCls(oldBaseCls);
+            this.element.removeCls(oldBaseCls);
 
             if (ui) {
-                this.removeCls(oldBaseCls, null, ui);
+                this.element.removeCls(oldBaseCls, null, ui);
             }
         }
     },
 
-    updateCls: function(cls, oldCls) {
-        this.replaceCls(oldCls, cls);
+    /**
+     * Adds a CSS class (or classes) to this Component's rendered element
+     * @param {String} cls The CSS class to add
+     * @param {String} prefix Optional prefix to add to each class
+     * @param {String} suffix Optional suffix to add to each class
+     */
+    addCls: function(cls, prefix, suffix) {
+        var oldCls = this.getCls(),
+            newCls = (oldCls) ? oldCls.slice() : [],
+            ln, i, cachedCls;
+
+        prefix = prefix || '';
+        suffix = suffix || '';
+
+        if (typeof cls == "string") {
+            newCls.push(prefix + cls + suffix);
+        } else {
+            ln = cls.length;
+
+            //check if there is currently nothing in the array and we dont need to add a prefix or a suffix.
+            //if true, we can just set the newCls value to the cls property, because that is what the value will be
+            //if false, we need to loop through each and add them to the newCls array
+            if (!newCls.length && prefix === '' && suffix === '') {
+                newCls = cls;
+            } else {
+                for (i = 0; i < ln; i++) {
+                    cachedCls = prefix + cls[i] + suffix;
+                    if (newCls.indexOf(cachedCls) == -1) {
+                        newCls.push(cachedCls);
+                    }
+                }
+            }
+        }
+
+        this.setCls(newCls);
+    },
+
+    /**
+     * Removes the given CSS class(es) from this Component's rendered element
+     * @param {String} cls The class(es) to remove
+     * @param {String} prefix Optional prefix to prepend before each class
+     * @param {String} suffix Optional suffix to append to each class
+     */
+    removeCls: function(cls, prefix, suffix) {
+        var oldCls = this.getCls(),
+            newCls = (oldCls) ? oldCls.slice() : [],
+            ln, i;
+
+        prefix = prefix || '';
+        suffix = suffix || '';
+
+        if (typeof cls == "string") {
+            newCls = Ext.Array.remove(newCls, prefix + cls + suffix);
+        } else {
+            ln = cls.length;
+            for (i = 0; i < ln; i++) {
+                newCls = Ext.Array.remove(newCls, prefix + cls[i] + suffix);
+            }
+        }
+
+        this.setCls(newCls);
+    },
+
+    /**
+     * Replaces specified classes with the newly specified classes.
+     * It uses the {@link #addCls} and {@link #removeCls} methdos, so if the class(es) you are removing don't exist, it will
+     * still add the new classes.
+     * @param {String} oldCls The class(es) to remove
+     * @param {String} newCls The class(es) to add
+     * @param {String} prefix Optional prefix to prepend before each class
+     * @param {String} suffix Optional suffix to append to each class
+     */
+    replaceCls: function(oldCls, newCls, prefix, suffix) {
+        // We could have just called {@link #removeCls} and {@link #addCls}, but that would mean {@link #updateCls}
+        // would get called twice, which would have performance implications because it will update the dom.
+
+        var cls = this.getCls(),
+            array = (cls) ? cls.slice() : [],
+            ln, i, cachedCls;
+
+        prefix = prefix || '';
+        suffix = suffix || '';
+
+        //remove all oldCls
+        if (typeof oldCls == "string") {
+            array = Ext.Array.remove(array, prefix + oldCls + suffix);
+        } else {
+            ln = oldCls.length;
+            for (i = 0; i < ln; i++) {
+                array = Ext.Array.remove(array, prefix + oldCls[i] + suffix);
+            }
+        }
+
+        //add all newCls
+        if (typeof newCls == "string") {
+            array.push(prefix + newCls + suffix);
+        } else {
+            ln = newCls.length;
+
+            //check if there is currently nothing in the array and we dont need to add a prefix or a suffix.
+            //if true, we can just set the array value to the newCls property, because that is what the value will be
+            //if false, we need to loop through each and add them to the array
+            if (!array.length && prefix === '' && suffix === '') {
+                array = newCls;
+            } else {
+                for (i = 0; i < ln; i++) {
+                    cachedCls = prefix + newCls[i] + suffix;
+                    if (array.indexOf(cachedCls) == -1) {
+                        array.push(cachedCls);
+                    }
+                }
+            }
+        }
+
+        this.setCls(array);
+    },
+
+    /**
+     * @private
+     * Checks if the cls is a string. If it is, changed it into an array
+     */
+    applyCls: function(cls) {
+        if (typeof cls == "string") {
+            cls = [cls];
+        }
+
+        //reset it back to null if there is nothing.
+        if (!cls || !cls.length) {
+            cls = null;
+        }
+
+        return cls;
+    },
+
+    /**
+     * @private
+     * All cls methods directly report to the {@link #cls} configuration, so anytime it changes, {@link #updateCls} will be called
+     */
+    updateCls: function(newCls, oldCls) {
+        this.element.replaceCls(oldCls, newCls);
     },
 
     /**
@@ -964,8 +1367,20 @@ Ext.define('Ext.Component', {
         return this.getDisabled();
     },
 
+    applyZIndex: function(zIndex) {
+        if (zIndex !== null) {
+            zIndex = Number(zIndex);
+
+            if (isNaN(zIndex)) {
+                zIndex = null;
+            }
+        }
+
+        return zIndex;
+    },
+
     updateZIndex: function(zIndex) {
-        this.element.dom.style.zIndex = zIndex;
+        this.element.dom.style.setProperty('z-index', zIndex, 'important');
     },
 
     getInnerHtmlElement: function() {
@@ -985,8 +1400,10 @@ Ext.define('Ext.Component', {
     },
 
     updateHtml: function(html) {
-        var innerHtmlElement = this.getInnerHtmlElement();
-        if (typeof html === 'string') {
+        var innerHtmlElement = this.getInnerHtmlElement(),
+            type = typeof html;
+
+        if (type == 'string' || type == 'number') {
             innerHtmlElement.setHtml(html);
         } else {
             innerHtmlElement.setHtml('');
@@ -1007,6 +1424,8 @@ Ext.define('Ext.Component', {
         else {
             element.show();
         }
+
+        this.fireEvent(hidden ? 'hide' : 'show', this);
     },
 
     /**
@@ -1052,6 +1471,14 @@ Ext.define('Ext.Component', {
         return (Ext.isObject(config) && config.isTemplate) ? config : new Ext.XTemplate(config);
     },
 
+    applyData: function(data) {
+        if (Ext.isObject(data)) {
+            return Ext.apply({}, data);
+        }
+
+        return data;
+    },
+
     /**
      * @private
      */
@@ -1065,30 +1492,6 @@ Ext.define('Ext.Component', {
                 tpl[tplWriteMode](me.getInnerHtmlElement(), newData);
             }
         }
-    },
-
-    /**
-     * Adds a CSS class (or classes) to this Component's rendered element
-     * @param {String} cls The CSS class to add
-     * @param {String} prefix Optional prefix to add to each class
-     * @param {String} suffix Optional suffix to add to each class
-     */
-    addCls: function(cls, prefix, suffix) {
-        this.element.addCls(cls, prefix, suffix);
-    },
-
-    /**
-     * Removes the given CSS class(es) from this Component's rendered element
-     * @param {String} cls The class(es) to remove
-     * @param {String} prefix Optional prefix to prepend before each class
-     * @param {String} suffix Optional suffix to append to each class
-     */
-    removeCls: function(cls, prefix, suffix) {
-        this.element.removeCls(cls, prefix, suffix);
-    },
-
-    replaceCls: function(oldCls, newCls, prefix, suffix) {
-        this.element.replaceCls(oldCls, newCls, prefix, suffix);
     },
 
     applyItemId: function(itemId) {
@@ -1211,6 +1614,40 @@ alert(t.getXTypes());  // alerts 'component/field/textfield'
         if (height != undefined) {
             this.setHeight(height);
         }
+    },
+
+    //@private
+    doAddListener: function(name, fn, scope, options, order) {
+        if (options && 'element' in options) {
+            //<debug error>
+            if (this.referenceList.indexOf(options.element) === -1) {
+                Ext.Logger.error("Adding event listener with an invalid element reference of '" + options.element +
+                    "' for this component. Available values are: '" + this.referenceList.join("', '") + "'", this);
+            }
+            //</debug>
+
+            // The default scope is this component
+            this[options.element].doAddListener(name, fn, scope || this, options, order);
+        }
+
+        return this.callParent(arguments);
+    },
+
+    //@private
+    doRemoveListener: function(name, fn, scope, options, order) {
+        if (options && 'element' in options) {
+            //<debug error>
+            if (this.referenceList.indexOf(options.element) === -1) {
+                Ext.Logger.error("Removing event listener with an invalid element reference of '" + options.element +
+                    "' for this component. Available values are: '" + this.referenceList.join('", "') + "'", this);
+            }
+            //</debug>
+
+            // The default scope is this component
+            this[options.element].doRemoveListener(name, fn, scope || this, options, order);
+        }
+
+        return this.callParent(arguments);
     },
 
     //TODO Need serious rewrites from here on or move them to the proper places
@@ -1410,6 +1847,11 @@ var owningTabPanel = grid.up('tabpanel');
         return result;
     },
 
+    //@inherit
+    getBubbleTarget: function() {
+        return this.getParent();
+    },
+
     /**
      * Destroys this Component. If it is currently added to a Container it will first be removed from that Container.
      * All Ext.Element references are also deleted and the Component is de-registered from Ext.ComponentManager
@@ -1542,18 +1984,20 @@ var owningTabPanel = grid.up('tabpanel');
             return this.callParent(arguments);
         },
 
-        doSetHidden: function(hidden) {
-            this.callParent(arguments);
+        addListener: function(options) {
+            if (arguments.length === 1 && Ext.isObject(options) && (('el' in options) || ('body' in options))) {
+                Ext.Logger.error("Adding component element listeners using the old format is no longer supported. Please refer to: http://bit.ly/wYgr2q for more details.", this);
+            }
 
-            this.fireEvent(hidden ? 'hide' : 'show', this);
+            return this.callParent(arguments);
         }
     });
 
     /**
      * @member Ext.Component
      * @method update
-     * @deprecated 2.0.0
-     * Updates the HTML content of the Component. Deprecated, please use {@link #setHtml} instead
+     * Updates the HTML content of the Component.
+     * @deprecated 2.0.0 Please use {@link #setHtml}, {@link #setTpl} or {@link #setData} instead.
      */
 
     Ext.deprecateClassMembers(this, {

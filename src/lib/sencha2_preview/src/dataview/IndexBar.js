@@ -52,7 +52,7 @@
  * similar to the following example:
  *
  *     var indexBar = new Ext.dataview.IndexBar({
- *        dock: 'right',
+ *        docked: 'right',
  *        overlay: true,
  *        alphabet: true
  *     });
@@ -65,6 +65,7 @@ Ext.define('Ext.dataview.IndexBar', {
     /**
      * @event index
      * Fires when an item in the index bar display has been tapped.
+     * @param {Ext.dataview.IndexBar} this The IndexBar instance
      * @param {String} html The HTML inside the tapped node.
      * @param {Ext.dom.Element} target The node on the indexbar that has been tapped.
      */
@@ -187,7 +188,7 @@ Ext.define('Ext.dataview.IndexBar', {
         }
 
         if (target) {
-            this.fireEvent('index', target.dom.innerHTML, target);
+            this.fireEvent('index', this, target.dom.innerHTML, target);
         }
     }
 });

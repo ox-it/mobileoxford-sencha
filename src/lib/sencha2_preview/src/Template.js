@@ -69,7 +69,7 @@ Ext.define('Ext.Template', {
 
     /**
      * Creates new template.
-     * 
+     *
      * @param {String...} html List of strings to be concatenated into template.
      * Alternatively an array of strings can be given, but then no config object may be passed.
      * @param {Object} config (optional) Config object
@@ -111,6 +111,10 @@ Ext.define('Ext.Template', {
         }
     },
 
+    /**
+     * @property {Boolean} isTemplate
+     * `true` in this class to identify an objact as an instantiated Template, or subclass thereof.
+     */
     isTemplate: true,
 
     /**
@@ -198,7 +202,7 @@ Ext.define('Ext.Template', {
      * @method applyTemplate
      * @member Ext.Template
      * Alias for {@link #apply}.
-     * @alias Ext.Template#apply
+     * @inheritdoc Ext.Template#apply
      */
     applyTemplate: function () {
         return this.apply.apply(this, arguments);

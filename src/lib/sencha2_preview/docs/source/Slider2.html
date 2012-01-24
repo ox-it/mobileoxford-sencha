@@ -96,12 +96,6 @@ Ext.define('Ext.field.Slider', {
          */
         value: 0,
 
-<span id='Ext-field-Slider-cfg-values'>        /**
-</span>         * @cfg {Number/Number[]} values See {@link Ext.slider.Slider#values}
-         * @accessor
-         */
-        values: 0,
-
 <span id='Ext-field-Slider-cfg-minValue'>        /**
 </span>         * @cfg {Number} minValue See {@link Ext.slider.Slider#minValue}
          * @accessor
@@ -121,6 +115,20 @@ Ext.define('Ext.field.Slider', {
         increment: 1
     },
 
+<span id='Ext-field-Slider-cfg-values'>    /**
+</span>     * @cfg {Number/Number[]} values See {@link Ext.slider.Slider#values}
+     */
+
+    constructor: function(config) {
+        config = config || {};
+
+        if (config.hasOwnProperty('values')) {
+            config.value = config.values;
+        }
+
+        this.callParent([config]);
+    },
+
     // @private
     initialize: function() {
         this.callParent();
@@ -138,6 +146,20 @@ Ext.define('Ext.field.Slider', {
 
     onSliderChange: function(me, value) {
         this.fireEvent('change', this, value);
+    },
+
+<span id='Ext-field-Slider-method-setValues'>    /**
+</span>     * Convience method. Calls {@link #setValue}
+     */
+    setValues: function(value) {
+        this.setValue(value);
+    },
+
+<span id='Ext-field-Slider-method-getValues'>    /**
+</span>     * Convience method. Calls {@link #getValue}
+     */
+    getValues: function() {
+        return this.getValue();
     },
 
     // @inherit

@@ -28,15 +28,25 @@
  */
 Ext.define('Ext.data.Batch', {
     mixins: {
-        observable: 'Ext.util.Observable'
+        observable: 'Ext.mixin.Observable'
     },
 
-<span id='Ext-data-Batch-property-autoStart'>    /**
-</span>     * True to immediately start processing the batch as soon as it is constructed (defaults to false)
-     * @property autoStart
-     * @type Boolean
-     */
-    autoStart: false,
+    config: {
+<span id='Ext-data-Batch-cfg-autoStart'>        /**
+</span>         * @cfg {Boolean} autoStart true to immediately start processing the batch as soon as it is constructed (defaults to false)
+         */
+        autoStart: false,
+
+<span id='Ext-data-Batch-cfg-pauseOnException'>        /**
+</span>         * @cfg {Boolean} pauseOnException true to automatically pause the execution of the batch if any operation encounters an exception (defaults to true)
+         */
+        pauseOnException: true,
+
+<span id='Ext-data-Batch-cfg-proxy'>        /**
+</span>         * @cfg {Ext.data.Proxy} proxy The proxy this Batch belongs to. Used to make the requests for each operation in the Batch.
+         */
+        proxy: null
+    },
 
 <span id='Ext-data-Batch-property-current'>    /**
 </span>     * The index of the current operation being executed
@@ -73,12 +83,26 @@ Ext.define('Ext.data.Batch', {
      */
     hasException: false,
 
-<span id='Ext-data-Batch-property-pauseOnException'>    /**
-</span>     * True to automatically pause the execution of the batch if any operation encounters an exception (defaults to true)
-     * @property pauseOnException
-     * @type Boolean
+<span id='Ext-data-Batch-event-complete'>    /**
+</span>     * @event complete
+     * Fired when all operations of this batch have been completed
+     * @param {Ext.data.Batch} batch The batch object
+     * @param {Object} operation The last operation that was executed
      */
-    pauseOnException: true,
+
+<span id='Ext-data-Batch-event-exception'>    /**
+</span>     * @event exception
+     * Fired when a operation encountered an exception
+     * @param {Ext.data.Batch} batch The batch object
+     * @param {Object} operation The operation that encountered the exception
+     */
+
+<span id='Ext-data-Batch-event-operationcomplete'>    /**
+</span>     * @event operationcomplete
+     * Fired when each operation of the batch completes
+     * @param {Ext.data.Batch} batch The batch object
+     * @param {Object} operation The operation that just completed
+     */
 
 <span id='Ext-data-Batch-method-constructor'>    /**
 </span>     * Creates new Batch object.
@@ -87,28 +111,7 @@ Ext.define('Ext.data.Batch', {
     constructor: function(config) {
         var me = this;
 
-<span id='Ext-data-Batch-event-complete'>        /**
-</span>         * @event complete
-         * Fired when all operations of this batch have been completed
-         * @param {Ext.data.Batch} batch The batch object
-         * @param {Object} operation The last operation that was executed
-         */
-
-<span id='Ext-data-Batch-event-exception'>        /**
-</span>         * @event exception
-         * Fired when a operation encountered an exception
-         * @param {Ext.data.Batch} batch The batch object
-         * @param {Object} operation The operation that encountered the exception
-         */
-
-<span id='Ext-data-Batch-event-operationcomplete'>        /**
-</span>         * @event operationcomplete
-         * Fired when each operation of the batch completes
-         * @param {Ext.data.Batch} batch The batch object
-         * @param {Object} operation The operation that just completed
-         */
-
-        me.mixins.observable.constructor.call(me, config);
+        me.initConfig(config);
 
 <span id='Ext-data-Batch-property-operations'>        /**
 </span>         * Ordered array of operations that will be executed by this batch
@@ -192,7 +195,7 @@ Ext.define('Ext.data.Batch', {
 
             operation.setStarted();
 
-            me.proxy[operation.action](operation, onProxyReturn, me);
+            me.getProxy()[operation.getAction()](operation, onProxyReturn, me);
         }
     }
 });</pre>

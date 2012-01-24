@@ -58,11 +58,11 @@ It also makes your code cleaner. For example, if you wanted to always ask the us
         extend: 'Animal',
 
         applyName: function(newName, oldName) {
-            return confirm('Are you sure you want to change name to ' + newName + '?');
+            return confirm('Are you sure you want to change name to ' + newName + '?')? newName : oldName;
         }
     });
 
-We're just using the browser's built in confirm function, which opens a dialog asking the user the question and offering "Yes" and "No" as answers. The applier functions allow you to cancel the name change if you return false. As it happens the confirm function will return true or false depending on whether the user clicks Yes or No.
+We're just using the browser's built in confirm function, which opens a dialog asking the user the question and offering "Yes" and "No" as answers. The applier functions allow you to cancel the name change if you return false. As it happens the confirm function will return either new or old name depending on whether the user clicks Yes or No.
 
 If we make a new Bob and try to change his name, but then click No when prompted, his name won't change after all:
 
@@ -77,7 +77,7 @@ If we make a new Bob and try to change his name, but then click No when prompted
 We've basically already learned the important parts of classes, as follows:
 
 * All classes are defined using `Ext.define`, including your own classes
-* Most classes extend another class, using the `extend` syntax
+* Most classes extend other classes, using the `extend` syntax
 * Classes are created using `Ext.create`, for example `Ext.create('SomeClass', {some: 'configuration'})`
 * Always usine the `config` syntax to get automatic getters and setters and have a much cleaner codebase
 
@@ -85,7 +85,7 @@ At this point you can already go about creating classes in your app, but the cla
 
 ## Dependencies and Dynamic Loading
 
-Most of the time, classes depend on other classes. The Human class above depends on the Animal class because it extends it - we depend on Animal being present to be able to define Animal. Sometimes you'll make use of other classes inside a class, so you need to guarantee that those classes are on the page. Do this with the `requires` syntax:
+Most of the time, classes depend on other classes. The Human class above depends on the Animal class because it extends it - we depend on Animal being present to be able to define Human. Sometimes you'll make use of other classes inside a class, so you need to guarantee that those classes are on the page. Do this with the `requires` syntax:
 
     Ext.define('Human', {
         extend: 'Animal',
@@ -179,7 +179,8 @@ Class property names follow the same convention as method and variable names, ex
 
 ### 1. Declaration
 
-#### 1.1) The Old Way
+#### 1.1. The Old Way
+
 If you've developed with Sencha Touch 1.x, you are certainly familiar with `Ext.extend` to create a class:
 
     var MyPanel = Ext.extend(Object, { ... });
@@ -202,7 +203,7 @@ The first item is usually solved with `Ext.namespace` (aliased by `Ext.ns`). Thi
 
 The second issue, however, is not easy to address because `Ext.Panel` might depend on many other classes that it directly/indirectly inherits from, and in turn, these dependencies might depend on other classes to exist. For that reason, applications written before Sencha Touch 2 usually include the whole library in the form of `ext-all.js` even though they might only need a small portion of the framework.
 
-### 1.2) The New Way
+#### 1.2. The New Way
 
 Sencha Touch 2 eliminates all those drawbacks with just one single method you need to remember for class creation: `Ext.define`. Its basic syntax is as follows:
 

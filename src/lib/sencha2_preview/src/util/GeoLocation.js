@@ -34,7 +34,7 @@
  *     geo.updateLocation();
  */
 Ext.define('Ext.util.GeoLocation', {
-    extend: 'Ext.EventedBase',
+    extend: 'Ext.Evented',
 
     config: {
         /**

@@ -11,15 +11,25 @@
  */
 Ext.define('Ext.data.Batch', {
     mixins: {
-        observable: 'Ext.util.Observable'
+        observable: 'Ext.mixin.Observable'
     },
 
-    /**
-     * True to immediately start processing the batch as soon as it is constructed (defaults to false)
-     * @property autoStart
-     * @type Boolean
-     */
-    autoStart: false,
+    config: {
+        /**
+         * @cfg {Boolean} autoStart true to immediately start processing the batch as soon as it is constructed (defaults to false)
+         */
+        autoStart: false,
+
+        /**
+         * @cfg {Boolean} pauseOnException true to automatically pause the execution of the batch if any operation encounters an exception (defaults to true)
+         */
+        pauseOnException: true,
+
+        /**
+         * @cfg {Ext.data.Proxy} proxy The proxy this Batch belongs to. Used to make the requests for each operation in the Batch.
+         */
+        proxy: null
+    },
 
     /**
      * The index of the current operation being executed
@@ -57,11 +67,25 @@ Ext.define('Ext.data.Batch', {
     hasException: false,
 
     /**
-     * True to automatically pause the execution of the batch if any operation encounters an exception (defaults to true)
-     * @property pauseOnException
-     * @type Boolean
+     * @event complete
+     * Fired when all operations of this batch have been completed
+     * @param {Ext.data.Batch} batch The batch object
+     * @param {Object} operation The last operation that was executed
      */
-    pauseOnException: true,
+
+    /**
+     * @event exception
+     * Fired when a operation encountered an exception
+     * @param {Ext.data.Batch} batch The batch object
+     * @param {Object} operation The operation that encountered the exception
+     */
+
+    /**
+     * @event operationcomplete
+     * Fired when each operation of the batch completes
+     * @param {Ext.data.Batch} batch The batch object
+     * @param {Object} operation The operation that just completed
+     */
 
     /**
      * Creates new Batch object.
@@ -70,28 +94,7 @@ Ext.define('Ext.data.Batch', {
     constructor: function(config) {
         var me = this;
 
-        /**
-         * @event complete
-         * Fired when all operations of this batch have been completed
-         * @param {Ext.data.Batch} batch The batch object
-         * @param {Object} operation The last operation that was executed
-         */
-
-        /**
-         * @event exception
-         * Fired when a operation encountered an exception
-         * @param {Ext.data.Batch} batch The batch object
-         * @param {Object} operation The operation that encountered the exception
-         */
-
-        /**
-         * @event operationcomplete
-         * Fired when each operation of the batch completes
-         * @param {Ext.data.Batch} batch The batch object
-         * @param {Object} operation The operation that just completed
-         */
-
-        me.mixins.observable.constructor.call(me, config);
+        me.initConfig(config);
 
         /**
          * Ordered array of operations that will be executed by this batch
@@ -175,7 +178,7 @@ Ext.define('Ext.data.Batch', {
 
             operation.setStarted();
 
-            me.proxy[operation.action](operation, onProxyReturn, me);
+            me.getProxy()[operation.getAction()](operation, onProxyReturn, me);
         }
     }
 });

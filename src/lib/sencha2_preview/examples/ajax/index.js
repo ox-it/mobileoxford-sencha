@@ -13,25 +13,16 @@ Ext.setup({
     glossOnIcon: false,
 
     onReady: function() {
-        var tpl = new Ext.XTemplate(
-            '<tpl for=".">' +
-                '<div class="day">' +
-                '<div class="date">{date}</div>' +
-                '<tpl for="weatherIconUrl"><img src="{value}"/></tpl>' +
-                '<span class="temp">{tempMaxF}&deg;<span class="temp_low">{tempMinF}&deg;</span></span>' +
-                '</div>' +
-                '</tpl>'
-        );
-
+        var tpl = Ext.XTemplate.from('myTemplate');
         var makeAjaxRequest = function() {
-            Ext.getCmp('content').setMask({
+            Ext.getCmp('content').setMasked({
                 message: 'Loading...'
             });
 
             Ext.Ajax.request({
                 url: 'test.json',
                 success: function(response, opts) {
-                    Ext.getCmp('content').update(response.responseText);
+                    Ext.getCmp('content').setHtml(response.responseText);
                     Ext.getCmp('status').setTitle('Static test.json file loaded');
                     Ext.getCmp('content').unmask();
                 }
@@ -39,7 +30,7 @@ Ext.setup({
         };
 
         var makeJSONPRequest = function() {
-            Ext.getCmp('content').setMask({
+            Ext.getCmp('content').setMasked({
                 message: 'Loading...'
             });
 
@@ -57,7 +48,7 @@ Ext.setup({
                     var weather = result.data.weather;
                     if (weather) {
                         var html = tpl.apply(weather);
-                        Ext.getCmp('content').update(html);
+                        Ext.getCmp('content').setHtml(html);
                     }
                     else {
                         alert('There was an error retrieving the weather.');
@@ -71,7 +62,7 @@ Ext.setup({
         Ext.create('Ext.Panel', {
             fullscreen: true,
             id: 'content',
-            scroll: 'vertical',
+            scrollable: true,
             html: 'This example can use either JSONP or AJAX to retrieve data.',
             items: [{
                 xtype: 'toolbar',

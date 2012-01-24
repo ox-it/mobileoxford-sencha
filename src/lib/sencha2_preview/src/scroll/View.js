@@ -2,7 +2,7 @@
  *
  */
 Ext.define('Ext.scroll.View', {
-    extend: 'Ext.EventedBase',
+    extend: 'Ext.Evented',
 
     alternateClassName: 'Ext.util.ScrollView',
 
@@ -140,7 +140,7 @@ Ext.define('Ext.scroll.View', {
             refresh    : 'refreshIndicators'
         });
     },
-    
+
     isAxisEnabled: function(axis) {
         return this.getScroller().isAxisEnabled(axis) && this.useIndicators[axis];
     },
@@ -270,11 +270,11 @@ Ext.define('Ext.scroll.View', {
     flashIndicator: function(axis) {
         var me = this,
             indicator = this.getIndicators()[axis];
-        
+
         if (!me.isAxisEnabled(axis)) {
             return me;
         }
-        
+
         if (indicator.getRatio() == 1) {
             return me;
         }

@@ -1,5 +1,4 @@
-/*
- * @class Ext.env.OS
+/**
  * Provide useful information about the current operating system environment. Access the global instance stored in Ext.os. Example:
  * <pre><code>
  * if (Ext.os.is.Windows) {
@@ -15,7 +14,6 @@
  *
  * For a full list of supported values, refer to: {@link Ext.env.OS#is}
  */
-
 Ext.define('Ext.env.OS', {
 
     requires: ['Ext.Version'],
@@ -43,7 +41,7 @@ Ext.define('Ext.env.OS', {
         }
     },
 
-    /*
+    /**
      * A "hybrid" property, can be either accessed as a method call, i.e:
      * <pre><code>
      * if (Ext.os.is('Android')) { ... }
@@ -71,14 +69,14 @@ Ext.define('Ext.env.OS', {
      */
     is: Ext.emptyFn,
 
-    /*
+    /**
      * Read-only - the full name of the current operating system
      * Possible values are: iOS, Android, WebOS, BlackBerry, MacOSX, Windows, Linux and Other
      * @type String
      */
     name: null,
 
-    /*
+    /**
      * Read-only, refer to {@link Ext.Version}
      * @type Ext.Version
      */
@@ -158,8 +156,10 @@ Ext.define('Ext.env.OS', {
 }, function() {
     /**
      * @class Ext.is
-     * @deprecated 2.0.0
-     * Deprecated
+     * @deprecated
+     * Used to detect if the current browser supports a certain feature, and the type of the current browser.
+     *
+     * Please refer to the {@link Ext.env.Browser}, {@link Ext.env.OS} and {@link Ext.feature.has} classes instead.
      */
     var navigator = Ext.global.navigator,
         osEnv, osName, osVersion, deviceType;
@@ -171,12 +171,12 @@ Ext.define('Ext.env.OS', {
         var is = this.is;
 
         if (is.MacOS) {
-            Ext.deprecateProperty(is, 'Mac', true, "Ext.is.Mac is deprecated, please use Ext.os.is.MacOS instead");
-            Ext.deprecateProperty(is, 'mac', true, "Ext.is.Mac is deprecated, please use Ext.os.is.MacOS instead");
+            Ext.deprecatePropertyValue(is, 'Mac', true, "Ext.is.Mac is deprecated, please use Ext.os.is.MacOS instead");
+            Ext.deprecatePropertyValue(is, 'mac', true, "Ext.is.Mac is deprecated, please use Ext.os.is.MacOS instead");
         }
 
         if (is.BlackBerry) {
-            Ext.deprecateProperty(is, 'Blackberry', true, "Ext.is.Blackberry is deprecated, please use Ext.os.is.BlackBerry instead");
+            Ext.deprecatePropertyValue(is, 'Blackberry', true, "Ext.is.Blackberry is deprecated, please use Ext.os.is.BlackBerry instead");
         }
 
         return this;
@@ -199,7 +199,7 @@ Ext.define('Ext.env.OS', {
 
     for (name in flags) {
         if (flags.hasOwnProperty(name)) {
-            Ext.deprecateProperty(Ext.is, name, flags[name], "Ext.is." + name + " is deprecated, please use Ext.os.is." + name + " instead");
+            Ext.deprecatePropertyValue(Ext.is, name, flags[name], "Ext.is." + name + " is deprecated, please use Ext.os.is." + name + " instead");
         }
     }
     //</deprecated>

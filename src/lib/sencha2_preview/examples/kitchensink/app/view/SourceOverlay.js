@@ -2,7 +2,7 @@ Ext.define('Kitchensink.view.SourceOverlay', {
     extend: 'Ext.Panel',
     xtype: 'sourceoverlay',
     config: {
-        cls: 'ux-code',
+        cls: 'ux-code x-panel',
         modal: true,
         styleHtmlContent: true,
         hideOnMaskTap: true,

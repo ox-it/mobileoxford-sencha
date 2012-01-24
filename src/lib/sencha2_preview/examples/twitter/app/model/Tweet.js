@@ -16,8 +16,11 @@ Ext.define('Twitter.model.Tweet', {
         {name: "from_user",         type: "string"},
         {name: "profile_image_url", type: "string"},
         {name: "created_at",        type: "string"},
-        {name: "metadata"}
+        {name: "metadata"},
+        {name: 'search_id'}
     ],
 
-    proxy: 'twitter'
+    proxy: {
+        type: 'twitter'
+    }
 });

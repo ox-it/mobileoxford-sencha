@@ -320,22 +320,24 @@ Ext.define('Ext.Map', {
     }
 }, function() {
     /**
-     * @deprecated 2.0.0
-     * Returns the state of the Map. This has been deprecated. Please use {@link #getMapOptions} instead/
+     * @method getState
+     * Returns the state of the Map.
+     * @deprecated 2.0.0 Please use {@link #getMapOptions} instead.
      * @return {Object} mapOptions
      */
     Ext.deprecateClassMethod(this, 'getState', 'getMapOptions');
 
     /**
-     * @deprecated 2.0.0
+     * @method update
      * Moves the map center to the designated coordinates hash of the form:
      *
      *     { latitude: 37.381592, longitude: -122.135672 }
      *
      * or a google.maps.LatLng object representing to the target location.
      *
+     * @deprecated 2.0.0
      * @param {Object/google.maps.LatLng} coordinates Object representing the desired Latitude and
      * longitude upon which to center the map.
      */
-    Ext.deprecateClassMethod(this, 'update', 'setMapCenter');
+//    Ext.deprecateClassMethod(this, 'update', 'setMapCenter');
 });

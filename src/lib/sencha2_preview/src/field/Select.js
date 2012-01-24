@@ -34,12 +34,6 @@ Ext.define('Ext.field.Select', {
         ui: 'select',
 
         /**
-         * @cfg {Number} tabIndex
-         * @hide
-         */
-        tabIndex: -1,
-
-        /**
          * @cfg {Boolean} useClearIcon
          * @hide
          */
@@ -104,14 +98,14 @@ Ext.define('Ext.field.Select', {
     },
 
     /**
+     * @cfg {Ext.data.Model} record
      * @private
      */
-    record: null,
 
     /**
+     * @cfg {Ext.data.Model} previousRecord
      * @private
      */
-    previousRecord: null,
 
     // @private
     constructor: function(config) {
@@ -126,10 +120,11 @@ Ext.define('Ext.field.Select', {
 
     // @private
     initialize: function() {
-        this.callParent();
+        var me = this;
 
-        this.getComponent().on({
-            scope: this,
+        me.callParent();
+        me.getComponent().on({
+            scope: me,
             masktap: 'onMaskTap'
         });
     },
@@ -138,8 +133,12 @@ Ext.define('Ext.field.Select', {
         var record = value,
             index;
 
+        //we call this so that the options configruation gets intiailized, so that a store exists, and we can
+        //find the correct value
+        this.getOptions();
+
         if (!(value instanceof Ext.data.Model)) {
-            index = this.getStore().find(this.getValueField(), value);
+            index = this.getStore().find(this.getValueField(), value, null, null, null, true);
 
             if (index == -1) {
                 index = this.getStore().find(this.getDisplayField(), value);
@@ -165,7 +164,6 @@ Ext.define('Ext.field.Select', {
 
     getValue: function() {
         var record = this.record;
-
         return (record) ? record.get(this.getValueField()) : null;
     },
 
@@ -201,7 +199,6 @@ Ext.define('Ext.field.Select', {
             this.listPanel = Ext.create('Ext.Panel', {
                 top     : 0,
                 left    : 0,
-                height  : 200,
                 modal   : true,
                 cls     : Ext.baseCSSPrefix + 'select-overlay',
                 layout  : 'fit',
@@ -239,6 +236,12 @@ Ext.define('Ext.field.Select', {
         if (this.getStore().getCount() === 0) {
             return;
         }
+
+        if (this.getReadOnly()) {
+            return;
+        }
+
+        this.isFocused = true;
 
         //hide the keyboard
         Ext.Viewport.hideKeyboard();
@@ -282,10 +285,9 @@ Ext.define('Ext.field.Select', {
     // @private
     onPickerChange: function(picker, value) {
         var me = this,
-            currentValue = me.getValue(),
             newValue = value[me.getName()],
             store = me.getStore(),
-            index = store.find(me.getValueField(), newValue);
+            index = store.find(me.getValueField(), newValue),
             record = store.getAt(index);
 
         me.setValue(record);
@@ -306,18 +308,14 @@ selectBox.setOptions(
      * @return {Ext.field.Select} this
      */
     updateOptions: function(newOptions) {
-        var store = this.getStore(),
-            record;
+        var store = this.getStore();
 
         if (!newOptions) {
             store.clearData();
-            this.setValue(null);
         }
         else {
-            store.loadData(newOptions);
-
-            record = store.getAt(0);
-            this.setValue(record);
+            store.setData(newOptions);
+            this.onStoreDataChanged(store);
         }
     },
 
@@ -333,7 +331,7 @@ selectBox.setOptions(
 
             store.on({
                 scope: this,
-                datachanged: this.onStoreDataChanged
+                refresh: this.onStoreDataChanged
             });
         }
 
@@ -341,17 +339,15 @@ selectBox.setOptions(
     },
 
     updateStore: function(newStore) {
-        var record = (newStore) ? newStore.getAt(0) : null;
-
-        if (newStore && record) {
-            this.setValue(record);
+        if (newStore) {
+            this.onStoreDataChanged(newStore);
         }
     },
 
     /**
      * Called when the internal {@link #store}'s data has changed
      */
-    onStoreDataChanged: function(store, records) {
+    onStoreDataChanged: function(store) {
         var initialConfig = this.getInitialConfig(),
             value = this.getValue();
 
@@ -377,6 +373,15 @@ selectBox.setOptions(
         }
 
         return this;
+    },
+
+    onFocus: function(e) {
+        this.fireEvent('focus', this, e);
+
+        this.isFocused = true;
+
+        Ext.Viewport.hideKeyboard();
+        this.showComponent();
     },
 
     destroy: function() {

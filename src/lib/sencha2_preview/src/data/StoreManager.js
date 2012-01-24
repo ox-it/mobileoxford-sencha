@@ -30,11 +30,11 @@
  * TODO: Make this an AbstractMgr
  */
 Ext.define('Ext.data.StoreManager', {
-    extend: 'Ext.util.MixedCollection',
+    extend: 'Ext.util.Collection',
     alternateClassName: ['Ext.StoreMgr', 'Ext.data.StoreMgr', 'Ext.StoreManager'],
     singleton: true,
     uses: ['Ext.data.ArrayStore'],
-    
+
     /**
      * @cfg {Object} listeners @hide
      */
@@ -68,13 +68,13 @@ Ext.define('Ext.data.StoreManager', {
     lookup : function(store) {
         // handle the case when we are given an array or an array of arrays.
         if (Ext.isArray(store)) {
-            var fields = ['field1'], 
+            var fields = ['field1'],
                 expand = !Ext.isArray(store[0]),
                 data = store,
                 i,
                 len;
-                
-            if(expand){
+
+            if (expand) {
                 data = [];
                 for (i = 0, len = store.length; i < len; ++i) {
                     data.push([store[i]]);
@@ -87,28 +87,33 @@ Ext.define('Ext.data.StoreManager', {
             return Ext.create('Ext.data.ArrayStore', {
                 data  : data,
                 fields: fields,
+                // @TODO: implement autoDestroy/autoCreated
                 autoDestroy: true,
                 autoCreated: true,
                 expanded: expand
             });
         }
-        
+
         if (Ext.isString(store)) {
             // store id
             return this.get(store);
         } else {
             // store instance or store config
-            return Ext.data.AbstractStore.create(store);
+            if (store instanceof Ext.data.Store) {
+                return store;
+            } else {
+                return Ext.factory(store, Ext.data.Store, null, 'store');
+            }
         }
     },
 
     // getKey implementation for MixedCollection
     getKey : function(o) {
-         return o.storeId;
+         return o.getStoreId();
     }
-}, function() {    
+}, function() {
     /**
-     * Creates a new store for the given id and config, then registers it with the {@link Ext.data.StoreManager Store Mananger}. 
+     * Creates a new store for the given id and config, then registers it with the {@link Ext.data.StoreManager Store Mananger}.
      * Sample usage:
      *
      *     Ext.regStore('AllUsers', {
@@ -132,7 +137,11 @@ Ext.define('Ext.data.StoreManager', {
         if (Ext.isObject(name)) {
             config = name;
         } else {
-            config.storeId = name;
+            if (config instanceof Ext.data.Store) {
+                config.setStoreId(name);
+            } else {
+                config.storeId = name;
+            }
         }
 
         if (config instanceof Ext.data.Store) {

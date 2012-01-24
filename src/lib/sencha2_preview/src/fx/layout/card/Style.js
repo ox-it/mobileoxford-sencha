@@ -59,7 +59,7 @@ Ext.define('Ext.fx.layout.card.Style', {
         animation.setScope(this);
     },
 
-    onActiveItemChange: function(newItem, oldItem) {
+    onActiveItemChange: function(cardLayout, newItem, oldItem, options, controller) {
         var inAnimation = this.getInAnimation(),
             outAnimation = this.getOutAnimation(),
             inElement, outElement,
@@ -74,17 +74,20 @@ Ext.define('Ext.fx.layout.card.Style', {
 
             previousOutElement = outAnimation.getElement();
             outAnimation.setElement(outElement);
-            outAnimation.setOnBeforeEnd(function(element, isInterrupted) {
-                if (!isInterrupted) {
-                    oldItem.hide();
-                }
+//            outAnimation.setOnBeforeEnd(function(element, isInterrupted) {
+//                if (isInterrupted) {
+//                    controller.firingArguments[2] = null;
+//                }
+//            });
+            outAnimation.setOnEnd(function() {
+                controller.resume();
             });
 
-            inElement.dom.style.visibility = 'hidden !important';
+            inElement.dom.style.setProperty('visibility', 'hidden', '!important');
             newItem.show();
 
             Ext.Animator.run([outAnimation, inAnimation]);
-            return false;
+            controller.pause();
         }
     }
 });

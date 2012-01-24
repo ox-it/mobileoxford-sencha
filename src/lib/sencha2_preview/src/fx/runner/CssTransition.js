@@ -103,29 +103,33 @@ Ext.define('Ext.fx.runner.CssTransition', {
         }
     },
 
-   getTestElement: function() {
-       var testElement = this.testElement,
-           iframe, iframeDocument, iframeStyle;
+    getTestElement: function() {
+        var testElement = this.testElement,
+            iframe, iframeDocument, iframeStyle;
 
-       if (!testElement) {
-           iframe = document.createElement('iframe');
-           iframeStyle = iframe.style;
-           iframeStyle.visibility = 'hidden !important';
-           iframeStyle.width = '0px !important';
-           iframeStyle.height = '0px !important';
-           iframeStyle.position = 'absolute !important';
-           iframeStyle.zIndex = '-1000 !important';
+        if (!testElement) {
+            iframe = document.createElement('iframe');
+            iframeStyle = iframe.style;
+            iframeStyle.setProperty('visibility', 'hidden', '!important');
+            iframeStyle.setProperty('width', '0px', '!important');
+            iframeStyle.setProperty('height', '0px', '!important');
+            iframeStyle.setProperty('position', 'absolute', '!important');
+            iframeStyle.setProperty('zIndex', '-1000', '!important');
 
-           document.body.appendChild(iframe);
-           iframeDocument = iframe.contentDocument;
+            document.body.appendChild(iframe);
+            iframeDocument = iframe.contentDocument;
+            
+            iframeDocument.open();
+            iframeDocument.writeln('</body>');
+            iframeDocument.close();
 
-           this.testElement = testElement = iframeDocument.createElement('div');
-           testElement.style.position = 'absolute !important';
-           iframeDocument.body.appendChild(testElement);
-           this.testElementComputedStyle = window.getComputedStyle(testElement);
-       }
+            this.testElement = testElement = iframeDocument.createElement('div');
+            testElement.style.setProperty('position', 'absolute', '!important');
+            iframeDocument.body.appendChild(testElement);
+            this.testElementComputedStyle = window.getComputedStyle(testElement);
+        }
 
-       return testElement;
+        return testElement;
     },
 
     getCssStyleValue: function(name, value) {

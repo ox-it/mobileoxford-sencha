@@ -19,7 +19,7 @@ Ext.define('Kiva.model.Loan', {
         {name: "sector",         type: "string"},
         {name: "use",            type: "string"},
         {name: "partner_id",     type: "int"},
-        {name: "description",     type: "string", mapping: "description.texts.en"},
+        {name: "description",    type: "string", mapping: "description.texts.en"},
         {name: "image", type: "string", mapping: "image.id", convert: function(value, record) {
             return "http://kiva.org/img/w80h80/" + value + ".jpg";
         }},
@@ -30,10 +30,10 @@ Ext.define('Kiva.model.Loan', {
             }
         }
     ],
-    
+
     proxy: {
         type: 'kiva',
-        
+
         reader: {
             type: 'json',
             successProperty: 'success',

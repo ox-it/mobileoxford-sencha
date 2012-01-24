@@ -82,26 +82,15 @@ Ext.define('Ext.Container', {
         'Ext.layout.Layout',
         'Ext.ItemCollection',
         'Ext.behavior.Scrollable',
-        'Ext.Mask',
-        'Ext.LoadMask'
+        'Ext.Mask'
     ],
 
     xtype: 'container',
 
-    eventedConfig: {
-        /**
-         * @cfg {Object} activeItem The item from the {@link #cfg-items} collection that will be active first. This is
-         * usually only meaningful in a {@link Ext.layout.Card card layout}, where only one item can be active at a
-         * time
-         * @accessor
-         * @evented
-         */
-        activeItem: 0
-    },
-
     /**
      * @event add
      * Fires whenever item added to the Container
+     * @param {Ext.Container} this The Container instance
      * @param {Object} item The item added to the Container
      * @param {Number} index The index of the item within the Container
      */
@@ -109,6 +98,7 @@ Ext.define('Ext.Container', {
     /**
      * @event remove
      * Fires whenever item removed from the Container
+     * @param {Ext.Container} this The Container instance
      * @param {Object} item The item removed from the Container
      * @param {Number} index The index of the item that was removed
      */
@@ -127,6 +117,7 @@ Ext.define('Ext.Container', {
      * @event renderedchange
      * Fires whenever an item is rendered into a container or derendered
      * from a Container
+     * @param {Ext.Container} this The Container instance
      * @param {Object} item The item in the Container
      * @param {Boolean} rendered The current rendered status of the item
      */
@@ -134,12 +125,29 @@ Ext.define('Ext.Container', {
     /**
      * @event activate
      * Fires whenever item within the Container is activated
+     * @param {Ext.Container} this The Container instance
+     * @param {Object} newActiveItem The new active item within the container
+     * @param {Object} oldActiveItem The old active item within the container
      */
 
     /**
      * @event deactivate
      * Fires whenever item within the Container is deactivated
+     * @param {Ext.Container} this The Container instance
+     * @param {Object} newActiveItem The new active item within the container
+     * @param {Object} oldActiveItem The old active item within the container
      */
+
+    eventedConfig: {
+        /**
+         * @cfg {Object} activeItem The item from the {@link #cfg-items} collection that will be active first. This is
+         * usually only meaningful in a {@link Ext.layout.Card card layout}, where only one item can be active at a
+         * time
+         * @accessor
+         * @evented
+         */
+        activeItem: 0
+    },
 
     config: {
         /**
@@ -171,9 +179,35 @@ Ext.define('Ext.Container', {
         layout: null,
 
         /**
+         * @cfg {Object} control Enables you to easily control Components inside this Container by listening to their
+         * events and taking some action. For example, if we had a container with a nested Disable button, and we
+         * wanted to hide the Container when the Disable button is tapped, we could do this:
+         *
+         *     Ext.create('Ext.Container', {
+         *         control: {
+         *            'button[text=Disable]': {
+         *                tap: 'hideMe'
+         *            }
+         *         },
+         *
+         *         hideMe: function() {
+         *             this.hide()
+         *         }
+         *     });
+         *
+         * We used a {@link Ext.ComponentQuery} selector to listen to the {@link Ext.Button#tap tap} event on any
+         * {@link Ext.Button button} anywhere inside the Container that has the {@link Ext.Button#text text} 'Disable'.
+         * Whenever a Component matching that selector fires the 'tap' event our hideMe function is called. hideMe is
+         * called with scope: this (e.g. 'this' is the Container instance).
+         *
+         */
+        control: {},
+
+        /**
          * @cfg {Object} defaults A set of default configurations to apply to all child Components in this Container.
-         * It's often useful to specify defaults when creating more than one items with similar configurations. For example here we can
-         * specify that each child is a panel and avoid repeating the xtype declaration for each one:
+         * It's often useful to specify defaults when creating more than one items with similar configurations. For
+         * example here we can specify that each child is a panel and avoid repeating the xtype declaration for each
+         * one:
          *
          *    Ext.create('Ext.Container', {
          *        defaults: {
@@ -224,11 +258,18 @@ Ext.define('Ext.Container', {
         defaultType: null,
 
         /**
-         * @cfg {Boolean/Object} scrollable
+         * @cfg {Boolean/String/Object} scrollable
          * Configuration options to make this Container scrollable. Acceptable values are:
-         * 
+         *
          * * 'horizontal', 'vertical', 'both' to enabling scrolling for that direction.
          * * true/false to explicitly enable/disable scrolling.
+         *
+         * It can also support an object which is then passed to the scroller instance:
+         *
+         *     scrollable: {}
+         *         direction: 'vertical',
+         *         directionLock: true
+         *     }
          *
          * @accessor
          */
@@ -238,33 +279,45 @@ Ext.define('Ext.Container', {
         useBodyElement: null,
 
         /**
-         * @cfg {Boolean/Object/Ext.Mask/Ext.LoadMask} mask
+         * @cfg {Boolean/Object/Ext.Mask/Ext.LoadMask} masked
          * A configuration to allow you to mask this container.
          * You can optionally pass an object block with and xtype of `loadmask`, and an optional `message` value to
          * display a loading mask. Please refer to the {@link Ext.LoadMask} component to see other configurations.
          *
-         *     mask: {
+         *     masked: {
+         *         xtype: 'loadmask',
          *         message: 'My message'
          *     }
          *
-         * Note: If you pass just a message property, Sencha Touch will automatically set the xtype to 'loadmask'
-         * ({@link Ext.Mask} does not support the `message` configuration). Otherwise, a simple {@link Ext.Mask}
-         * will be used.
-         *
          * Alternatively, you can just call the setter at any time with true/false to show/hide the mask"
          *
-         *     setMask(true); //show the mask
-         *     setMask(false); //hides the mask
+         *     setMasked(true); //show the mask
+         *     setMasked(false); //hides the mask
          *
          * There are also two convience methods, {@link #method-mask} and {@link #unmask}, to allow you to mask and unmask
          * this container at any time.
          *
          * Remember, the Ext.Viewport is always a container, so if you want to mask your whole application at anytime,
-         * can call Ext.Viewport.setMask({ message: 'Hello' });
+         * can call Ext.Viewport.setMasked({ message: 'Hello' });
          *
          * @accessor
          */
-        mask: null
+        masked: null,
+
+        /**
+         * @cfg {Boolean} modal True to make this Container modal. This will create a mask underneath the Container
+         * that covers its parent and does not allow the user to interact with any other Components until this
+         * Container is dismissed
+         * @accessor
+         */
+        modal: null,
+
+        /**
+         * @cfg {Boolean} hideOnMaskTap When using a {@link #modal} Component, setting this to true (the default) will
+         * hide the modal mask and the Container when the mask is tapped on
+         * @accessor
+         */
+        hideOnMaskTap: true
     },
 
     isContainer: true,
@@ -276,15 +329,17 @@ Ext.define('Ext.Container', {
         floatingchange: 'onItemFloatingChange'
     },
 
+    paintListeners: {
+        painted: 'onPainted',
+        erased: 'onErased'
+    },
+
     constructor: function(config) {
         var me = this;
 
         me._items = me.items = new Ext.ItemCollection();
         me.innerItems = [];
 
-        // Temporarily assigns this.add() to a private property, which will
-        // be swapped back the first time an item is added
-        me.$onItemAdd = me.onItemAdd;
         me.onItemAdd = me.onFirstItemAdd;
 
         me.callParent(arguments);
@@ -306,36 +361,14 @@ Ext.define('Ext.Container', {
      * into a proper object/instance of {@link Ext.Mask}/{@link Ext.LoadMask}. If a mask already exists,
      * it will use that instead.
      */
-    applyMask: function(mask) {
-        var config = {};
+    applyMasked: function(masked, currentMask) {
+        currentMask = Ext.factory(masked, Ext.Mask, currentMask);
 
-        if (Ext.isObject(mask)) {
-            config = mask;
+        if (currentMask) {
+            this.add(currentMask);
         }
 
-        Ext.applyIf(config, {
-            hidden: !Boolean(mask)
-        });
-
-        //if you set a message, it should use Ext.LoadMask
-        if (config.message && !config.xtype) {
-            config.xtype = "loadmask";
-        }
-
-        return Ext.factory(config, Ext.Mask, this.getMask());
-    },
-
-    /**
-     * Updates the {@link #cfg-mask} configuration with the passed value.
-     */
-    updateMask: function(newMask, oldMask) {
-        if (oldMask) {
-            this.remove(oldMask);
-        }
-
-        if (newMask) {
-            this.add(newMask);
-        }
+        return currentMask;
     },
 
     /**
@@ -343,8 +376,8 @@ Ext.define('Ext.Container', {
      * functionality, call the {@link #setMask} function direction (See the {@link #cfg-mask} configuration documention
      * for more information).
      */
-    mask: function() {
-        this.setMask(true);
+    mask: function(mask) {
+        this.setMasked(mask || true);
     },
 
     /**
@@ -353,7 +386,63 @@ Ext.define('Ext.Container', {
      * for more information).
      */
     unmask: function() {
-        this.setMask(false);
+        this.setMasked(false);
+    },
+
+    applyModal: function(modal, currentMask) {
+        if (!modal && !currentMask) {
+            return;
+        }
+
+        return Ext.factory(modal, Ext.Mask, currentMask);
+    },
+
+    updateModal: function(newModal, oldModal) {
+        if (newModal) {
+            this.on(this.paintListeners);
+
+            if (this.isPainted()) {
+                this.onPainted();
+            }
+        }
+        else if (oldModal) {
+            this.un(this.paintListeners);
+        }
+    },
+
+    onPainted: function() {
+        var modal = this.getModal(),
+            container = this.getParent();
+
+        if (!this.painted) {
+            this.painted = true;
+
+            if (modal) {
+                container.insertBefore(modal, this);
+                modal.setZIndex(this.getZIndex() - 1);
+            }
+        }
+    },
+
+    onErased: function() {
+        var modal = this.getModal(),
+            container = this.getParent();
+
+        if (this.painted) {
+            this.painted = false;
+
+            if (modal) {
+                container.remove(modal, false);
+            }
+        }
+    },
+
+    updateHideOnMaskTap: function(hideOnMaskTap) {
+        var modal = this.getModal();
+
+        if (modal) {
+            modal[hideOnMaskTap ? 'on' : 'un'].call(modal, 'tap', 'hide', this);
+        }
     },
 
     updateBaseCls: function(newBaseCls, oldBaseCls) {
@@ -361,20 +450,20 @@ Ext.define('Ext.Container', {
             ui = me.getUi();
 
         if (newBaseCls) {
-            this.addCls(newBaseCls);
+            this.element.addCls(newBaseCls);
             this.innerElement.addCls(newBaseCls, null, 'inner');
 
             if (ui) {
-                this.addCls(newBaseCls, null, ui);
+                this.element.addCls(newBaseCls, null, ui);
             }
         }
 
         if (oldBaseCls) {
-            this.removeCls(oldBaseCls);
+            this.element.removeCls(oldBaseCls);
             this.innerElement.removeCls(newBaseCls, null, 'inner');
 
             if (ui) {
-                this.removeCls(oldBaseCls, null, ui);
+                this.element.removeCls(oldBaseCls, null, ui);
             }
         }
     },
@@ -392,7 +481,7 @@ Ext.define('Ext.Container', {
             this.getDefaultType();
             this.getDefaults();
 
-            if (!this.isItemsInitializing && collection.length > 0) {
+            if (this.initialized && collection.length > 0) {
                 this.removeAll();
             }
 
@@ -401,13 +490,42 @@ Ext.define('Ext.Container', {
     },
 
     /**
+     * @private
+     */
+     applyControl: function(selectors) {
+         var dispatcher = this.getEventDispatcher(),
+             selector, eventName, listener, listeners;
+
+         for (selector in selectors) {
+             if (selectors.hasOwnProperty(selector)) {
+                 listeners = selectors[selector];
+
+                 //add our own id to ensure we only get descendant Components of this Container
+                 if (selector[0] != '#') {
+                     selector = "#" + this.getId() + " " + selector;
+                 }
+
+                 for (eventName in listeners) {
+                     listener = listeners[eventName];
+
+                     if (Ext.isString(listener)) {
+                         listener = this[listener];
+                     }
+
+                     dispatcher.addListener('component', selector, eventName, listener, this);
+                 }
+             }
+         }
+
+         return selectors;
+     },
+
+    /**
      * Initialize layout and event listeners the very first time an item is added
      * @private
      */
     onFirstItemAdd: function() {
-        var onItemAdd = this.onItemAdd = this.$onItemAdd;
-
-        delete this.$onItemAdd;
+        delete this.onItemAdd;
 
         this.setLayout(new Ext.layout.Layout(this, this.getLayout() || 'default'));
 
@@ -418,8 +536,16 @@ Ext.define('Ext.Container', {
 
         this.on(this.delegateListeners);
 
-        return onItemAdd.apply(this, arguments);
+        return this.onItemAdd.apply(this, arguments);
     },
+
+    //<debug error>
+    updateLayout: function(newLayout, oldLayout) {
+        if (oldLayout && oldLayout.isLayout) {
+            Ext.Logger.error('Replacing a layout after one has already been initialized is not currently supported.');
+        }
+    },
+    //</debug>
 
     updateDefaultType: function(defaultType) {
         // Cache the direct reference to the default item class here for performance
@@ -586,33 +712,46 @@ Ext.define('Ext.Container', {
     /**
      * Removes all items currently in the Container, optionally destroying them all
      * @param {Boolean} destroy If true, {@link Ext.Component#destroy destroys} each removed Component
+     * @param {Boolean} everything If true, completely remove all items including docked / centered and floating items
      * @return {Ext.Component} this
      */
-    removeAll: function(destroy) {
-        var me = this,
-            items = me.items,
-            item;
+    removeAll: function(destroy, everything) {
+        var items = this.items,
+            innerItems = this.innerItems,
+            i, ln, item;
 
         if (destroy === undefined) {
-            destroy = me.getAutoDestroy();
+            destroy = this.getAutoDestroy();
         }
 
-        me.innerItems.length = 0;
+        everything = Boolean(everything);
 
-        while (items.length > 0) {
-            item = items.getAt(0);
-            items.removeAt(0);
+        // removingAll flag is used so we don't unnecessarily change activeItem while removing all items.
+        this.removingAll = true;
 
-            me.onItemRemove(item, 0);
+        for (i = 0,ln = items.length; i < ln; i++) {
+            item = items.getAt(i);
 
-            item.setParent(null);
+            if (everything || item.isInnerItem()) {
+                items.removeAt(i);
+                Ext.Array.remove(innerItems, item);
 
-            if (destroy) {
-                item.destroy();
+                this.onItemRemove(item, i);
+
+                item.setParent(null);
+
+                if (destroy) {
+                    item.destroy();
+                }
+
+                i--;
+                ln--;
             }
         }
 
-        return me;
+        this.removingAll = false;
+
+        return this;
     },
 
     /**
@@ -759,7 +898,9 @@ Ext.define('Ext.Container', {
             if (currentIndex < index) {
                 index -= 1;
             }
+
             items.removeAt(currentIndex);
+
             if (isInnerItem) {
                 me.removeInner(item);
             }
@@ -773,6 +914,7 @@ Ext.define('Ext.Container', {
         if (isInnerItem) {
             me.insertInner(item, index);
         }
+
         if (currentIndex !== -1) {
             me.onItemMove(item, index, currentIndex);
         }
@@ -823,18 +965,25 @@ Ext.define('Ext.Container', {
      * @private
      */
     onItemAdd: function(item, index) {
-        this.getLayout().onItemAdd(item, index);
+        this.doItemLayoutAdd(item, index);
 
-        if (this.initialized && item.isInnerItem() && !this.getActiveItem()) {
+        if (!this.isItemsInitializing && !this.getActiveItem() && item.isInnerItem()) {
             this.setActiveItem(item);
         }
 
         if (this.initialized) {
             this.fireEvent('add', this, item, index);
         }
+    },
+
+    doItemLayoutAdd: function(item, index) {
+        var layout = this.getLayout();
 
         if (this.isRendered() && item.setRendered(true)) {
-            item.fireEvent('renderedchange', item, true);
+            item.fireAction('renderedchange', [this, item, true], 'onItemAdd', layout, { args: [item, index] });
+        }
+        else {
+            layout.onItemAdd(item, index);
         }
     },
 
@@ -842,16 +991,23 @@ Ext.define('Ext.Container', {
      * @private
      */
     onItemRemove: function(item, index) {
-        this.getLayout().onItemRemove(item, index);
+        this.doItemLayoutRemove(item, index);
 
-        if (item === this.getActiveItem()) {
+        if (!this.removingAll && item === this.getActiveItem()) {
             this.setActiveItem(0);
         }
 
         this.fireEvent('remove', this, item, index);
+    },
+
+    doItemLayoutRemove: function(item, index) {
+        var layout = this.getLayout();
 
         if (this.isRendered() && item.setRendered(false)) {
-            item.fireEvent('renderedchange', item, false);
+            item.fireAction('renderedchange', [this, item, false], 'onItemRemove', layout, { args: [item, index] });
+        }
+        else {
+            layout.onItemRemove(item, index);
         }
     },
 
@@ -863,9 +1019,13 @@ Ext.define('Ext.Container', {
             item.setDocked(null);
         }
 
-        this.getLayout().onItemMove(item, toIndex, fromIndex);
+        this.doItemLayoutMove(item, toIndex, fromIndex);
 
         this.fireEvent('move', this, item, toIndex, fromIndex);
+    },
+
+    doItemLayoutMove: function(item, toIndex, fromIndex) {
+        this.getLayout().onItemMove(item, toIndex, fromIndex);
     },
 
     /**
@@ -926,29 +1086,39 @@ Ext.define('Ext.Container', {
     /**
      * @private
      */
-    applyActiveItem: function(item) {
+    applyActiveItem: function(activeItem, currentActiveItem) {
         var innerItems = this.getInnerItems();
 
         // Make sure the items are already initialized
         this.getItems();
 
-        if (typeof item == 'number') {
-            item = Math.max(0, Math.min(item, innerItems.length - 1));
+        if (typeof activeItem == 'number') {
+            activeItem = Math.max(0, Math.min(activeItem, innerItems.length - 1));
+            activeItem = innerItems[activeItem];
 
-            return innerItems[item] || null;
+            if (activeItem) {
+                return activeItem;
+            }
+            else if (currentActiveItem) {
+                return null;
+            }
         }
-        else if (item) {
-            if (!item.isComponent) {
-                item = this.factoryItem(item);
+        else if (activeItem) {
+            if (!activeItem.isComponent) {
+                activeItem = this.factoryItem(activeItem);
             }
 
             //<debug error>
-            if (!item.isInnerItem()) {
+            if (!activeItem.isInnerItem()) {
                 Ext.Logger.error("Setting activeItem to be a non-inner item");
             }
             //</debug>
 
-            return item;
+            if (!this.has(activeItem)) {
+                this.add(activeItem);
+            }
+
+            return activeItem;
         }
     },
 
@@ -957,17 +1127,11 @@ Ext.define('Ext.Container', {
      */
     doSetActiveItem: function(newActiveItem, oldActiveItem) {
         if (oldActiveItem) {
-            oldActiveItem.fireEvent('deactivate', oldActiveItem);
+            oldActiveItem.fireEvent('deactivate', oldActiveItem, this, newActiveItem);
         }
 
         if (newActiveItem) {
-            if (!this.has(newActiveItem)) {
-                this.add(newActiveItem);
-            }
-
-            newActiveItem.fireEvent('activate', newActiveItem);
-
-            this.getLayout().onActiveItemChange(newActiveItem, oldActiveItem);
+            newActiveItem.fireEvent('activate', newActiveItem, this, oldActiveItem);
         }
     },
 
@@ -1088,7 +1252,13 @@ Ext.define('Ext.Container', {
     },
 
     destroy: function() {
-        this.removeAll(true);
+        var modal = this.getModal();
+
+        if (modal) {
+            modal.destroy();
+        }
+
+        this.removeAll(true, true);
         this.callParent(arguments);
     },
 
@@ -1107,16 +1277,18 @@ Ext.define('Ext.Container', {
 
     //<deprecated product=touch since=2.0>
     /**
-     * @deprecated 2.0.0
-     * This method has been deprecated. Please use {@link #add} instead
+     * @method addAll
+     * Adds an array of Components to this Container.
+     * @deprecated 2.0.0 Please use {@link #method-add} instead.
      * @param {Array} items The array of items to add to this container
      * @return {Array} The array of items after they have been added
      */
     Ext.deprecateClassMethod(this, 'addAll', 'add');
 
     /**
-     * @deprecated 2.0.0
-     * Removes the docked item from the panel. This has been deprecated. Please use {@link #method-remove} instead/
+     * @method removeDocked
+     * Removes a docked item from this Container.
+     * @deprecated 2.0.0 Please use {@link #method-remove} instead.
      * @param {Object} item The item to remove
      * @param {Boolean} destroy Calls the Component's {@link Ext.Component#destroy destroy} method if true
      * @return {Ext.Component} this
@@ -1127,8 +1299,8 @@ Ext.define('Ext.Container', {
      * @member Ext.Container
      * @property items
      * @type Ext.util.MixedCollection
-     * The set of all items in this Container. Deprecated, please use {@link #getItems}
-     * @deprecated 2.0.0
+     * The set of all items in this Container.
+     * @deprecated 2.0.0 Please use {@link #getItems} method instead.
      */
     this.override({
         constructor: function(config) {
@@ -1136,7 +1308,7 @@ Ext.define('Ext.Container', {
 
             var dockedItems = config.dockedItems,
                 i, ln, item;
-            
+
             /**
              * @cfg {Boolean/String/Object} scroll
              * @deprecated 2.0.0 Please use the {@link #scrollable} configuration.
@@ -1232,7 +1404,24 @@ Ext.define('Ext.Container', {
             }
 
             return ret;
+        },
+
+        applyMasked: function(masked) {
+            if (Ext.isObject(masked) && !masked.isInstance && 'message' in masked
+                && !('xtype' in masked) && !('xclass' in masked)) {
+                masked.xtype = 'loadmask';
+
+                //<debug warn>
+                Ext.Logger.deprecate("Using a 'message' config without specify an 'xtype' or 'xclass' will no longer implicitly set 'xtype' to 'loadmask'. Please set that explicitly.");
+                //</debug>
+            }
+
+            return this.callOverridden(arguments);
         }
     });
+
+    Ext.deprecateClassMethod(this, 'setMask', 'setMasked');
     //</deprecated>
 });
+
+

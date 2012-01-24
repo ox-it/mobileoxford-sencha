@@ -1,6 +1,6 @@
 
 Ext.define('Kiva.view.LoansListItem', {
-    extend: 'Ext.dataview.DataItem',
+    extend: 'Ext.dataview.component.DataItem',
     xtype : 'loanslistitem',
     requires: ['Ext.Img', 'Kiva.view.LoansListItemCompletion'],
 
@@ -23,7 +23,7 @@ Ext.define('Kiva.view.LoansListItem', {
             }
         },
 
-        baseCls: Ext.baseCSSPrefix + 'list-item',
+        cls: Ext.baseCSSPrefix + 'list-item',
 
         name: {
             cls: 'name'

@@ -32,8 +32,6 @@ this.ExtBootstrapData = {
         "Ext.data.BufferStore":["store.buffer"
         ],
         "Ext.data.Connection":[],
-        "Ext.data.DirectStore":["store.direct"
-        ],
         "Ext.data.Errors":[],
         "Ext.data.Field":["data.field"
         ],
@@ -75,8 +73,6 @@ this.ExtBootstrapData = {
         "Ext.data.proxy.Ajax":["proxy.ajax"
         ],
         "Ext.data.proxy.Client":[],
-        "Ext.data.proxy.Direct":["proxy.direct"
-        ],
         "Ext.data.proxy.JsonP":["proxy.jsonp",
             "proxy.scripttag"
         ],
@@ -106,24 +102,6 @@ this.ExtBootstrapData = {
         ],
         "Ext.data.writer.Xml":["writer.xml"
         ],
-        "Ext.direct.Event":["direct.event"
-        ],
-        "Ext.direct.ExceptionEvent":["direct.exception"
-        ],
-        "Ext.direct.JsonProvider":["direct.jsonprovider"
-        ],
-        "Ext.direct.Manager":[],
-        "Ext.direct.PollingProvider":["direct.pollingprovider"
-        ],
-        "Ext.direct.Provider":["direct.provider"
-        ],
-        "Ext.direct.RemotingEvent":["direct.rpc"
-        ],
-        "Ext.direct.RemotingMethod":[],
-        "Ext.direct.RemotingProvider":["direct.remotingprovider"
-        ],
-        "Ext.direct.Transaction":["direct.transaction"
-        ],
         "Ext.util.AbstractMixedCollection":[],
         "Ext.util.Bindable":[],
         "Ext.util.Filter":[],
@@ -148,7 +126,7 @@ this.ExtBootstrapData = {
         "Ext.Container":["widget.container"
         ],
         "Ext.Decorator":[],
-        "Ext.EventedBase":[],
+        "Ext.Evented":[],
         "Ext.Img":["widget.image"
         ],
         "Ext.ItemCollection":[],
@@ -182,8 +160,13 @@ this.ExtBootstrapData = {
         "Ext.Validator":[],
         "Ext.Video":["widget.video"
         ],
+        "Ext.app.Action":[],
         "Ext.app.Application":[],
         "Ext.app.Controller":[],
+        "Ext.app.History":[],
+        "Ext.app.Profile":[],
+        "Ext.app.Route":[],
+        "Ext.app.Router":[],
         "Ext.behavior.Behavior":[],
         "Ext.behavior.Draggable":[],
         "Ext.behavior.Scrollable":[],
@@ -193,27 +176,23 @@ this.ExtBootstrapData = {
         "Ext.carousel.Indicator":["widget.carouselindicator"
         ],
         "Ext.carousel.Item":[],
-        "Ext.dataview.ComponentList":["widget.componentlist"
-        ],
-        "Ext.dataview.ComponentView":["widget.componentview"
-        ],
-        "Ext.dataview.DataItem":["widget.dataitem"
+        "Ext.data.ModelManager":[],
+        "Ext.data.identifier.Simple":["data.identifier.simple"
         ],
         "Ext.dataview.DataView":["widget.dataview"
         ],
         "Ext.dataview.IndexBar":[],
         "Ext.dataview.List":["widget.list"
         ],
-        "Ext.dataview.ListDisclosure":["widget.listdisclosure"
-        ],
-        "Ext.dataview.ListIcon":["widget.listicon"
-        ],
-        "Ext.dataview.ListItem":["widget.listitem"
-        ],
         "Ext.dataview.ListItemHeader":["widget.listitemheader"
         ],
         "Ext.dataview.NestedList":["widget.nestedlist"
         ],
+        "Ext.dataview.component.Container":[],
+        "Ext.dataview.component.DataItem":["widget.dataitem"
+        ],
+        "Ext.dataview.element.Container":[],
+        "Ext.dataview.element.List":[],
         "Ext.dom.CompositeElementLite":[],
         "Ext.dom.Element":["widget.element"
         ],
@@ -337,8 +316,6 @@ this.ExtBootstrapData = {
         "Ext.layout.AbstractBox":[],
         "Ext.layout.Card":["layout.card"
         ],
-        "Ext.layout.Carousel":["layout.carousel"
-        ],
         "Ext.layout.Default":["layout.auto",
             "layout.default"
         ],
@@ -360,13 +337,14 @@ this.ExtBootstrapData = {
         "Ext.log.writer.DocumentTitle":[],
         "Ext.log.writer.Remote":[],
         "Ext.log.writer.Writer":[],
+        "Ext.mixin.Filterable":[],
         "Ext.mixin.Identifiable":[],
         "Ext.mixin.Mixin":[],
         "Ext.mixin.Observable":[],
         "Ext.mixin.Selectable":[],
+        "Ext.mixin.Sortable":[],
         "Ext.mixin.Traversable":[],
-        "Ext.navigation.Bar":["widget.navigationbar"
-        ],
+        "Ext.navigation.Bar":[],
         "Ext.navigation.View":["widget.navigationview"
         ],
         "Ext.picker.Date":["widget.datepicker"
@@ -375,7 +353,8 @@ this.ExtBootstrapData = {
         ],
         "Ext.picker.Slot":["widget.pickerslot"
         ],
-        "Ext.plugin.ListPaging":[],
+        "Ext.plugin.ListPaging":["plugin.listpaging"
+        ],
         "Ext.plugin.PullRefresh":["plugin.pullrefresh"
         ],
         "Ext.scroll.Indicator":[],
@@ -406,11 +385,15 @@ this.ExtBootstrapData = {
         ],
         "Ext.tab.Tab":["widget.tab"
         ],
+        "Ext.util.Collection":[],
         "Ext.util.Draggable":[],
         "Ext.util.Droppable":[],
         "Ext.util.Format":[],
         "Ext.util.GeoLocation":[],
         "Ext.util.JSONP":[],
+        "Ext.util.NewFilter":[],
+        "Ext.util.NewGrouper":[],
+        "Ext.util.NewSorter":[],
         "Ext.util.OffsetConstraint":[],
         "Ext.util.SizeMonitor":[],
         "Ext.util.TapRepeater":[],
@@ -419,6 +402,8 @@ this.ExtBootstrapData = {
         "Ext.util.translatable.Abstract":[],
         "Ext.util.translatable.CssTransform":[],
         "Ext.util.translatable.ScrollPosition":[],
+        "Ext.ux.Faker":[],
+        "Ext.ux.auth.Session":[],
         "Ext.viewport.Android":[],
         "Ext.viewport.Default":["widget.viewport"
         ],
@@ -427,7 +412,7 @@ this.ExtBootstrapData = {
     },
     "alternateToNameMap":{
         "Ext.ComponentMgr":"Ext.ComponentManager",
-        "Ext.ModelMgr":"Ext.ModelManager",
+        "Ext.ModelMgr":"Ext.data.ModelManager",
         "Ext.PluginMgr":"Ext.PluginManager",
         "Ext.data.Record":"Ext.data.Model",
         "Ext.data.Node":"Ext.data.NodeInterface",
@@ -440,7 +425,6 @@ this.ExtBootstrapData = {
         "Ext.data.HttpProxy":"Ext.data.proxy.Ajax",
         "Ext.data.AjaxProxy":"Ext.data.proxy.Ajax",
         "Ext.data.ClientProxy":"Ext.data.proxy.Client",
-        "Ext.data.DirectProxy":"Ext.data.proxy.Direct",
         "Ext.data.ScriptTagProxy":"Ext.data.proxy.JsonP",
         "Ext.data.LocalStorageProxy":"Ext.data.proxy.LocalStorage",
         "Ext.data.MemoryProxy":"Ext.data.proxy.Memory",
@@ -459,14 +443,13 @@ this.ExtBootstrapData = {
         "Ext.data.DataWriter":"Ext.data.writer.Writer",
         "Ext.data.Writer":"Ext.data.writer.Writer",
         "Ext.data.XmlWriter":"Ext.data.writer.Xml",
-        "Ext.Direct.Transaction":"Ext.direct.Transaction",
         "Ext.lib.Component":"Ext.Component",
         "Ext.lib.Container":"Ext.Container",
+        "Ext.EventedBase":"Ext.Evented",
         "Ext.lib.Panel":"Ext.Panel",
         "Ext.Carousel":"Ext.carousel.Carousel",
         "Ext.Carousel.Indicator":"Ext.carousel.Indicator",
-        "Ext.ComponentList":"Ext.dataview.ComponentList",
-        "Ext.ComponentView":"Ext.dataview.ComponentView",
+        "Ext.ModelManager":"Ext.data.ModelManager",
         "Ext.DataView":"Ext.dataview.DataView",
         "Ext.IndexBar":"Ext.dataview.IndexBar",
         "Ext.List":"Ext.dataview.List",
@@ -505,12 +488,10 @@ this.ExtBootstrapData = {
         "Ext.layout.HBoxLayout":"Ext.layout.HBox",
         "Ext.layout.VBoxLayout":"Ext.layout.VBox",
         "Ext.util.Observable":"Ext.mixin.Observable",
-        "Ext.AbstractStoreSelectionModel":"Ext.mixin.Selectable",
         "Ext.NavigationView":"Ext.navigation.View",
         "Ext.DatePicker":"Ext.picker.Date",
         "Ext.Picker":"Ext.picker.Picker",
         "Ext.Picker.Slot":"Ext.picker.Slot",
-        "Ext.plugins.ListPagingPlugin":"Ext.plugin.ListPaging",
         "Ext.util.Indicator":"Ext.scroll.Indicator",
         "Ext.util.Scroller":"Ext.scroll.Scroller",
         "Ext.util.ScrollView":"Ext.scroll.View",

@@ -99,10 +99,9 @@ var noArgs = [],
             }
 
             //&lt;feature classSystem.config&gt;
-            prototype.config = new prototype.configClass;
+            prototype.config = prototype.defaultConfig = new prototype.configClass;
             prototype.initConfigList = prototype.initConfigList.slice();
-            prototype.hasInitConfigMap = Ext.clone(prototype.hasInitConfigMap);
-            prototype.hasConfigMap = Ext.Object.chain(prototype.hasConfigMap);
+            prototype.initConfigMap = Ext.Object.chain(prototype.initConfigMap);
             //&lt;/feature&gt;
         },
 
@@ -148,26 +147,27 @@ var noArgs = [],
          */
         addConfig: function(config, fullMerge) {
             var prototype = this.prototype,
-                configNameCache = Ext.Class.configNameCache,
-                hasConfig = prototype.hasConfigMap,
-                configList = prototype.initConfigList,
-                configMap = prototype.hasInitConfigMap,
-                defaultConfig = prototype.config,
-                initializedName, name, value;
+                initConfigList = prototype.initConfigList,
+                initConfigMap = prototype.initConfigMap,
+                defaultConfig = prototype.defaultConfig,
+                hasInitConfigItem, name, value;
+
+            fullMerge = Boolean(fullMerge);
 
             for (name in config) {
-                if (config.hasOwnProperty(name)) {
-                    if (!hasConfig[name]) {
-                        hasConfig[name] = true;
-                    }
-
+                if (config.hasOwnProperty(name) &amp;&amp; (fullMerge || !(name in defaultConfig))) {
                     value = config[name];
+                    hasInitConfigItem = initConfigMap[name];
 
-                    initializedName = configNameCache[name].initialized;
-
-                    if (!configMap[name] &amp;&amp; value !== null &amp;&amp; !prototype[initializedName]) {
-                        configMap[name] = true;
-                        configList.push(name);
+                    if (value !== null) {
+                        if (!hasInitConfigItem) {
+                            initConfigMap[name] = true;
+                            initConfigList.push(name);
+                        }
+                    }
+                    else if (hasInitConfigItem) {
+                        initConfigMap[name] = false;
+                        Ext.Array.remove(initConfigList, name);
                     }
                 }
             }
@@ -546,7 +546,7 @@ var noArgs = [],
         callParent: function(args) {
             var method;
 
-            // This code is intentionally inlined for the least number of debugger stepping
+            // This code is intentionally inlined for the least amount of debugger stepping
             return (method = this.callParent.caller) &amp;&amp; (method.$previous ||
                   ((method = method.$owner ? method : method.caller) &amp;&amp;
                         method.$owner.superclass.$class[method.$name])).apply(this, args || noArgs);
@@ -684,9 +684,7 @@ var noArgs = [],
 
         initConfigList: [],
 
-        hasConfigMap: {},
-
-        hasInitConfigMap: {},
+        initConfigMap: {},
 
 <span id='Ext-Base-method-statics'>        /**
 </span>         * Get the reference to the class from which this object was instantiated. Note that unlike {@link Ext.Base#self},
@@ -913,6 +911,9 @@ var noArgs = [],
         },
 
         //&lt;feature classSystem.config&gt;
+
+        wasInstantiated: false,
+
 <span id='Ext-Base-method-initConfig'>        /**
 </span>         * Initialize configuration for this class. a typical example:
          *
@@ -935,59 +936,96 @@ var noArgs = [],
          *     alert(awesome.getName()); // 'Super Awesome'
          *
          * @protected
-         * @param {Object} config
+         * @param {Object} instanceConfig
          * @return {Object} mixins The mixin prototypes as key - value pairs
          */
-        initConfig: function(config) {
-            var instanceConfig = config,
-                configNameCache = Ext.Class.configNameCache,
-                defaultConfig = new this.configClass,
-                defaultConfigList = this.initConfigList,
-                hasConfig = this.hasConfigMap,
-                nameMap, i, ln, name, initializedName;
+        initConfig: function(instanceConfig) {
+            var configNameCache = Ext.Class.configNameCache,
+                prototype = this.self.prototype,
+                initConfigList = this.initConfigList,
+                initConfigMap = this.initConfigMap,
+                config = new this.configClass,
+                defaultConfig = this.defaultConfig,
+                i, ln, name, value, nameMap, getName;
 
             this.initConfig = Ext.emptyFn;
 
             this.initialConfig = instanceConfig || {};
 
-            this.config = config = (instanceConfig) ? Ext.merge(defaultConfig, config) : defaultConfig;
-
             if (instanceConfig) {
-                defaultConfigList = defaultConfigList.slice();
+                Ext.merge(config, instanceConfig);
+            }
 
-                for (name in instanceConfig) {
-                    if (hasConfig[name]) {
-                        if (instanceConfig[name] !== null) {
-                            defaultConfigList.push(name);
-                            nameMap = configNameCache[name];
+            this.config = config;
 
-                            this[nameMap.initialized] = false;
-                            this[nameMap.get] = this[nameMap.initGet];
-                        }
+            // Optimize initConfigList *once* per class based on the existence of apply* and update* methods
+            // Happens only once during the first instantiation
+            if (!prototype.hasOwnProperty('wasInstantiated')) {
+                prototype.wasInstantiated = true;
+
+                for (i = 0,ln = initConfigList.length; i &lt; ln; i++) {
+                    name = initConfigList[i];
+                    nameMap = configNameCache[name];
+                    value = defaultConfig[name];
+
+                    if (!(nameMap.apply in prototype)
+                        &amp;&amp; !(nameMap.update in prototype)
+                        &amp;&amp; prototype[nameMap.set].$isDefault
+                        &amp;&amp; typeof value != 'object') {
+                        prototype[nameMap.internal] = defaultConfig[name];
+                        initConfigMap[name] = false;
+                        Ext.Array.remove(initConfigList, name);
+                        i--;
+                        ln--;
                     }
                 }
             }
 
-            for (i = 0,ln = defaultConfigList.length; i &lt; ln; i++) {
-                name = defaultConfigList[i];
-                nameMap = configNameCache[name];
-                initializedName = nameMap.initialized;
+            if (instanceConfig) {
+                initConfigList = initConfigList.slice();
 
-                if (!this[initializedName]) {
-                    this[initializedName] = true;
-                    this[nameMap.set](config[name]);
+                for (name in instanceConfig) {
+                    if (name in defaultConfig &amp;&amp; config[name] !== null &amp;&amp; !initConfigMap[name]) {
+                        initConfigList.push(name);
+                    }
+                }
+            }
+
+            // Point all getters to the initGetters
+            for (i = 0,ln = initConfigList.length; i &lt; ln; i++) {
+                name = initConfigList[i];
+                nameMap = configNameCache[name];
+                this[nameMap.get] = this[nameMap.initGet];
+            }
+
+            for (i = 0,ln = initConfigList.length; i &lt; ln; i++) {
+                name = initConfigList[i];
+                nameMap = configNameCache[name];
+                getName = nameMap.get;
+
+                if (this.hasOwnProperty(getName)) {
+                    this[nameMap.set].call(this, config[name]);
+                    delete this[getName];
                 }
             }
 
             return this;
         },
 
-<span id='Ext-Base-method-hasConfig'>        /**
-</span>         * @private
-         * @param config
-         */
-        hasConfig: function(name) {
-            return Boolean(this.hasConfigMap[name]);
+        getCurrentConfig: function() {
+            var defaultConfig = this.defaultConfig,
+                configNameCache = Ext.Class.configNameCache,
+                config = {},
+                name, nameMap;
+
+            for (name in defaultConfig) {
+                if (defaultConfig.hasOwnProperty(name)) {
+                    nameMap = configNameCache[name];
+                    config[name] = this[nameMap.get].call(this);
+                }
+            }
+
+            return config;
         },
 
 <span id='Ext-Base-method-setConfig'>        /**
@@ -1000,23 +1038,32 @@ var noArgs = [],
 
             var configNameCache = Ext.Class.configNameCache,
                 currentConfig = this.config,
-                hasConfig = this.hasConfigMap,
+                defaultConfig = this.defaultConfig,
                 initialConfig = this.initialConfig,
-                name, value;
+                configList = [],
+                name, value, i, ln, nameMap;
 
             applyIfNotSet = Boolean(applyIfNotSet);
 
             for (name in config) {
-                if (applyIfNotSet &amp;&amp; initialConfig.hasOwnProperty(name)) {
+                if ((applyIfNotSet &amp;&amp; (name in initialConfig)) || !(name in defaultConfig)) {
                     continue;
                 }
 
                 value = config[name];
                 currentConfig[name] = value;
 
-                if (hasConfig[name]) {
-                    this[configNameCache[name].set](value);
-                }
+                configList.push(name);
+
+                nameMap = configNameCache[name];
+                this[nameMap.get] = this[nameMap.initGet];
+            }
+
+            for (i = 0,ln = configList.length; i &lt; ln; i++) {
+                name = configList[i];
+                nameMap = configNameCache[name];
+                this[nameMap.set].call(this, config[name]);
+                delete this[nameMap.get];
             }
 
             return this;
@@ -1027,9 +1074,14 @@ var noArgs = [],
          * @param name
          */
         getConfig: function(name) {
-            var configNameCache = Ext.Class.configNameCache;
+            return this[Ext.Class.configNameCache[name].get].call(this);
+        },
 
-            return this[configNameCache[name].get]();
+<span id='Ext-Base-method-hasConfig'>        /**
+</span>         * @private
+         */
+        hasConfig: function(name) {
+            return (name in this.defaultConfig);
         },
 
 <span id='Ext-Base-method-getInitialConfig'>        /**

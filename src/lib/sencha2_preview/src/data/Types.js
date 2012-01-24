@@ -36,7 +36,7 @@ Ext.data.Types.VELATLONG = {
  * <p>Then, when declaring a Model, use <pre><code>
 var types = Ext.data.Types; // allow shorthand type access
 Ext.define('Unit',
-    extend: 'Ext.data.Model', 
+    extend: 'Ext.data.Model',
     fields: [
         { name: 'unitName', mapping: 'UnitName' },
         { name: 'curSpeed', mapping: 'CurSpeed', type: types.INT },
@@ -49,27 +49,28 @@ Ext.define('Unit',
  */
 Ext.define('Ext.data.Types', {
     singleton: true,
-    requires: ['Ext.data.SortTypes']
+    requires: ['Ext.data.SortTypes'],
+
+    /**
+     * @property {RegExp} stripRe
+     * A regular expression for stripping non-numeric characters from a numeric value. Defaults to <tt>/[\$,%]/g</tt>.
+     * This should be overridden for localization.
+     */
+    stripRe: /[\$,%]/g
 }, function() {
-    var st = Ext.data.SortTypes;
-    
-    Ext.apply(Ext.data.Types, {
-        /**
-         * @property {RegExp} stripRe
-         * A regular expression for stripping non-numeric characters from a numeric value. Defaults to <tt>/[\$,%]/g</tt>.
-         * This should be overridden for localization.
-         */
-        stripRe: /[\$,%]/g,
-        
+    var Types = this,
+        sortTypes = Ext.data.SortTypes;
+
+    Ext.apply(Types, {
         /**
          * @property {Object} AUTO
          * This data type means that no conversion is applied to the raw data before it is placed into a Record.
          */
         AUTO: {
-            convert: function(v) {
-                return v;
+            convert: function(value) {
+                return value;
             },
-            sortType: st.none,
+            sortType: sortTypes.none,
             type: 'auto'
         },
 
@@ -78,11 +79,13 @@ Ext.define('Ext.data.Types', {
          * This data type means that the raw data is converted into a String before it is placed into a Record.
          */
         STRING: {
-            convert: function(v) {
-                var defaultValue = this.useNull ? null : '';
-                return (v === undefined || v === null) ? defaultValue : String(v);
+            convert: function(value) {
+                // 'this' is the actual field that calls this convert method
+                return (value === undefined || value === null)
+                    ? (this.getUseNull() ? null : '')
+                    : String(value);
             },
-            sortType: st.asUCString,
+            sortType: sortTypes.asUCString,
             type: 'string'
         },
 
@@ -92,28 +95,36 @@ Ext.define('Ext.data.Types', {
          * <p>The synonym <code>INTEGER</code> is equivalent.</p>
          */
         INT: {
-            convert: function(v) {
-                return v !== undefined && v !== null && v !== '' ?
-                    parseInt(String(v).replace(Ext.data.Types.stripRe, ''), 10) : (this.useNull ? null : 0);
+            convert: function(value) {
+                return (value !== undefined && value !== null && value !== '')
+                    ? ((typeof value === 'number')
+                        ? value
+                        : parseInt(String(value).replace(Types.stripRe, ''), 10)
+                    )
+                    : (this.getUseNull() ? null : 0);
             },
-            sortType: st.none,
+            sortType: sortTypes.none,
             type: 'int'
         },
-        
+
         /**
          * @property {Object} FLOAT
          * This data type means that the raw data is converted into a number before it is placed into a Record.
          * <p>The synonym <code>NUMBER</code> is equivalent.</p>
          */
         FLOAT: {
-            convert: function(v) {
-                return v !== undefined && v !== null && v !== '' ?
-                    parseFloat(String(v).replace(Ext.data.Types.stripRe, ''), 10) : (this.useNull ? null : 0);
+            convert: function(value) {
+                return (value !== undefined && value !== null && value !== '')
+                    ? ((typeof value === 'number')
+                        ? value
+                        : parseFloat(String(value).replace(Types.stripRe, ''), 10)
+                    )
+                    : (this.getUseNull() ? null : 0);
             },
-            sortType: st.none,
+            sortType: sortTypes.none,
             type: 'float'
         },
-        
+
         /**
          * @property {Object} BOOL
          * <p>This data type means that the raw data is converted into a boolean before it is placed into
@@ -121,16 +132,16 @@ Ext.define('Ext.data.Types', {
          * <p>The synonym <code>BOOLEAN</code> is equivalent.</p>
          */
         BOOL: {
-            convert: function(v) {
-                if (this.useNull && (v === undefined || v === null || v === '')) {
+            convert: function(value) {
+                if ((value === undefined || value === null || value === '') && this.getUseNull()) {
                     return null;
                 }
-                return v === true || v === 'true' || v == 1;
+                return value === true || value === 'true' || value == 1;
             },
-            sortType: st.none,
+            sortType: sortTypes.none,
             type: 'bool'
         },
-        
+
         /**
          * @property {Object} DATE
          * This data type means that the raw data is converted into a Date before it is placed into a Record.
@@ -138,35 +149,35 @@ Ext.define('Ext.data.Types', {
          * being applied.
          */
         DATE: {
-            convert: function(v) {
-                var df = this.dateFormat,
+            convert: function(value) {
+                var dateFormat = this.getDateFormat(),
                     parsed;
-                    
-                if (!v) {
+
+                if (!value) {
                     return null;
                 }
-                if (Ext.isDate(v)) {
-                    return v;
+                if (Ext.isDate(value)) {
+                    return value;
                 }
-                if (df) {
-                    if (df == 'timestamp') {
-                        return new Date(v*1000);
+                if (dateFormat) {
+                    if (dateFormat == 'timestamp') {
+                        return new Date(value*1000);
                     }
-                    if (df == 'time') {
-                        return new Date(parseInt(v, 10));
+                    if (dateFormat == 'time') {
+                        return new Date(parseInt(value, 10));
                     }
-                    return Ext.Date.parse(v, df);
+                    return Ext.Date.parse(value, dateFormat);
                 }
-                
-                parsed = Date.parse(v);
+
+                parsed = Date.parse(value);
                 return parsed ? new Date(parsed) : null;
             },
-            sortType: st.asDate,
+            sortType: sortTypes.asDate,
             type: 'date'
         }
     });
-    
-    Ext.apply(Ext.data.Types, {
+
+    Ext.apply(Types, {
         /**
          * @property {Object} BOOLEAN
          * <p>This data type means that the raw data is converted into a boolean before it is placed into
@@ -174,19 +185,19 @@ Ext.define('Ext.data.Types', {
          * <p>The synonym <code>BOOL</code> is equivalent.</p>
          */
         BOOLEAN: this.BOOL,
-        
+
         /**
          * @property {Object} INTEGER
          * This data type means that the raw data is converted into an integer before it is placed into a Record.
          * <p>The synonym <code>INT</code> is equivalent.</p>
          */
         INTEGER: this.INT,
-        
+
         /**
          * @property {Object} NUMBER
          * This data type means that the raw data is converted into a number before it is placed into a Record.
          * <p>The synonym <code>FLOAT</code> is equivalent.</p>
          */
-        NUMBER: this.FLOAT    
+        NUMBER: this.FLOAT
     });
 });

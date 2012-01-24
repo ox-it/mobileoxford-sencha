@@ -2,6 +2,11 @@
  * Reusable data formatting functions
  */
 Ext.define('Ext.util.Format', {
+    requires: [
+        // @TODO: figure out wether or where to include this
+        'Ext.DateExtras'
+    ],
+
     singleton: true,
     defaultDateFormat: 'm/d/Y',
     escapeRe: /('|\\)/g,
@@ -150,11 +155,23 @@ var s = Ext.util.Format.format('&lt;div class="{0}">{1}&lt;/div>', cls, text);
      * @return {String} The formatted date string
      */
     date: function(v, format) {
+        var date = v;
         if (!v) {
             return "";
         }
         if (!Ext.isDate(v)) {
-            v = new Date(Date.parse(v));
+            date = new Date(Date.parse(v));
+            if (isNaN(date)) {
+                // Dates with the format "2012-01-20" fail, but "2012/01/20" work in some browsers. We'll try and
+                // get around that.
+                v = new Date(Date.parse(v.replace(/-/g, "/")));
+                if (isNaN(v)) {
+                    Ext.Logger.error("Cannot parse the passed value into a valid date");
+                }
+            }
+            else {
+                v = date;
+            }
         }
         return Ext.Date.format(v, format || Ext.util.Format.defaultDateFormat);
     }

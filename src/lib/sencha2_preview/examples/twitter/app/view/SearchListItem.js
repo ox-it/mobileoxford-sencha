@@ -6,7 +6,7 @@
  * is used to delete searches. (by default this button is hidden).
  */
 Ext.define('Twitter.view.SearchListItem', {
-	extend: 'Ext.dataview.ListItem',
+	extend: 'Ext.dataview.component.DataItem',
 	xtype : 'searchlistitem',
 
 	config: {

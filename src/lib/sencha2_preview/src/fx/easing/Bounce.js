@@ -1,3 +1,6 @@
+/**
+ * @private
+ */
 Ext.define('Ext.fx.easing.Bounce', {
 
     extend: 'Ext.fx.easing.Abstract',

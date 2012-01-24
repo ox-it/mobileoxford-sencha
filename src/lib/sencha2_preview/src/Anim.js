@@ -1,16 +1,34 @@
 /**
- * <p>Ext.Anim is used to excute animations defined in {@link Ext.anims}. The {@link #run} method can take any of the
- * properties defined below.</p>
+ * Ext.Anim is used to excute simple animations defined in {@link Ext.anims}. The {@link #run} method can take any of the
+ * properties defined below.
  *
- * <h2>Example usage:</h2>
- * <code><pre>
-Ext.Anim.run(this, 'fade', {
-    out: false,
-    autoClear: true
-});
- * </pre></code>
+ *     Ext.Anim.run(this, 'fade', {
+ *         out: false,
+ *         autoClear: true
+ *     });
  *
- * <p>Animations are disabled on Android and Blackberry by default using the {@link #disableAnimations} property.</p>
+ * When using {@link Ext.Anim#run}, ensure you require {@link Ext.Anim} in your application. Either do this using {@link Ext#require}:
+ *
+ *     Ext.requires('Ext.Anim');
+ *
+ * when using {@link Ext#setup}:
+ *
+ *     Ext.setup({
+ *         requires: ['Ext.Anim'],
+ *         onReady: function() {
+ *             //do something
+ *         }
+ *     });
+ *
+ * or when using {@link Ext#application}:
+ *
+ *     Ext.application({
+ *         requires: ['Ext.Anim'],
+ *         launch: function() {
+ *             //do something
+ *         }
+ *     });
+ *
  * @singleton
  */
 Ext.Anim = Ext.extend(Object, {
@@ -18,10 +36,9 @@ Ext.Anim = Ext.extend(Object, {
 
     /**
      * @cfg {Boolean} disableAnimations
-     * True to disable animations. By default, animations are disabled on Android and Blackberry
+     * True to disable animations.
      */
-    disableAnimations: false,
-//    disableAnimations: (!Ext.is.iOS || Ext.is.Blackberry) ? true : false,
+   disableAnimations: false,
 
     defaultConfig: {
         /**
@@ -162,7 +179,7 @@ Ext.Anim = Ext.extend(Object, {
             return me;
         }
 
-        el.un('webkitTransitionEnd', me.onTransitionEnd, me);
+        el.un('transitionend', me.onTransitionEnd, me);
 
         style.webkitTransitionDuration = '0ms';
         for (property in config.from) {
@@ -192,7 +209,7 @@ Ext.Anim = Ext.extend(Object, {
             style.webkitTransitionTimingFunction = config.easing;
 
             // Bind our listener that fires after the animation ends
-            el.on('webkitTransitionEnd', me.onTransitionEnd, me, {
+            el.on('transitionend', me.onTransitionEnd, me, {
                 single: true,
                 config: config,
                 after: after
@@ -318,7 +335,7 @@ Ext.anims = {
             if (this.out) {
                 toOpacity = 0;
             } else {
-                zIndex = curZ + 1;
+                zIndex = Math.abs(curZ) + 1;
                 fromOpacity = 0;
             }
 

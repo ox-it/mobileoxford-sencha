@@ -50,6 +50,7 @@ Ext.define('Ext.layout.Card', {
      * @event activeitemchange
      * @preventable doActiveItemChange
      * Fires when an card is made active
+     * @param {Ext.layout.Card} this The layout instance
      * @param {Mixed} newActiveItem The new active item
      * @param {Mixed} oldActiveItem The old active item
      */
@@ -71,6 +72,11 @@ Ext.define('Ext.layout.Card', {
          * @accessor
          */
         animation: null
+    },
+
+    constructor: function() {
+        this.callParent(arguments);
+        this.container.onInitialized(this.onContainerInitialized, this);
     },
 
     /**
@@ -97,11 +103,11 @@ Ext.define('Ext.layout.Card', {
      * @private
      */
     doItemAdd: function(item, index) {
-        this.callParent(arguments);
-
         if (item.isInnerItem()) {
             item.hide();
         }
+
+        this.callParent(arguments);
     },
 
     /**
@@ -115,17 +121,27 @@ Ext.define('Ext.layout.Card', {
         }
     },
 
-    /**
-     * @private
-     */
-    onActiveItemChange: function(newActiveItem, oldActiveItem) {
-        this.fireAction(this.eventNames.activeItemChange, [newActiveItem, oldActiveItem], 'doActiveItemChange');
+    onContainerInitialized: function(container) {
+        var activeItem = container.getActiveItem();
+
+        if (activeItem) {
+            activeItem.show();
+        }
+
+        container.on('activeitemchange', 'onContainerActiveItemChange', this);
     },
 
     /**
      * @private
      */
-    doActiveItemChange: function(newActiveItem, oldActiveItem) {
+    onContainerActiveItemChange: function(container) {
+        this.relayEvent(arguments, 'doActiveItemChange');
+    },
+
+    /**
+     * @private
+     */
+    doActiveItemChange: function(me, newActiveItem, oldActiveItem) {
         if (oldActiveItem) {
             oldActiveItem.hide();
         }
@@ -133,5 +149,17 @@ Ext.define('Ext.layout.Card', {
         if (newActiveItem) {
             newActiveItem.show();
         }
+    },
+
+    doItemDockedChange: function(item, docked) {
+        //TODO Fix this properly
+        if (docked) {
+            item.element.removeCls(this.itemCls);
+        }
+        else {
+            item.element.addCls(this.itemCls);
+        }
+
+        this.callParent(arguments);
     }
 });

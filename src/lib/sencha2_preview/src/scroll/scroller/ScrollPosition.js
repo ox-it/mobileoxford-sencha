@@ -22,7 +22,7 @@ Ext.define('Ext.scroll.scroller.ScrollPosition', {
             element = this.getElement();
 
             if (element) {
-                stretcher = this.stretcher = Ext.Element.create({
+                this.stretcher = stretcher = Ext.Element.create({
                     className: this.getStretcherCls()
                 });
                 stretcher.insertBefore(element);

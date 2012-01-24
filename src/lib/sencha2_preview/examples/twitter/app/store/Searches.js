@@ -5,10 +5,9 @@
  */
 Ext.define('Twitter.store.Searches', {
     extend  : 'Ext.data.Store',
-    model   : 'Twitter.model.Search',
     requires: ['Twitter.model.Search'],
-
-    data: [
-    { query: 'Sencha' }
-    ]
+    config: {
+        model   : 'Twitter.model.Search',
+        autoLoad: true
+    }
 });

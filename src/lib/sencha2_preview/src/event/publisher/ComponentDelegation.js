@@ -162,7 +162,7 @@ Ext.define('Ext.event.publisher.ComponentDelegation', {
     },
 
     dispatch: function(target, eventName, args, connectedController) {
-        this.dispatcher.doDispatchEvent(this.targetType, target, eventName, args, [], connectedController);
+        this.dispatcher.doDispatchEvent(this.targetType, target, eventName, args, null, connectedController);
     },
 
     publish: function(eventName, component) {

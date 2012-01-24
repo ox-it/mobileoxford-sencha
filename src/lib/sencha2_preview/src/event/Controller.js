@@ -21,76 +21,95 @@ Ext.define('Ext.event.Controller', {
         return this.info;
     },
 
-    setListenerStack: function(listenerStack) {
-        this.listenerStack = listenerStack;
+    setListenerStacks: function(listenerStacks) {
+        this.listenerStacks = listenerStacks;
     },
 
-    fire: function(args, actions) {
-        var listenerStack = this.listenerStack,
+    fire: function(args, action) {
+        var listenerStacks = this.listenerStacks,
             firingListeners = this.firingListeners,
             firingArguments = this.firingArguments,
             push = firingListeners.push,
-            beforeActions = [],
-            afterActions = [],
+            ln = listenerStacks.length,
             listeners, beforeListeners, currentListeners, afterListeners,
-            i, ln, action, actionListener, fn;
+            isActionBefore = false,
+            isActionAfter = false,
+            i;
 
-        if (listenerStack) {
-            listeners = listenerStack.listeners;
+        firingListeners.length = 0;
+
+        if (action) {
+            if (action.order !== 'after') {
+                isActionBefore = true;
+            }
+            else {
+                isActionAfter = true;
+            }
+        }
+
+        if (ln === 1) {
+            listeners = listenerStacks[0].listeners;
             beforeListeners = listeners.before;
             currentListeners = listeners.current;
             afterListeners = listeners.after;
+
+            if (beforeListeners.length > 0) {
+                push.apply(firingListeners, beforeListeners);
+            }
+
+            if (isActionBefore) {
+                push.call(firingListeners, action);
+            }
+
+            if (currentListeners.length > 0) {
+                push.apply(firingListeners, currentListeners);
+            }
+
+            if (isActionAfter) {
+                push.call(firingListeners, action);
+            }
+
+            if (afterListeners.length > 0) {
+                push.apply(firingListeners, afterListeners);
+            }
         }
-
-        if (!args) {
-            args = [];
-        }
-
-        if (actions) {
-            for (i = 0,ln = actions.length; i < ln; i++) {
-                action = actions[i];
-                fn = action.fn;
-
-                actionListener = {
-                    fn: fn,
-                    scope: action.scope,
-                    options: action.options || {},
-                    isLateBinding: typeof fn == 'string'
-                };
-
-                if (action.order === 'before') {
-                    beforeActions.push(actionListener);
+        else {
+            for (i = 0; i < ln; i++) {
+                beforeListeners = listenerStacks[i].listeners.before;
+                if (beforeListeners.length > 0) {
+                    push.apply(firingListeners, beforeListeners);
                 }
-                else {
-                    afterActions.push(actionListener);
+            }
+
+            if (isActionBefore) {
+                push.call(firingListeners, action);
+            }
+
+            for (i = 0; i < ln; i++) {
+                currentListeners = listenerStacks[i].listeners.current;
+                if (currentListeners.length > 0) {
+                    push.apply(firingListeners, currentListeners);
+                }
+            }
+
+            if (isActionAfter) {
+                push.call(firingListeners, action);
+            }
+
+            for (i = 0; i < ln; i++) {
+                afterListeners = listenerStacks[i].listeners.after;
+                if (afterListeners.length > 0) {
+                    push.apply(firingListeners, afterListeners);
                 }
             }
         }
 
-        firingListeners.length = 0;
-
-        if (beforeListeners && beforeListeners.length > 0) {
-            push.apply(firingListeners, listeners.before);
-        }
-
-        if (beforeActions.length > 0) {
-            push.apply(firingListeners, beforeActions);
-        }
-
-        if (currentListeners && currentListeners.length > 0) {
-            push.apply(firingListeners, listeners.current);
-        }
-
-        if (afterActions.length > 0) {
-            push.apply(firingListeners, afterActions);
-        }
-
-        if (afterListeners && afterListeners.length > 0) {
-            push.apply(firingListeners, listeners.after);
-        }
-
-        if (firingListeners.length < 1) {
+        if (firingListeners.length === 0) {
             return this;
+        }
+
+        if (!args) {
+            args = [];
         }
 
         firingArguments.length = 0;
@@ -105,8 +124,7 @@ Ext.define('Ext.event.Controller', {
     },
 
     doFire: function() {
-        var listenerStack = this.listenerStack,
-            firingListeners = this.firingListeners,
+        var firingListeners = this.firingListeners,
             firingArguments = this.firingArguments,
             optionsArgumentIndex = firingArguments.length - 2,
             i, ln, listener, options, fn, firingFn,
@@ -117,7 +135,7 @@ Ext.define('Ext.event.Controller', {
         this.isStopped = false;
         this.isFiring = true;
 
-        for (i = 0, ln = firingListeners.length; i < ln; i++) {
+        for (i = 0,ln = firingListeners.length; i < ln; i++) {
             listener = firingListeners[i];
             options = listener.options;
             fn = listener.fn;
@@ -169,8 +187,8 @@ Ext.define('Ext.event.Controller', {
                 args = options.args.concat(args);
             }
 
-            if (options.single === true && listenerStack) {
-                listenerStack.remove(fn, scope, listener.order);
+            if (options.single === true) {
+                listener.stack.remove(fn, scope, listener.order);
             }
 
             result = firingFn.apply(scope, args);
@@ -182,9 +200,6 @@ Ext.define('Ext.event.Controller', {
             if (this.isStopped) {
                 break;
             }
-            else if (result && result instanceof Array) {
-                firingArguments = this.firingArguments = result.concat([null, this]);
-            }
 
             if (this.isPausing) {
                 this.isPaused = true;
@@ -194,7 +209,7 @@ Ext.define('Ext.event.Controller', {
         }
 
         this.isFiring = false;
-        this.listenerStack = null;
+        this.listenerStacks = null;
         firingListeners.length = 0;
         firingArguments.length = 0;
         this.connectingController = null;
@@ -237,7 +252,7 @@ Ext.define('Ext.event.Controller', {
 
         this.isFiring = false;
 
-        this.listenerStack = null;
+        this.listenerStacks = null;
 
         return this;
     },

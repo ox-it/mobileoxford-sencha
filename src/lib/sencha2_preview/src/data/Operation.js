@@ -8,70 +8,102 @@
  * Several Operations can be batched together in a {@link Ext.data.Batch batch}.
  */
 Ext.define('Ext.data.Operation', {
-    /**
-     * @cfg {Boolean} synchronous
-     * True if this Operation is to be executed synchronously (defaults to true). This property is inspected by a
-     * {@link Ext.data.Batch Batch} to see if a series of Operations can be executed in parallel or not.
-     */
-    synchronous: true,
+    config: {
+        /**
+         * @cfg {Boolean} synchronous
+         * True if this Operation is to be executed synchronously. This property is inspected by a
+         * {@link Ext.data.Batch Batch} to see if a series of Operations can be executed in parallel or not.
+         */
+        synchronous: true,
 
-    /**
-     * @cfg {String} action
-     * The action being performed by this Operation. Should be one of 'create', 'read', 'update' or 'destroy'.
-     */
-    action: undefined,
+        /**
+         * @cfg {String} action
+         * The action being performed by this Operation. Should be one of 'create', 'read', 'update' or 'destroy'.
+         */
+        action: null,
 
-    /**
-     * @cfg {Ext.util.Filter[]} filters
-     * Optional array of filter objects. Only applies to 'read' actions.
-     */
-    filters: undefined,
+        /**
+         * @cfg {Ext.util.Filter[]} filters
+         * Optional array of filter objects. Only applies to 'read' actions.
+         */
+        filters: null,
 
-    /**
-     * @cfg {Ext.util.Sorter[]} sorters
-     * Optional array of sorter objects. Only applies to 'read' actions.
-     */
-    sorters: undefined,
+        /**
+         * @cfg {Ext.util.Sorter[]} sorters
+         * Optional array of sorter objects. Only applies to 'read' actions.
+         */
+        sorters: null,
 
-    /**
-     * @cfg {Ext.util.Grouper} group
-     * Optional grouping configuration. Only applies to 'read' actions where grouping is desired.
-     */
-    group: undefined,
+        /**
+         * @cfg {Ext.util.Grouper[]} groupers
+         * Optional grouping configuration. Only applies to 'read' actions where grouping is desired.
+         */
+        groupers: null,
 
-    /**
-     * @cfg {Number} start
-     * The start index (offset), used in paging when running a 'read' action.
-     */
-    start: undefined,
+        /**
+         * @cfg {Number} start
+         * The start index (offset), used in paging when running a 'read' action.
+         */
+        start: null,
 
-    /**
-     * @cfg {Number} limit
-     * The number of records to load. Used on 'read' actions when paging is being used.
-     */
-    limit: undefined,
+        /**
+         * @cfg {Number} limit
+         * The number of records to load. Used on 'read' actions when paging is being used.
+         */
+        limit: null,
 
-    /**
-     * @cfg {Ext.data.Batch} batch
-     * The batch that this Operation is a part of.
-     */
-    batch: undefined,
+        /**
+         * @cfg {Ext.data.Batch} batch
+         * The batch that this Operation is a part of.
+         */
+        batch: null,
 
-    /**
-     * @cfg {Function} callback
-     * Function to execute when operation completed.  Will be called with the following parameters:
-     *
-     * - records : Array of Ext.data.Model objects.
-     * - operation : The Ext.data.Operation itself.
-     * - success : True when operation completed successfully.
-     */
-    callback: undefined,
+        /**
+         * @cfg {Function} callback
+         * Function to execute when operation completed.
+         * @cfg {Ext.data.Model[]} callback.records Array of records.
+         * @cfg {Ext.data.Operation} callback.operation The Operation itself.
+         * @cfg {Boolean} callback.success True when operation completed successfully.
+         */
+        callback: null,
 
-    /**
-     * @cfg {Object} scope
-     * Scope for the {@link #callback} function.
-     */
-    scope: undefined,
+        /**
+         * @cfg {Object} scope
+         * Scope for the {@link #callback} function.
+         */
+        scope: null,
+
+        /**
+         * @cfg {Ext.data.ResultSet} resultSet
+         * The ResultSet for this operation.
+         */
+        resultSet: null,
+
+        records: null,
+
+        /**
+         * @cfg {Ext.data.Request} request
+         * The request used for this Operation. Operations don't usually care about Request and Response data, but in the
+         * ServerProxy and any of its subclasses they may be useful for further processing.
+         */
+        request: null,
+
+        /**
+         * @cfg {Object} response
+         * The response that was gotten from the server if there was one.
+         */
+        response: null,
+
+        params: null,
+        url: null,
+        page: null,
+
+        model: undefined,
+
+        node: null,
+
+        addRecords: false
+    },
 
     /**
      * @property {Boolean} started
@@ -118,68 +150,33 @@ Ext.define('Ext.data.Operation', {
     error: undefined,
 
     /**
-     * @property {RegExp} actionCommitRecordsRe
-     * The RegExp used to categorize actions that require record commits. This defaults to
-     * match 'create' and 'update'.
-     */
-    actionCommitRecordsRe: /^(?:create|update)$/i,
-
-    /**
-     * @property {RegExp} actionSkipSyncRe
-     * The RegExp used to categorize actions that skip local record synchronization. This defaults
-     * to match 'destroy'.
-     */
-    actionSkipSyncRe: /^destroy$/i,
-
-    /**
      * Creates new Operation object.
      * @param {Object} config (optional) Config object.
      */
     constructor: function(config) {
-        Ext.apply(this, config || {});
+        this.initConfig(config);
     },
 
-    /**
-     * This method is called to commit data to this instance's records given the records in
-     * the server response. This is followed by calling {@link Ext.data.Model#commit} on all
-     * those records (for 'create' and 'update' actions).
-     *
-     * If this {@link #action} is 'destroy', any server records are ignored and the
-     * {@link Ext.data.Model#commit} method is not called.
-     *
-     * @param {Ext.data.Model[]} serverRecords An array of {@link Ext.data.Model} objects returned by
-     * the server.
-     * @markdown
-     */
-    commitRecords: function (serverRecords) {
-        var me = this,
-            mc, index, clientRecords, serverRec, clientRec;
+    applyModel: function(model) {
+        if (typeof model == 'string') {
+            model = Ext.data.ModelManager.getModel(model);
 
-        if (!me.actionSkipSyncRe.test(me.action)) {
-            clientRecords = me.records;
-
-            if (clientRecords && clientRecords.length) {
-                mc = Ext.create('Ext.util.MixedCollection', true, function(r) {return r.getId();});
-                mc.addAll(clientRecords);
-
-                for (index = serverRecords ? serverRecords.length : 0; index--; ) {
-                    serverRec = serverRecords[index];
-                    clientRec = mc.get(serverRec.getId());
-
-                    if (clientRec) {
-                        clientRec.beginEdit();
-                        clientRec.set(serverRec.data);
-                        clientRec.endEdit(true);
-                    }
-                }
-
-                if (me.actionCommitRecordsRe.test(me.action)) {
-                    for (index = clientRecords.length; index--; ) {
-                        clientRecords[index].commit();
-                    }
-                }
+            if (!model) {
+                Ext.Logger.error('Model with name ' + arguments[0] + ' doesnt exist.');
             }
         }
+
+        if (model && !model.prototype.isModel && Ext.isObject(model)) {
+            model = Ext.data.ModelManager.registerType(model.storeId || model.id || Ext.id(), model);
+        }
+
+        // <debug>
+        if (!model) {
+            Ext.Logger.error('An Operation needs to have a model defined.');
+        }
+        // </debug>
+
+        return model;
     },
 
     /**
@@ -231,26 +228,7 @@ Ext.define('Ext.data.Operation', {
     getError: function() {
         return this.error;
     },
-
-    /**
-     * Returns an array of Ext.data.Model instances as set by the Proxy.
-     * @return {Ext.data.Model[]} Any loaded Records
-     */
-    getRecords: function() {
-        var resultSet = this.getResultSet();
-
-        return (resultSet === undefined ? this.records : resultSet.records);
-    },
-
-    /**
-     * Returns the ResultSet object (if set by the Proxy). This object will contain the {@link Ext.data.Model model}
-     * instances as well as meta data such as number of instances fetched, number available etc
-     * @return {Ext.data.ResultSet} The ResultSet object
-     */
-    getResultSet: function() {
-        return this.resultSet;
-    },
-
+    
     /**
      * Returns true if the Operation has been started. Note that the Operation may have started AND completed, see
      * {@link #isRunning} to test if the Operation is currently running.
@@ -285,19 +263,119 @@ Ext.define('Ext.data.Operation', {
     },
 
     /**
-     * @private
-     * Associates this Operation with a Batch
-     * @param {Ext.data.Batch} batch The batch
-     */
-    setBatch: function(batch) {
-        this.batch = batch;
-    },
-
-    /**
      * Checks whether this operation should cause writing to occur.
      * @return {Boolean} Whether the operation should cause a write to occur.
      */
     allowWrite: function() {
-        return this.action != 'read';
+        return this.getAction() != 'read';
+    },
+
+    process: function(action, resultSet, request, response) {
+        if (resultSet.getSuccess() !== false) {
+            this.setResponse(response);
+            this.setResultSet(resultSet);
+            this.setCompleted();
+            this.setSuccessful();
+        } else {
+            return false;
+        }
+
+        return this['process' + Ext.String.capitalize(action)].call(this, resultSet, request, response);
+    },
+
+    processRead: function(resultSet) {
+        var records = resultSet.getRecords(),
+            processedRecords = [],
+            Model = this.getModel(),
+            ln = records.length,
+            i, record;
+
+        for (i = 0; i < ln; i++) {
+            record = records[i];
+            processedRecords.push(new Model(record.data, record.id, record.node));
+        }
+
+        this.setRecords(processedRecords);
+        return true;
+    },
+
+    processCreate: function(resultSet) {
+        var updatedRecords = resultSet.getRecords(),
+            ln = updatedRecords.length,
+            i, currentRecord, updatedRecord;
+
+        for (i = 0; i < ln; i++) {
+            updatedRecord = updatedRecords[i];
+            currentRecord = this.findCurrentRecord(updatedRecord);
+
+            if (currentRecord) {
+                this.updateRecord(currentRecord, updatedRecord);
+            }
+            // <debug>
+            else {
+                Ext.Logger.warn('Unable to match the record that came back from the server.');
+            }
+            // </debug>
+        }
+
+        return true;
+    },
+
+    processUpdate: function(resultSet) {
+        var updatedRecords = resultSet.getRecords(),
+            currentRecords = this.getRecords(),
+            ln = updatedRecords.length,
+            i, currentRecord, updatedRecord;
+
+        for (i = 0; i < ln; i++) {
+            updatedRecord = updatedRecords[i];
+            currentRecord = currentRecords[i];
+
+            if (currentRecord) {
+                this.updateRecord(currentRecord, updatedRecord);
+            }
+            // <debug>
+            else {
+                Ext.Logger.warn('Unable to match the updated record that came back from the server.');
+            }
+            // </debug>
+        }
+
+        return true;
+    },
+
+    processDestroy: function() {
+
+    },
+
+    findCurrentRecord: function(updatedRecord) {
+        var currentRecords = this.getRecords(),
+            ln = currentRecords.length,
+            i, currentRecord;
+
+        for (i = 0; i < ln; i++) {
+            currentRecord = currentRecords[i];
+            if (currentRecord.getId() === updatedRecord.clientId) {
+                return currentRecord;
+            }
+        }
+    },
+
+    updateRecord: function(currentRecord, updatedRecord) {
+        var recordData = updatedRecord.data,
+            recordId = updatedRecord.id;
+
+        currentRecord.beginEdit();
+
+        currentRecord.set(recordData);
+        if (recordId !== null) {
+            currentRecord.setId(recordId);
+        }
+
+        // We call endEdit with silent: true because the commit below already makes
+        // sure any store is notified of the record being updated.
+        currentRecord.endEdit(true);
+        
+        currentRecord.commit();
     }
 });

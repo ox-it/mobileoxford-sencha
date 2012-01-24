@@ -1,4 +1,6 @@
 Ext.define('Kitchensink.model.OrderItem', {
     extend: 'Ext.data.Model',
-    fields: ['id', 'quantity', 'price', 'name']
+    config: {
+        fields: ['id', 'quantity', 'price', 'name']
+    }
 });

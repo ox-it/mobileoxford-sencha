@@ -57,7 +57,7 @@ screen.
 We often want to load data from our server or some other web service so that we don't have to hard code it all
 locally. Let's say we want to load all of the latest tweets about Sencha Touch into a DataView, and for each one
 render the user's profile picture, user name and tweet message. To do this all we have to do is modify the
-{@link Ext.dataview.ComponentView#store store} and {@link Ext.dataview.ComponentView#itemConfig itemConfig} a little:
+{@link Ext.dataview.DataView#store store} and {@link Ext.dataview.DataView#itemConfig itemConfig} a little:
 
     Ext.create('Ext.DataView', {
         fullscreen: true,

@@ -1,13 +1,9 @@
 /**
  * @class kiva.views.List
  * @extends Ext.List
- *
- * This simple Ext.List subclass is used to display the Loans that are returned from Kiva's API. The largest
- * part of this class is the XTemplate used to render each item - all other functionality is already provided
- * by Ext.List
  */
 Ext.define('Kiva.view.LoansList', {
-    extend: 'Ext.dataview.ComponentView',
+    extend: 'Ext.DataView',
     xtype : 'loanslist',
     requires: [
         'Kiva.view.LoansListItem'
@@ -16,6 +12,7 @@ Ext.define('Kiva.view.LoansList', {
     config: {
         ui   : 'loans',
         store: 'Loans',
+        useComponents: true,
         defaultType: 'loanslistitem',
         deselectOnContainerClick: false
     },
@@ -26,16 +23,19 @@ Ext.define('Kiva.view.LoansList', {
      */
     refreshed: false,
 
-    doRefresh: function(me) {
+    onLoad: function() {
+        var me = this,
+            store = me.getStore();
+
         me.callParent(arguments);
 
-        var store = me.getStore();
-        if (this.refreshed && store.getCount() === 0) {
-            me.setMask({
-                message: 'Sorry, something went wrong!'
+        if (me.refreshed && store.getCount() === 0) {
+            me.setMasked({
+                indicator: false,
+                message: 'Sorry, KIVA is having issues right now.'
             });
         }
-        
-        this.refreshed = true;
+
+        me.refreshed = true;
     }
 });

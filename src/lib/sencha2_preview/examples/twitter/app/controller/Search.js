@@ -1,8 +1,8 @@
 /*
  * @class Twitter.controller.Search
  * @extends Ext.app.Controller
- * 
- * This controller is the main, and only controller for this application. It handles all the views and functionality 
+ *
+ * This controller is the main, and only controller for this application. It handles all the views and functionality
  * of this application.
  */
 Ext.define('Twitter.controller.Search', {
@@ -59,11 +59,8 @@ Ext.define('Twitter.controller.Search', {
         // using those selectors. This means that the components don't actually have the be rendered at this time.
         this.control({
             'searchlist': {
-                select: this.onSearchSelect
-            },
-
-            'searchlist searchlistitem': {
-                swipe: this.onSearchSwipe
+                select: this.onSearchSelect,
+                itemswipe: this.onSearchSwipe
             },
 
             'searchlist searchlistitem button': {
@@ -74,8 +71,8 @@ Ext.define('Twitter.controller.Search', {
                 keyup: this.onSearch
             },
 
-            'tweetlist tweetlistitem': {
-                tap: this.onTweetTap
+            'tweetlist': {
+                itemtap: this.onTweetTap
             },
 
             'tweetlist toolbar button': {
@@ -91,21 +88,20 @@ Ext.define('Twitter.controller.Search', {
             load: 'onSearchesStoreLoad'
         });
 
-        // LocalStorage is not working right now. For now, we can just call the above method outselves.
+        // LocalStorage is not working right now. For now, we can just call the above method ourselves.
         // When it is fixed, we should just call load on the store
         this.onSearchesStoreLoad();
     },
-    
+
     /**
-     * Called when the {@link #profile} configuration has changed. The value of this configuration should be either "desktop", 
+     * Called when the {@link #profile} configuration has changed. The value of this configuration should be either "desktop",
      * "tablet" or "phone". We then change the layout of the application based on what device it is.
      */
     updateProfile: function(profile) {
-        var main            = this.getMain(),
-            searchContainer = this.getSearchContainer(),
-            tweetList       = this.getTweetList(),
+        this.getMain();
+        var searchContainer = this.getSearchContainer(),
             tweetToolbar    = this.getTweetToolbar();
-        
+
         if (profile == "phone") {
             // all we need to do for phones is show the toolbar at the top of the tweetList
             tweetToolbar.show();
@@ -126,7 +122,7 @@ Ext.define('Twitter.controller.Search', {
             searchesStore = this.getSearchesStore(),
             profile       = this.getProfile(),
             model;
-        
+
         model = searchesStore.getAt(0);
         if (model && profile != "phone") {
             searchList.select(model);
@@ -141,7 +137,7 @@ Ext.define('Twitter.controller.Search', {
         var main            = this.getMain(),
             profile         = this.getProfile(),
             searchContainer = this.getSearchContainer();
-        
+
         if (profile == "phone") {
             main.setActiveItem(searchContainer);
         }
@@ -158,10 +154,10 @@ Ext.define('Twitter.controller.Search', {
             main = this.getMain(),
             searchList = this.getSearchList(),
             tweetList = this.getTweetList();
-        
+
         tweetList.setStore(store);
         store.load();
-        
+
         if (profile == "phone") {
             main.setActiveItem(tweetList);
 
@@ -177,9 +173,9 @@ Ext.define('Twitter.controller.Search', {
     /**
      * Called when an item in the searchList is swiped. It will show the delete button in the swiped item.
      */
-    onSearchSwipe: function(item, search, e) {
+    onSearchSwipe: function(dataview, index, target) {
         //set the currentDeleteButton so we know what is it to hide it in the listener below
-        this.currentDeleteButton = item.getDeleteButton();
+        this.currentDeleteButton = target.getDeleteButton();
         this.currentDeleteButton.show();
 
         //add a listener to the body, so we can hide the button if the user taps anywhere but the button.
@@ -201,23 +197,13 @@ Ext.define('Twitter.controller.Search', {
     /**
      * Called when a user taps on an item in the tweetList. This is used to check if the element the user tapped on is a hashtag.
      * If it is a hashtag, we get watchever that hashtag is and call {@link #doSearch} with it.
-     * We could possible extend this to users, too.
+     * We could possibly extend this to users, too.
      */
-    onTweetTap: function(list, item, e) {
-        var target = Ext.get(e.target),
-            link = Ext.getDom('linker'),
-            clickEvent = document.createEvent('Event');
+    onTweetTap: function(list, index, target, record, e) {
+        target = Ext.get(e.target);
 
-        //http://www.sencha.com/forum/showthread.php?130358-window.open()-from-toolbar-button-opens-window-from-list-item-a-new-tab&p=639938#post639938
-        clickEvent.initEvent('click', true, false);
-        
         if (target && target.dom && target.hasCls('hashtag')) {
             this.doSearch(target.dom.innerHTML);
-        }
-
-        if (target && target.dom && target.dom.getAttribute('ref')) {
-            link.href = target.dom.getAttribute('ref');
-            link.dispatchEvent(clickEvent);
         }
     },
 
@@ -227,7 +213,7 @@ Ext.define('Twitter.controller.Search', {
     onSearchDelete: function(button, e) {
         var item   = button.getParent(),
             search = item.getRecord();
-        
+
         this.fireAction('destroy', [search, button], 'doDestroy');
     },
 
@@ -238,13 +224,13 @@ Ext.define('Twitter.controller.Search', {
     doDestroy: function(search, button) {
         var searchesStore = this.getSearchesStore(),
             searchList    = this.getSearchList(),
-            tweetlist     = this.getTweetList(),
             index         = searchesStore.indexOf(search),
             profile       = this.getProfile(),
             newSearch;
         
         //remove the item from the store, and hide the button
         searchesStore.remove(search);
+        searchesStore.sync();
         button.hide();
 
         //check if another search exists in the store.
@@ -265,7 +251,7 @@ Ext.define('Twitter.controller.Search', {
     onSearch: function(field, e) {
         var keyCode = e.event.keyCode,
             searchField = this.getSearchField();
-        
+
         //the return keyCode is 13.
         if (keyCode == 13) {
             //fire the search action with the current value of the searchField
@@ -282,10 +268,8 @@ Ext.define('Twitter.controller.Search', {
             searchList    = this.getSearchList(),
             searchesStore = this.getSearchesStore(),
             searchField   = this.getSearchField(),
-            main          = this.getMain(),
-            profile       = this.getProfile(),
-            query, store, index;
-        
+            query, index;
+
         // ensure there is a search...
         if (!search) {
             return;
@@ -320,7 +304,7 @@ Ext.define('Twitter.controller.Search', {
         //add the new search instance to the searchsStore
         searchesStore.add(search);
         searchesStore.sync();
-            
+
         // select the new record in the list
         searchList.select(search);
 
@@ -332,4 +316,3 @@ Ext.define('Twitter.controller.Search', {
         searchField.blur();
     }
 });
- 

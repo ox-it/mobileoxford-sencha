@@ -1,13 +1,13 @@
 /**
  * @class kiva.views.LoanFilter
  * @extends Ext.form.Panel
- * 
+ *
  * This form enables the user to filter the types of Loans visible to those that they are interested in.
- * 
+ *
  * We add a custom event called 'filter' to this class, and fire it whenever the user changes any of the
  * fields. The loans controller listens for this event and filters the Ext.data.Store that contains the
  * Loans based on the values selected (see the onFilter method in app/controllers/loans.js).
- * 
+ *
  */
 Ext.define('Kiva.view.LoanFilter', {
     extend: 'Ext.Container',
@@ -88,7 +88,7 @@ Ext.define('Kiva.view.LoanFilter', {
                             {text: 'Loan Amount',      value: 'loan_amount'}
                         ]
                     },
-                    
+
                     {xtype: 'spacer'},
 
                     { xtype: 'searchfield' }
@@ -101,7 +101,7 @@ Ext.define('Kiva.view.LoanFilter', {
             align: 'stretch'
         }
     },
-    
+
     // initComponent: function() {
     //     this.addEvents(
     //         /**
@@ -112,9 +112,9 @@ Ext.define('Kiva.view.LoanFilter', {
     //          */
     //         'filter'
     //     );
-        
+
     //     this.enableBubble('filter');
-        
+
     //     Ext.apply(this, {
     //         items: [
     //             // {
@@ -178,7 +178,7 @@ Ext.define('Kiva.view.LoanFilter', {
     //                     change: this.onFieldChange,
     //                     keyup: function(field, e) {
     //                         var key = e.browserEvent.keyCode;
-                            
+
     //                         // blur field when user presses enter/search which will trigger a change if necessary.
     //                         if (key === 13) {
     //                             field.blur();
@@ -189,12 +189,12 @@ Ext.define('Kiva.view.LoanFilter', {
     //             }
     //         ]
     //     });
-        
+
     //     this.callParent(arguments);
     // },
-    
+
     /**
-     * This is called whenever any of the fields in the form are changed. It simply collects all of the 
+     * This is called whenever any of the fields in the form are changed. It simply collects all of the
      * values of the fields and fires the custom 'filter' event.
      */
     onFieldChange : function(comp, value) {

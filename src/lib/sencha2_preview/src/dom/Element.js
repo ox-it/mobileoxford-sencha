@@ -5,7 +5,7 @@
  *
  * Note that the events documented in this class are not Ext events, they encapsulate browser events. To access the
  * underlying browser event, see Ext.EventObject.browserEvent. Some older browsers may not support the full range of
- * events. Which events are supported is beyond the control of Ext JS.
+ * events. Which events are supported is beyond the control of Sencha Touch.
  *
  * ## Usage
  *
@@ -410,7 +410,7 @@ Ext.define('Ext.dom.Element', {
     },
 
     hide: function() {
-        this.dom.style.display = 'none !important';
+        this.dom.style.setProperty('display', 'none', 'important');
     },
 
     setHtml: function(html) {
@@ -486,7 +486,7 @@ Ext.define('Ext.dom.Element', {
             value = 'auto';
         }
 
-        this.dom.style[name] = value + ' !important';
+        this.dom.style.setProperty(name, value, 'important');
 
         return this;
     },

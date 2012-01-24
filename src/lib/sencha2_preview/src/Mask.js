@@ -18,7 +18,12 @@ Ext.define('Ext.Mask', {
         /**
          * @hide
          */
-        hidden: true,
+        zIndex: 1000,
+//
+//        /**
+//         * @hide
+//         */
+//        hidden: true,
 
         /**
          * @hide
@@ -47,16 +52,19 @@ Ext.define('Ext.Mask', {
      * @param {Ext.Mask} this The mask instance
      * @param {Ext.EventObject} e The event object
      */
-
     initialize: function() {
-        var me = this;
+        var element = this.element;
 
-        me.callParent();
+        this.callParent();
 
-        me.element.on({
-            tap: 'onTap',
-            scope: me
-        });
+        element.on('tap', 'onTap', this);
+        element.on('*', 'onEvent', this);
+    },
+
+    onEvent: function(e) {
+        e.stopEvent();
+
+        return false;
     },
 
     onTap: function(e) {

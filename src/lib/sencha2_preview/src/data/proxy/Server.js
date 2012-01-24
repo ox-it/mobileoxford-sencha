@@ -3,150 +3,139 @@
  *
  * ServerProxy is a superclass of {@link Ext.data.proxy.JsonP JsonPProxy} and {@link Ext.data.proxy.Ajax AjaxProxy}, and
  * would not usually be used directly.
- *
- * ServerProxy should ideally be named HttpProxy as it is a superclass for all HTTP proxies - for Ext JS 4.x it has been
- * called ServerProxy to enable any 3.x applications that reference the HttpProxy to continue to work (HttpProxy is now
- * an alias of AjaxProxy).
+ * @private
  */
 Ext.define('Ext.data.proxy.Server', {
     extend: 'Ext.data.proxy.Proxy',
     alias : 'proxy.server',
     alternateClassName: 'Ext.data.ServerProxy',
-    uses  : ['Ext.data.Request'],
+    requires  : ['Ext.data.Request'],
 
-    /**
-     * @cfg {String} url
-     * The URL from which to request the data object.
-     */
-
-    /**
-     * @cfg {String} pageParam
-     * The name of the 'page' parameter to send in a request. Defaults to 'page'. Set this to undefined if you don't
-     * want to send a page parameter.
-     */
-    pageParam: 'page',
-
-    /**
-     * @cfg {String} startParam
-     * The name of the 'start' parameter to send in a request. Defaults to 'start'. Set this to undefined if you don't
-     * want to send a start parameter.
-     */
-    startParam: 'start',
-
-    /**
-     * @cfg {String} limitParam
-     * The name of the 'limit' parameter to send in a request. Defaults to 'limit'. Set this to undefined if you don't
-     * want to send a limit parameter.
-     */
-    limitParam: 'limit',
-
-    /**
-     * @cfg {String} groupParam
-     * The name of the 'group' parameter to send in a request. Defaults to 'group'. Set this to undefined if you don't
-     * want to send a group parameter.
-     */
-    groupParam: 'group',
-
-    /**
-     * @cfg {String} sortParam
-     * The name of the 'sort' parameter to send in a request. Defaults to 'sort'. Set this to undefined if you don't
-     * want to send a sort parameter.
-     */
-    sortParam: 'sort',
-
-    /**
-     * @cfg {String} filterParam
-     * The name of the 'filter' parameter to send in a request. Defaults to 'filter'. Set this to undefined if you don't
-     * want to send a filter parameter.
-     */
-    filterParam: 'filter',
-
-    /**
-     * @cfg {String} directionParam
-     * The name of the direction parameter to send in a request. **This is only used when simpleSortMode is set to
-     * true.** Defaults to 'dir'.
-     */
-    directionParam: 'dir',
-
-    /**
-     * @cfg {Boolean} simpleSortMode
-     * Enabling simpleSortMode in conjunction with remoteSort will only send one sort property and a direction when a
-     * remote sort is requested. The directionParam and sortParam will be sent with the property name and either 'ASC'
-     * or 'DESC'.
-     */
-    simpleSortMode: false,
-
-    /**
-     * @cfg {Boolean} noCache
-     * Disable caching by adding a unique parameter name to the request. Set to false to allow caching. Defaults to true.
-     */
-    noCache : true,
-
-    /**
-     * @cfg {String} cacheString
-     * The name of the cache param added to the url when using noCache. Defaults to "_dc".
-     */
-    cacheString: "_dc",
-
-    /**
-     * @cfg {Number} timeout
-     * The number of milliseconds to wait for a response. Defaults to 30000 milliseconds (30 seconds).
-     */
-    timeout : 30000,
-
-    /**
-     * @cfg {Object} api
-     * Specific urls to call on CRUD action methods "create", "read", "update" and "destroy". Defaults to:
-     *
-     *     api: {
-     *         create  : undefined,
-     *         read    : undefined,
-     *         update  : undefined,
-     *         destroy : undefined
-     *     }
-     *
-     * The url is built based upon the action being executed [create|read|update|destroy] using the commensurate
-     * {@link #api} property, or if undefined default to the configured
-     * {@link Ext.data.Store}.{@link Ext.data.proxy.Server#url url}.
-     *
-     * For example:
-     *
-     *     api: {
-     *         create  : '/controller/new',
-     *         read    : '/controller/load',
-     *         update  : '/controller/update',
-     *         destroy : '/controller/destroy_action'
-     *     }
-     *
-     * If the specific URL for a given CRUD action is undefined, the CRUD action request will be directed to the
-     * configured {@link Ext.data.proxy.Server#url url}.
-     */
-
-    constructor: function(config) {
-        var me = this;
-
-        config = config || {};
+    config: {
         /**
-         * @event exception
-         * Fires when the server returns an exception
-         * @param {Ext.data.proxy.Proxy} this
-         * @param {Object} response The response from the AJAX request
-         * @param {Ext.data.Operation} operation The operation that triggered request
+         * @cfg {String} url
+         * The URL from which to request the data object.
          */
-        me.callParent([config]);
+        url: null,
+
+        /**
+         * @cfg {String} pageParam
+         * The name of the 'page' parameter to send in a request. Defaults to 'page'. Set this to undefined if you don't
+         * want to send a page parameter.
+         */
+        pageParam: 'page',
+
+        /**
+         * @cfg {String} startParam
+         * The name of the 'start' parameter to send in a request. Defaults to 'start'. Set this to undefined if you don't
+         * want to send a start parameter.
+         */
+        startParam: 'start',
+
+        /**
+         * @cfg {String} limitParam
+         * The name of the 'limit' parameter to send in a request. Defaults to 'limit'. Set this to undefined if you don't
+         * want to send a limit parameter.
+         */
+        limitParam: 'limit',
+
+        /**
+         * @cfg {String} groupParam
+         * The name of the 'group' parameter to send in a request. Defaults to 'group'. Set this to undefined if you don't
+         * want to send a group parameter.
+         */
+        groupParam: 'group',
+
+        /**
+         * @cfg {String} sortParam
+         * The name of the 'sort' parameter to send in a request. Defaults to 'sort'. Set this to undefined if you don't
+         * want to send a sort parameter.
+         */
+        sortParam: 'sort',
+
+        /**
+         * @cfg {String} filterParam
+         * The name of the 'filter' parameter to send in a request. Defaults to 'filter'. Set this to undefined if you don't
+         * want to send a filter parameter.
+         */
+        filterParam: 'filter',
+
+        /**
+         * @cfg {String} directionParam
+         * The name of the direction parameter to send in a request. **This is only used when simpleSortMode is set to
+         * true.** Defaults to 'dir'.
+         */
+        directionParam: 'dir',
+
+        /**
+         * @cfg {Boolean} simpleSortMode
+         * Enabling simpleSortMode in conjunction with remoteSort will only send one sort property and a direction when a
+         * remote sort is requested. The directionParam and sortParam will be sent with the property name and either 'ASC'
+         * or 'DESC'.
+         */
+        simpleSortMode: false,
+
+        /**
+         * @cfg {Boolean} noCache
+         * Disable caching by adding a unique parameter name to the request. Set to false to allow caching. Defaults to true.
+         */
+        noCache : true,
+
+        /**
+         * @cfg {String} cacheString
+         * The name of the cache param added to the url when using noCache. Defaults to "_dc".
+         */
+        cacheString: "_dc",
+
+        /**
+         * @cfg {Number} timeout
+         * The number of milliseconds to wait for a response. Defaults to 30000 milliseconds (30 seconds).
+         */
+        timeout : 30000,
+
+        /**
+         * @cfg {Object} api
+         * Specific urls to call on CRUD action methods "create", "read", "update" and "destroy". Defaults to:
+         *
+         *     api: {
+         *         create  : undefined,
+         *         read    : undefined,
+         *         update  : undefined,
+         *         destroy : undefined
+         *     }
+         *
+         * The url is built based upon the action being executed [create|read|update|destroy] using the commensurate
+         * {@link #api} property, or if undefined default to the configured
+         * {@link Ext.data.Store}.{@link Ext.data.proxy.Server#url url}.
+         *
+         * For example:
+         *
+         *     api: {
+         *         create  : '/controller/new',
+         *         read    : '/controller/load',
+         *         update  : '/controller/update',
+         *         destroy : '/controller/destroy_action'
+         *     }
+         *
+         * If the specific URL for a given CRUD action is undefined, the CRUD action request will be directed to the
+         * configured {@link Ext.data.proxy.Server#url url}.
+         */
+        api: {
+            create  : undefined,
+            read    : undefined,
+            update  : undefined,
+            destroy : undefined
+        },
 
         /**
          * @cfg {Object} extraParams
          * Extra parameters that will be included on every request. Individual requests with params of the same name
          * will override these params when they are in conflict.
          */
-        me.extraParams = config.extraParams || {};
-
-        me.api = config.api || {};
-
-        //backwards compatibility, will be deprecated in 5.0
-        me.nocache = me.noCache;
+        extraParams: {}
     },
+
+    // @TODO: put back nocache config option for backwards compatibility
 
     //in a ServerProxy all four CRUD operations are executed in the same manner, so we delegate to doRequest in each case
     create: function() {
@@ -171,7 +160,7 @@ Ext.define('Ext.data.proxy.Server', {
      * @param {Object} value The value
      */
     setExtraParam: function(name, value) {
-        this.extraParams[name] = value;
+        this.getExtraParams()[name] = value;
     },
 
     /**
@@ -181,61 +170,66 @@ Ext.define('Ext.data.proxy.Server', {
      * @return {Ext.data.Request} The request object
      */
     buildRequest: function(operation) {
-        var params = Ext.applyIf(operation.params || {}, this.extraParams || {}),
+        var me = this,
+            params = Ext.applyIf(operation.getParams() || {}, me.getExtraParams() || {}),
+            //id = operation.getId(),
             request;
 
         //copy any sorters, filters etc into the params so they can be sent over the wire
-        params = Ext.applyIf(params, this.getParams(operation));
+        params = Ext.applyIf(params, me.getParams(operation));
 
-        if (operation.id && !params.id) {
-            params.id = operation.id;
-        }
+        // @TODO: figure out who ever sets an id on an operation
+        // if (id && !params.id) {
+        //     params.id = id;
+        // }
 
         request = Ext.create('Ext.data.Request', {
             params   : params,
-            action   : operation.action,
-            records  : operation.records,
+            action   : operation.getAction(),
+            records  : operation.getRecords(),
+            url      : operation.getUrl(),
             operation: operation,
-            url      : operation.url
+            proxy    : me
         });
 
-        request.url = this.buildUrl(request);
-
-        /*
-         * Save the request on the Operation. Operations don't usually care about Request and Response data, but in the
-         * ServerProxy and any of its subclasses we add both request and response as they may be useful for further processing
-         */
-        operation.request = request;
+        request.setUrl(me.buildUrl(request));
+        operation.setRequest(request);
 
         return request;
     },
 
-    // Should this be documented as protected method?
+    /**
+     * This method handles the processing of the response and is usually overridden by subclasses to
+     * do additional processing.
+     * @param {Boolean} success Wether or not this request was successful
+     * @param {Ext.data.Operation} operation The operation we made this request for
+     * @param {Ext.data.Request} request The request that was made
+     * @param {Object} response The response that we got
+     * @param {Function} callback The callback to be fired onces the response is processed
+     * @param {Object} scope The scope in which we call the callback
+     * @protected
+     */
     processResponse: function(success, operation, request, response, callback, scope) {
         var me = this,
-            reader,
-            result;
+            action = operation.getAction(),
+            reader, resultSet;
 
         if (success === true) {
             reader = me.getReader();
-            result = reader.read(me.extractResponseData(response));
+            resultSet = reader.process(me.extractResponseData(response));
 
-            if (result.success !== false) {
-                //see comment in buildRequest for why we include the response object here
-                Ext.apply(operation, {
-                    response: response,
-                    resultSet: result
-                });
-
-                operation.commitRecords(result.records);
-                operation.setCompleted();
-                operation.setSuccessful();
-            } else {
-                operation.setException(result.message);
-                me.fireEvent('exception', this, response, operation);
+            if (operation.process(action, resultSet, request, response) === false) {
+                this.fireEvent('exception', this, response, operation);
             }
         } else {
             me.setException(operation, response);
+            /**
+             * @event exception
+             * Fires when the server returns an exception
+             * @param {Ext.data.proxy.Proxy} this
+             * @param {Object} response The response from the AJAX request
+             * @param {Ext.data.Operation} operation The operation that triggered request
+             */
             me.fireEvent('exception', this, response, operation);
         }
 
@@ -262,7 +256,8 @@ Ext.define('Ext.data.proxy.Server', {
 
     /**
      * Template method to allow subclasses to specify how to get the response for the reader.
-     * @private
+     * @template
+     * @protected
      * @param {Object} response The server response
      * @return {Object} The response data to be used by the reader
      */
@@ -273,7 +268,7 @@ Ext.define('Ext.data.proxy.Server', {
     /**
      * Encode any values being sent to the server. Can be overridden in subclasses.
      * @private
-     * @param {Array} An array of sorters/filters.
+     * @param {Array} value An array of sorters/filters.
      * @return {Object} The encoded value
      */
     applyEncoding: function(value) {
@@ -293,8 +288,8 @@ Ext.define('Ext.data.proxy.Server', {
 
         for (; i < length; i++) {
             min[i] = {
-                property : sorters[i].property,
-                direction: sorters[i].direction
+                property : sorters[i].getProperty(),
+                direction: sorters[i].getDirection()
             };
         }
         return this.applyEncoding(min);
@@ -314,8 +309,8 @@ Ext.define('Ext.data.proxy.Server', {
 
         for (; i < length; i++) {
             min[i] = {
-                property: filters[i].property,
-                value   : filters[i].value
+                property: filters[i].getProperty(),
+                value   : filters[i].getValue()
             };
         }
         return this.applyEncoding(min);
@@ -328,33 +323,32 @@ Ext.define('Ext.data.proxy.Server', {
     getParams: function(operation) {
         var me = this,
             params = {},
-            isDef = Ext.isDefined,
-            groupers = operation.groupers,
-            sorters = operation.sorters,
-            filters = operation.filters,
-            page = operation.page,
-            start = operation.start,
-            limit = operation.limit,
+            groupers = operation.getGroupers(),
+            sorters = operation.getSorters(),
+            filters = operation.getFilters(),
+            page = operation.getPage(),
+            start = operation.getStart(),
+            limit = operation.getLimit(),
 
-            simpleSortMode = me.simpleSortMode,
+            simpleSortMode = me.getSimpleSortMode(),
 
-            pageParam = me.pageParam,
-            startParam = me.startParam,
-            limitParam = me.limitParam,
-            groupParam = me.groupParam,
-            sortParam = me.sortParam,
-            filterParam = me.filterParam,
-            directionParam = me.directionParam;
+            pageParam = me.getPageParam(),
+            startParam = me.getStartParam(),
+            limitParam = me.getLimitParam(),
+            groupParam = me.getGroupParam(),
+            sortParam = me.getSortParam(),
+            filterParam = me.getFilterParam(),
+            directionParam = me.getDirectionParam();
 
-        if (pageParam && isDef(page)) {
+        if (pageParam && page !== null) {
             params[pageParam] = page;
         }
 
-        if (startParam && isDef(start)) {
+        if (startParam && start !== null) {
             params[startParam] = start;
         }
 
-        if (limitParam && isDef(limit)) {
+        if (limitParam && limit !== null) {
             params[limitParam] = limit;
         }
 
@@ -365,12 +359,11 @@ Ext.define('Ext.data.proxy.Server', {
 
         if (sortParam && sorters && sorters.length > 0) {
             if (simpleSortMode) {
-                params[sortParam] = sorters[0].property;
-                params[directionParam] = sorters[0].direction;
+                params[sortParam] = sorters[0].getProperty();
+                params[directionParam] = sorters[0].getDirection();
             } else {
                 params[sortParam] = me.encodeSorters(sorters);
             }
-
         }
 
         if (filterParam && filters && filters.length > 0) {
@@ -396,8 +389,8 @@ Ext.define('Ext.data.proxy.Server', {
         }
         //</debug>
 
-        if (me.noCache) {
-            url = Ext.urlAppend(url, Ext.String.format("{0}={1}", me.cacheString, Ext.Date.now()));
+        if (me.getNoCache()) {
+            url = Ext.urlAppend(url, Ext.String.format("{0}={1}", me.getCacheString(), Ext.Date.now()));
         }
 
         return url;
@@ -413,7 +406,7 @@ Ext.define('Ext.data.proxy.Server', {
      * @return {String} The url
      */
     getUrl: function(request) {
-        return request.url || this.api[request.action] || this.url;
+        return request.getUrl() || this.getApi()[request.getAction()] || this._url;
     },
 
     /**
@@ -438,9 +431,5 @@ Ext.define('Ext.data.proxy.Server', {
      * @param {Boolean} success True if the request was successful
      * @method
      */
-    afterRequest: Ext.emptyFn,
-
-    onDestroy: function() {
-        Ext.destroy(this.reader, this.writer);
-    }
+    afterRequest: Ext.emptyFn
 });

@@ -102,7 +102,7 @@ Ext.EventManager.un = Ext.EventManager.removeListener;
  *
  * [getting_started]: #!/guide/getting_started
  */
-Ext.setVersion('touch', '2.0.0.pr3');
+Ext.setVersion('touch', '2.0.0.pr4');
 
 Ext.apply(Ext, {
     /**
@@ -208,6 +208,40 @@ Ext.apply(Ext, {
     },
 
     /**
+     * Copies a set of named properties fom the source object to the destination object.
+     *
+     * Example:
+     *
+     *     ImageComponent = Ext.extend(Ext.Component, {
+     *         initComponent: function() {
+     *             this.autoEl = { tag: 'img' };
+     *             MyComponent.superclass.initComponent.apply(this, arguments);
+     *             this.initialBox = Ext.copyTo({}, this.initialConfig, 'x,y,width,height');
+     *         }
+     *     });
+     *
+     * Important note: To borrow class prototype methods, use {@link Ext.Base#borrow} instead.
+     *
+     * @param {Object} dest The destination object.
+     * @param {Object} source The source object.
+     * @param {String/String[]} names Either an Array of property names, or a comma-delimited list
+     * of property names to copy.
+     * @param {Boolean} usePrototypeKeys (Optional) Defaults to false. Pass true to copy keys off of the prototype as well as the instance.
+     * @return {Object} The modified object.
+     */
+    copyTo : function(dest, source, names, usePrototypeKeys) {
+        if (typeof names == 'string') {
+            names = names.split(/[,;\s]/);
+        }
+        Ext.each (names, function(name) {
+            if (usePrototypeKeys || source.hasOwnProperty(name)) {
+                dest[name] = source[name];
+            }
+        }, this);
+        return dest;
+    },
+
+    /**
      * Attempts to destroy any objects passed to it by removing all event listeners, removing them from the
      * DOM (if applicable) and calling their destroy functions (if available).  This method is primarily
      * intended for arguments of type {@link Ext.Element} and {@link Ext.Component}, but any subclass of
@@ -277,6 +311,9 @@ function(el){
         }
     },
 
+    /**
+     * @private
+     */
     defaultSetupConfig: {
         eventPublishers: {
             dom: {
@@ -349,6 +386,31 @@ function(el){
     //</feature>
 
     /**
+     * @private
+     */
+    isSetup: false,
+
+    /**
+     * @private
+     */
+    setupListeners: [],
+
+    /**
+     * @private
+     */
+    onSetup: function(fn, scope) {
+        if (Ext.isSetup) {
+            fn.call(scope);
+        }
+        else {
+            Ext.setupListeners.push({
+                fn: fn,
+                scope: scope
+            });
+        }
+    },
+
+    /**
      * Ext.setup is used to launch a basic application. It handles creating an {@link Ext.Viewport} instance for you.
      *
      *     Ext.setup({
@@ -385,6 +447,45 @@ function(el){
      *             });
      *         }
      *     });
+     *
+     * @param {String/Object} config.icon
+     * A icon configuration for this application. This will only apply to iOS applications which are saved to the homescreen.
+     *
+     * You can either pass a string which will be applied to all different sizes:
+     *
+     *     Ext.setup({
+     *         icon: 'icon.png',
+     *         onReady: function() {
+     *             console.log('Launch...');
+     *         }
+     *     });
+     *
+     * Or an object which has a location for different sizes:
+     *
+     *     Ext.setup({
+     *         icon: {
+     *             '57': 'icon57.png',
+     *             '77': 'icon77.png',
+     *             '114': 'icon114.png'
+     *         },
+     *         onReady: function() {
+     *             console.log('Launch...');
+     *         }
+     *     });
+     *
+     * @param {String} config.icon.57 The icon to be used on non-retna display devices (iPhone 3GS and below).
+     * @param {String} config.icon.77 The icon to be used on the iPad.
+     * @param {String} config.icon.114 The icon to be used on retna display devices (iPhone 4 and above).
+     *
+     * @param {Boolean} glossOnIcon
+     * True to add a gloss effect to the icon.
+     *
+     * @param {String} statusBarStyle
+     * The style of status bar to be shown on applications added to the iOS homescreen. Valid options are:
+     *
+     * * `default`
+     * * `black`
+     * * `black-translucent`
      *
      * @param {String[]} config.requires
      * An array of required classes for your application which will be automatically loaded if {@link Ext.Loader#enabled} is set
@@ -442,7 +543,8 @@ function(el){
             scope = config.scope,
             requires = Ext.Array.from(config.requires),
             extOnReady = Ext.onReady,
-            callback, viewport;
+            icon = config.icon,
+            callback, viewport, precomposed;
 
         Ext.setup = function() {
             throw new Error("Ext.setup has already been called before");
@@ -452,12 +554,22 @@ function(el){
         delete config.onReady;
         delete config.scope;
 
-        requires.push('Ext.event.Dispatcher');
-        requires.push('Ext.dom.CompositeElementLite'); // this is so Ext.select exists
-
-        Ext.require(requires);
+        //TODO: Move Ext.dom.CompositeElementLite
+        Ext.require(['Ext.event.Dispatcher', 'Ext.dom.CompositeElementLite']);
 
         callback = function() {
+            var listeners = Ext.setupListeners,
+                ln = listeners.length,
+                i, listener;
+
+            delete Ext.setupListeners;
+            Ext.isSetup = true;
+
+            for (i = 0; i < ln; i++) {
+                listener = listeners[i];
+                listener.fn.call(listener.scope);
+            }
+
             Ext.onReady = extOnReady;
             Ext.onReady(onReady, scope);
         };
@@ -468,12 +580,12 @@ function(el){
             onReady = function() {
                 origin();
                 Ext.onReady(fn, scope);
-            }
+            };
         };
 
         config = Ext.merge({}, defaultSetupConfig, config);
 
-        Ext.onDocumentReady(function(){
+        Ext.onDocumentReady(function() {
             Ext.factoryConfig(config, function(data) {
                 Ext.event.Dispatcher.getInstance().setPublishers(data.eventPublishers);
 
@@ -497,10 +609,12 @@ function(el){
                     };
                     //</deprecated>
 
-                    Ext.Viewport.on('ready', callback, null, {single: true});
+                    Ext.require(requires, function() {
+                        Ext.Viewport.on('ready', callback, null, {single: true});
+                    });
                 }
                 else {
-                    callback();
+                    Ext.require(requires, callback);
                 }
             });
         });
@@ -511,14 +625,54 @@ function(el){
                 '<meta id="extViewportMeta" ' +
                        'name="viewport" ' +
                        'content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no" />');
-            document.write(
-                '<meta name="apple-mobile-web-app-capable" content="yes">');
-            document.write(
-                '<meta name="apple-touch-fullscreen" content="yes">');
+            document.write('<meta name="apple-mobile-web-app-capable" content="yes">');
+            document.write('<meta name="apple-touch-fullscreen" content="yes">');
+            
+            if (Ext.os.is.iOS) {
+                //status bar style
+                if (Ext.isString(config.statusBarStyle)) {
+                    document.write('<meta name="apple-mobile-web-app-status-bar-style" content="' + config.statusBarStyle + '">');
+                }
+
+                //startup screens
+                if (config.tabletStartupScreen && Ext.os.is.iPad) {
+                    document.write('<link rel="apple-touch-startup-image" href="' + config.tabletStartupScreen + '">');
+                }
+
+                if (config.phoneStartupScreen && !Ext.os.is.iPad) {
+                    document.write('<link rel="apple-touch-startup-image" href="' + config.phoneStartupScreen + '">');
+                }
+
+                // icon
+                if (Ext.isString(config.icon) || Ext.isString(config.phoneIcon) || Ext.isString(config.tabletIcon)) {
+                    icon = {
+                        '57': config.phoneIcon || config.tabletIcon || config.icon,
+                        '72': config.tabletIcon || config.phoneIcon || config.icon,
+                        '114': config.phoneIcon || config.tabletIcon || config.icon
+                    };
+                }
+                
+                precomposed = (config.glossOnIcon === false) ? '-precomposed' : '';
+
+                if (Ext.os.is.iPad && icon['72']) {
+                    document.write('<link rel="apple-touch-icon' + precomposed + '" sizes="72x72" href="' + icon['72'] + '">');
+                }
+                else if (!Ext.os.is.iPad) {
+                    if (icon['57']) {
+                        document.write('<link rel="apple-touch-icon' + precomposed + '" href="' + icon['57'] + '">');
+                    }
+                    if (icon['114']) {
+                        document.write('<link rel="apple-touch-icon' + precomposed + '" sizes="114x114" href="' + icon['114'] + '">');
+                    }
+                }
+            }
         }
     },
 
     /**
+     * @member Ext
+     * @method application
+     *
      * Loads Ext.app.Application class and starts it up with given configuration after the page is ready.
      *
      *     Ext.application({
@@ -555,6 +709,45 @@ function(el){
      *             });
      *         }
      *     });
+     *
+     * @param {String/Object} config.icon
+     * A icon configuration for this application. This will only apply to iOS applications which are saved to the homescreen.
+     *
+     * You can either pass a string which will be applied to all different sizes:
+     *
+     *     Ext.setup({
+     *         icon: 'icon.png',
+     *         onReady: function() {
+     *             console.log('Launch...');
+     *         }
+     *     });
+     *
+     * Or an object which has a location for different sizes:
+     *
+     *     Ext.setup({
+     *         icon: {
+     *             '57': 'icon57.png',
+     *             '77': 'icon77.png',
+     *             '114': 'icon114.png'
+     *         },
+     *         onReady: function() {
+     *             console.log('Launch...');
+     *         }
+     *     });
+     *
+     * @param {String} config.icon.57 The icon to be used on non-retna display devices (iPhone 3GS and below).
+     * @param {String} config.icon.77 The icon to be used on the iPad.
+     * @param {String} config.icon.114 The icon to be used on retna display devices (iPhone 4 and above).
+     *
+     * @param {Boolean} glossOnIcon
+     * True to add a gloss effect to the icon.
+     *
+     * @param {String} statusBarStyle
+     * The style of status bar to be shown on applications added to the iOS homescreen. Valid options are:
+     *
+     * * `default`
+     * * `black`
+     * * `black-translucent`
      *
      * @param {String[]} config.requires
      * An array of required classes for your application which will be automatically loaded if {@link Ext.Loader#enabled} is set
@@ -629,6 +822,49 @@ function(el){
         };
 
         Ext.setup(config);
+
+        //<deprecated product=touch since=2.0>
+        /**
+         * Restores compatibility for the old Ext.Router.draw syntax. This needs to be here because apps often include
+         * routes.js just after app.js, so this is our only opportunity to hook this in. There is a small piece of code
+         * inside Application's onDependenciesLoaded that sets up the other end of this
+         */
+        Ext.Router = {};
+
+        var drawStack = [];
+
+        /**
+         * Application's onDependenciesLoaded has a deprecated-wrapped line that calls this. Basic idea is that once an
+         * app has been instantiated we set that at Ext.Router's appInstance and then redirect any calls to
+         * Ext.Router.draw to that app's Router. We keep a drawStack above so that we can call Ext.Router.draw one or
+         * more times before the application is even instantiated and it will simply link it up once everything is
+         * present.
+         */
+        Ext.Router.setAppInstance = function(app) {
+            Ext.Router.appInstance = app;
+
+            if (drawStack.length > 0) {
+                Ext.each(drawStack, Ext.Router.draw);
+            }
+        };
+
+        Ext.Router.draw = function(mapperFn) {
+            Ext.Logger.deprecate(
+                'Ext.Router.map is deprecated, please define your routes inline inside each Controller. ' +
+                'Please see the 1.x -> 2.x migration guide for more details.'
+            );
+
+            var app = Ext.Router.appInstance,
+                router;
+
+            if (app) {
+                router = app.getRouter();
+                mapperFn(router);
+            } else {
+                drawStack.push(mapperFn);
+            }
+        };
+        //</deprecated>
     },
 
     /**
@@ -678,7 +914,7 @@ function(el){
                 }
             }
 
-            i = 0,
+            i = 0;
             ln = keys.length;
 
             if (ln === 0) {
@@ -718,7 +954,8 @@ function(el){
      * @param instance
      */
     factory: function(config, classReference, instance, aliasNamespace) {
-        var manager = Ext.ClassManager;
+        var manager = Ext.ClassManager,
+            newInstance;
 
         // If config is falsy or a valid instance, destroy the current instance
         // (if it exists) and replace with the new one
@@ -760,11 +997,19 @@ function(el){
         //</debug>
 
         if ('xtype' in config) {
-            return manager.instantiateByAlias('widget.' + config.xtype, config);
+            newInstance = manager.instantiateByAlias('widget.' + config.xtype, config);
         }
 
         if ('xclass' in config) {
-            return manager.instantiate(config.xclass, config);
+            newInstance = manager.instantiate(config.xclass, config);
+        }
+
+        if (newInstance) {
+            if (instance) {
+                instance.destroy();
+            }
+
+            return newInstance;
         }
 
         if (instance) {
@@ -805,21 +1050,34 @@ function(el){
             message = "'" + oldName + "' is deprecated, please use '" + newName + "' instead";
         }
 
-        Ext.Object.redefineProperty(object, oldName,
-            function() {
+        Ext.Object.defineProperty(object, oldName, {
+            get: function() {
                 //<debug warn>
                 Ext.Logger.deprecate(message, 1);
                 //</debug>
-
                 return this[newName];
             },
-            function(value) {
+            set: function(value) {
                 //<debug warn>
                 Ext.Logger.deprecate(message, 1);
                 //</debug>
                 this[newName] = value;
             }
-        );
+        });
+    },
+
+   /**
+    * @private
+    */
+    deprecatePropertyValue: function(object, name, value, message) {
+        Ext.Object.defineProperty(object, name, {
+            get: function() {
+                //<debug warn>
+                Ext.Logger.deprecate(message, 1);
+                //</debug>
+                return value;
+            }
+        });
     },
 
     /**
@@ -997,13 +1255,15 @@ function(el){
 
             // We need to defer calling these methods until the browser is done executing
             // it's ready code. Other we can end up firing too early.
-            Ext.Function.defer(function() {
-                for (i = 0, ln = listeners.length; i < ln; i++) {
-                    listener = listeners[i];
-                    listener.fn.call(listener.scope);
-                }
-                delete Ext.readyListeners;
-            }, 1);
+            // TODO Unless we can show that it won't work properly without this timer, this needs
+            // to be taken out completely
+//            Ext.Function.defer(function() {
+            for (i = 0, ln = listeners.length; i < ln; i++) {
+                listener = listeners[i];
+                listener.fn.call(listener.scope);
+            }
+            delete Ext.readyListeners;
+//            }, 1);
         }
     },
 
@@ -1069,7 +1329,7 @@ function(el){
 Ext.deprecateMethod(Ext.Function, 'createDelegate', Ext.Function.bind, "Ext.createDelegate() is deprecated, please use Ext.Function.bind() instead");
 
 /**
- * @member Ext.Function
+ * @member Ext
  * @method createInterceptor
  * @deprecated 2.0.0
  * createInterceptor is deprecated, please use {@link Ext.Function#createInterceptor createInterceptor} instead
@@ -1079,9 +1339,9 @@ Ext.deprecateMethod(Ext, 'createInterceptor', Ext.Function.createInterceptor, "E
 //</deprecated>
 
 /**
- * Provides useful information about the current browser. Should not be manually instantiated unless for unit-testing; 
+ * Provides useful information about the current browser. Should not be manually instantiated unless for unit-testing;
  * access the global instance stored in Ext.browser instead. Example:
- * 
+ *
  * <pre><code>
  * if (Ext.browser.is.IE) {
  *      // IE specific code here
@@ -1342,20 +1602,17 @@ Ext.define('Ext.env.Browser', {
 
     for (name in flags) {
         if (flags.hasOwnProperty(name)) {
-            Ext.deprecateProperty(Ext.is, name, flags[name], "Ext.is." + name + " is deprecated, please use Ext.browser.is." + name + " instead");
+            Ext.deprecatePropertyValue(Ext.is, name, flags[name], "Ext.is." + name + " is deprecated, please use Ext.browser.is." + name + " instead");
         }
     }
 
-    Ext.deprecateProperty(Ext, 'isSecure', browserEnv.isSecure, "Ext.isSecure is deprecated, please use Ext.browser.isSecure instead");
-
-    Ext.deprecateProperty(Ext, 'isStrict', browserEnv.isStrict, "Ext.isStrict is deprecated, please use Ext.browser.isStrict instead");
-
-    Ext.deprecateProperty(Ext, 'userAgent', browserEnv.userAgent, "Ext.userAgent is deprecated, please use Ext.browser.userAgent instead");
+    Ext.deprecatePropertyValue(Ext, 'isSecure', browserEnv.isSecure, "Ext.isSecure is deprecated, please use Ext.browser.isSecure instead");
+    Ext.deprecatePropertyValue(Ext, 'isStrict', browserEnv.isStrict, "Ext.isStrict is deprecated, please use Ext.browser.isStrict instead");
+    Ext.deprecatePropertyValue(Ext, 'userAgent', browserEnv.userAgent, "Ext.userAgent is deprecated, please use Ext.browser.userAgent instead");
     //</deprecated>
 });
 
-/*
- * @class Ext.env.OS
+/**
  * Provide useful information about the current operating system environment. Access the global instance stored in Ext.os. Example:
  * <pre><code>
  * if (Ext.os.is.Windows) {
@@ -1371,7 +1628,6 @@ Ext.define('Ext.env.Browser', {
  *
  * For a full list of supported values, refer to: {@link Ext.env.OS#is}
  */
-
 Ext.define('Ext.env.OS', {
 
     requires: ['Ext.Version'],
@@ -1399,7 +1655,7 @@ Ext.define('Ext.env.OS', {
         }
     },
 
-    /*
+    /**
      * A "hybrid" property, can be either accessed as a method call, i.e:
      * <pre><code>
      * if (Ext.os.is('Android')) { ... }
@@ -1427,14 +1683,14 @@ Ext.define('Ext.env.OS', {
      */
     is: Ext.emptyFn,
 
-    /*
+    /**
      * Read-only - the full name of the current operating system
      * Possible values are: iOS, Android, WebOS, BlackBerry, MacOSX, Windows, Linux and Other
      * @type String
      */
     name: null,
 
-    /*
+    /**
      * Read-only, refer to {@link Ext.Version}
      * @type Ext.Version
      */
@@ -1514,8 +1770,10 @@ Ext.define('Ext.env.OS', {
 }, function() {
     /**
      * @class Ext.is
-     * @deprecated 2.0.0
-     * Deprecated
+     * @deprecated
+     * Used to detect if the current browser supports a certain feature, and the type of the current browser.
+     *
+     * Please refer to the {@link Ext.env.Browser}, {@link Ext.env.OS} and {@link Ext.feature.has} classes instead.
      */
     var navigator = Ext.global.navigator,
         osEnv, osName, osVersion, deviceType;
@@ -1527,12 +1785,12 @@ Ext.define('Ext.env.OS', {
         var is = this.is;
 
         if (is.MacOS) {
-            Ext.deprecateProperty(is, 'Mac', true, "Ext.is.Mac is deprecated, please use Ext.os.is.MacOS instead");
-            Ext.deprecateProperty(is, 'mac', true, "Ext.is.Mac is deprecated, please use Ext.os.is.MacOS instead");
+            Ext.deprecatePropertyValue(is, 'Mac', true, "Ext.is.Mac is deprecated, please use Ext.os.is.MacOS instead");
+            Ext.deprecatePropertyValue(is, 'mac', true, "Ext.is.Mac is deprecated, please use Ext.os.is.MacOS instead");
         }
 
         if (is.BlackBerry) {
-            Ext.deprecateProperty(is, 'Blackberry', true, "Ext.is.Blackberry is deprecated, please use Ext.os.is.BlackBerry instead");
+            Ext.deprecatePropertyValue(is, 'Blackberry', true, "Ext.is.Blackberry is deprecated, please use Ext.os.is.BlackBerry instead");
         }
 
         return this;
@@ -1555,7 +1813,7 @@ Ext.define('Ext.env.OS', {
 
     for (name in flags) {
         if (flags.hasOwnProperty(name)) {
-            Ext.deprecateProperty(Ext.is, name, flags[name], "Ext.is." + name + " is deprecated, please use Ext.os.is." + name + " instead");
+            Ext.deprecatePropertyValue(Ext.is, name, flags[name], "Ext.is." + name + " is deprecated, please use Ext.os.is." + name + " instead");
         }
     }
     //</deprecated>
@@ -1583,7 +1841,13 @@ Ext.define('Ext.env.OS', {
 });
 
 /**
+ * A class to detect if the current browser supports various features.
  *
+ * Please refer to the documentation of {@link Ext.feature.has} on how to use it.
+ *
+ *     if (Ext.feature.has.Canvas) {
+ *         // do some cool things with canvas here
+ *     }
  */
 Ext.define('Ext.env.Feature', {
 
@@ -1682,16 +1946,44 @@ Ext.define('Ext.env.Feature', {
 
     var has = Ext.feature.has;
 
+    /**
+     * @class Ext.feature.has
+     * A simple class to verify if a browser feature exists or not on the current device.
+     *
+     *     if (Ext.feature.has.Canvas) {
+     *         // do some cool things with canvas here
+     *     }
+     *
+     * See the list of properties below too see which features are available for detection.
+     */
+
     Ext.feature.registerTest({
+        /**
+         * @member Ext.feature.has
+         * @property {Boolean} Canvas
+         * True if the current device supports Canvas.
+         */
         Canvas: function() {
             var element = this.getTestElement('canvas');
             return !!(element && element.getContext && element.getContext('2d'));
         },
+
+        /**
+         * @member Ext.feature.has
+         * @property {Boolean} Svg
+         * True if the current device supports SVG.
+         */
         Svg: function() {
             var doc = document;
 
             return !!(doc.createElementNS && !!doc.createElementNS("http:/" + "/www.w3.org/2000/svg", "svg").createSVGRect);
         },
+
+        /**
+         * @member Ext.feature.has
+         * @property {Boolean} Vml
+         * True if the current device supports VML.
+         */
         Vml: function() {
             var element = this.getTestElement(),
                 ret = false;
@@ -1702,46 +1994,128 @@ Ext.define('Ext.env.Feature', {
 
             return ret;
         },
+
+        /**
+         * @member Ext.feature.has
+         * @property {Boolean} Touch
+         * True if the current device supports touch events (`touchstart`).
+         */
         Touch: function() {
             return this.isEventSupported('touchstart') && !(Ext.os && Ext.os.name.match(/Windows|MacOSX|Linux/));
         },
+
+        /**
+         * @member Ext.feature.has
+         * @property {Boolean} Orientation
+         * True if the current device supports different orientations.
+         */
         Orientation: function() {
             return ('orientation' in window) && this.isEventSupported('orientationchange');
         },
+
+        /**
+         * @member Ext.feature.has
+         * @property {Boolean} OrientationChange
+         * True if the current device supports the `orientationchange` event.
+         */
         OrientationChange: function() {
             return this.isEventSupported('orientationchange');
         },
+
+        /**
+         * @member Ext.feature.has
+         * @property {Boolean} DeviceMotion
+         * True if the current device supports the `devicemotion` event.
+         */
         DeviceMotion: function() {
             return this.isEventSupported('devicemotion');
         },
+
+        /**
+         * @member Ext.feature.has
+         * @property {Boolean} Geolocation
+         * True if the current device supports Geolocation.
+         */
         Geolocation: function() {
             return 'geolocation' in window.navigator;
         },
+
+        /**
+         * @member Ext.feature.has
+         * @property {Boolean} SqlDatabase
+         * True if the current device supports SQL Databases.
+         */
         SqlDatabase: function() {
             return 'openDatabase' in window;
         },
+
+        /**
+         * @member Ext.feature.has
+         * @property {Boolean} WebSockets
+         */
         WebSockets: function() {
             return 'WebSocket' in window;
         },
+
+        /**
+         * @member Ext.feature.has
+         * @property {Boolean} History
+         */
         History: function() {
             return ('history' in window && 'pushState' in window.history);
         },
+
+        /**
+         * @member Ext.feature.has
+         * @property {Boolean} CssTransforms
+         * True if the current device supports CSS Transform animations.
+         */
         CssTransforms: function() {
             return this.isStyleSupported('transform');
         },
+
+        /**
+         * @member Ext.feature.has
+         * @property {Boolean} Css3dTransforms
+         * True if the current device supports CSS 3D Transform animations.
+         */
         Css3dTransforms: function() {
             //TODO Implement a better test for the buggy 3D Transform implementation in Android 2.x
             return this.has('CssTransforms') && this.isStyleSupported('perspective') && !Ext.os.is.Android2;
         },
+
+        /**
+         * @member Ext.feature.has
+         * @property {Boolean} CssAnimations
+         * True if the current device supports CSS Animations.
+         */
         CssAnimations: function() {
             return this.isStyleSupported('animationName');
         },
+
+        /**
+         * @member Ext.feature.has
+         * @property {Boolean} CssTransitions
+         * True if the current device supports CSS Transitions.
+         */
         CssTransitions: function() {
             return this.isStyleSupported('transitionProperty');
         },
+
+        /**
+         * @member Ext.feature.has
+         * @property {Boolean} Audio
+         * True if the current device supports the `<audio>` tag.
+         */
         Audio: function() {
             return !!this.getTestElement('audio').canPlayType;
         },
+
+        /**
+         * @member Ext.feature.has
+         * @property {Boolean} Video
+         * True if the current device supports the `<video>` tag.
+         */
         Video: function() {
             return !!this.getTestElement('video').canPlayType;
         }
@@ -1750,26 +2124,48 @@ Ext.define('Ext.env.Feature', {
     //<deprecated product=touch since=2.0>
     /**
      * @class Ext.supports
-     * @deprecated 2.0.0
+     * @deprecated
+     * Please use the {@link Ext.env.Browser}, {@link Ext.env.OS} and {@link Ext.feature.has} classes.
      */
+
     /**
      * @member Ext.supports
      * @property Transitions
-     * @deprecated 2.0.0
+     * @deprecated 2.0.0 Please use {@link Ext.feature.has#CssTransitions} instead
      */
-    Ext.deprecateProperty(has, 'Transitions', has.CssTransitions,
+    Ext.deprecatePropertyValue(has, 'Transitions', has.CssTransitions,
                           "Ext.supports.Transitions is deprecated, please use Ext.feature.has.CssTransitions instead");
 
-    Ext.deprecateProperty(has, 'SVG', has.Svg,
+    /**
+     * @member Ext.supports
+     * @property SVG
+     * @deprecated 2.0.0 Please use {@link Ext.feature.has#Svg} instead
+     */
+    Ext.deprecatePropertyValue(has, 'SVG', has.Svg,
                           "Ext.supports.SVG is deprecated, please use Ext.feature.has.Svg instead");
 
-    Ext.deprecateProperty(has, 'VML', has.Vml,
+    /**
+     * @member Ext.supports
+     * @property VML
+     * @deprecated 2.0.0 Please use {@link Ext.feature.has#Vml} instead
+     */
+    Ext.deprecatePropertyValue(has, 'VML', has.Vml,
                           "Ext.supports.VML is deprecated, please use Ext.feature.has.Vml instead");
 
-    Ext.deprecateProperty(has, 'AudioTag', has.Audio,
+    /**
+     * @member Ext.supports
+     * @property AudioTag
+     * @deprecated 2.0.0 Please use {@link Ext.feature.has#Audio} instead
+     */
+    Ext.deprecatePropertyValue(has, 'AudioTag', has.Audio,
                           "Ext.supports.AudioTag is deprecated, please use Ext.feature.has.Audio instead");
 
-    Ext.deprecateProperty(has, 'GeoLocation', has.Geolocation,
+    /**
+     * @member Ext.supports
+     * @property GeoLocation
+     * @deprecated 2.0.0 Please use {@link Ext.feature.has#Geolocation} instead
+     */
+    Ext.deprecatePropertyValue(has, 'GeoLocation', has.Geolocation,
                           "Ext.supports.GeoLocation is deprecated, please use Ext.feature.has.Geolocation instead");
 
     var name;
@@ -1780,7 +2176,7 @@ Ext.define('Ext.env.Feature', {
 
     for (name in has) {
         if (has.hasOwnProperty(name)) {
-            Ext.deprecateProperty(Ext.supports, name, has[name], "Ext.supports." + name + " is deprecated, please use Ext.feature.has." + name + " instead");
+            Ext.deprecatePropertyValue(Ext.supports, name, has[name], "Ext.supports." + name + " is deprecated, please use Ext.feature.has." + name + " instead");
         }
     }
     //</deprecated>

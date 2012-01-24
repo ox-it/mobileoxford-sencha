@@ -17,7 +17,7 @@ Ext.define('Kitchensink.view.Ajax', {
                         handler: function() {
                             var panel = Ext.getCmp('Ajax');
 
-                            panel.getParent().setMask({
+                            panel.getParent().setMasked({
                                 message: 'Loading...'
                             });
 

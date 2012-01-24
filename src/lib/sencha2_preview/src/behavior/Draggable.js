@@ -1,3 +1,6 @@
+/**
+ * @private
+ */
 Ext.define('Ext.behavior.Draggable', {
 
     extend: 'Ext.behavior.Behavior',

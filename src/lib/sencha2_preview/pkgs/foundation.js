@@ -1416,7 +1416,6 @@ Ext.urlAppend = Ext.String.urlAppend;
         splice = supportsSplice ? spliceNative : spliceSim;
 
     // NOTE: from here on, use erase, replace or splice (not native methods)...
-
     ExtArray = Ext.Array = {
         /**
          * Iterates an array or an iterable value and invoke the given callback function for each item.
@@ -1499,11 +1498,9 @@ Ext.urlAppend = Ext.String.urlAppend;
          * @param {Array}  fn.allItems The `array` itself which was passed as the first argument
          * @param {Object} scope (Optional) The execution scope (`this`) in which the specified function is executed.
          */
-        forEach: function(array, fn, scope) {
-            if (supportsForEach) {
+        forEach: supportsForEach ? function(array, fn, scope) {
                 return array.forEach(fn, scope);
-            }
-
+        } : function(array, fn, scope) {
             var i = 0,
                 ln = array.length;
 
@@ -1521,11 +1518,9 @@ Ext.urlAppend = Ext.String.urlAppend;
          * @param {Number} from (Optional) The index at which to begin the search
          * @return {Number} The index of item in the array (or -1 if it is not found)
          */
-        indexOf: function(array, item, from) {
-            if (supportsIndexOf) {
-                return array.indexOf(item, from);
-            }
-
+        indexOf: (supportsIndexOf) ? function(array, item, from) {
+            return array.indexOf(item, from);
+        } : function(array, item, from) {
             var i, length = array.length;
 
             for (i = (from < 0) ? Math.max(0, length + from) : from || 0; i < length; i++) {
@@ -1544,11 +1539,9 @@ Ext.urlAppend = Ext.String.urlAppend;
          * @param {Object} item The item to look for
          * @return {Boolean} True if the array contains the item, false otherwise
          */
-        contains: function(array, item) {
-            if (supportsIndexOf) {
-                return array.indexOf(item) !== -1;
-            }
-
+        contains: supportsIndexOf ? function(array, item) {
+            return array.indexOf(item) !== -1;
+        } : function(array, item) {
             var i, ln;
 
             for (i = 0, ln = array.length; i < ln; i++) {
@@ -1642,11 +1635,9 @@ Ext.urlAppend = Ext.String.urlAppend;
          * @param {Object} scope Callback function scope
          * @return {Array} results
          */
-        map: function(array, fn, scope) {
-            if (supportsMap) {
-                return array.map(fn, scope);
-            }
-
+        map: supportsMap ? function(array, fn, scope) {
+            return array.map(fn, scope);
+        } : function(array, fn, scope) {
             var results = [],
                 i = 0,
                 len = array.length;
@@ -2962,34 +2953,15 @@ var ExtObject = Ext.Object = {
         return objectClass;
     },
 
-    redefineProperty: function() {
-        if ('defineProperty' in Object) {
-            return function(object, property, getter, setter) {
-                var obj = {
-                    configurable: true,
-                    enumerable: true
-                };
+    defineProperty: ('defineProperty' in Object) ? Object.defineProperty : function(object, name, descriptor) {
+        if (descriptor.get) {
+            object.__defineGetter__(name, descriptor.get);
+        }
 
-                if (getter) {
-                    obj.get = getter;
-                }
-                if (setter) {
-                    obj.set = setter;
-                }
-                Object.defineProperty(object, property, obj);
-            };
+        if (descriptor.set) {
+            object.__defineSetter__(name, descriptor.set);
         }
-        else {
-            return function(object, property, getter, setter) {
-                if (getter) {
-                    object.__defineGetter__(property, getter);
-                }
-                if (setter) {
-                    object.__defineSetter__(property, setter);
-                }
-            };
-        }
-    }()
+    }
 };
 
 /**
@@ -3763,10 +3735,9 @@ var noArgs = [],
             }
 
             //<feature classSystem.config>
-            prototype.config = new prototype.configClass;
+            prototype.config = prototype.defaultConfig = new prototype.configClass;
             prototype.initConfigList = prototype.initConfigList.slice();
-            prototype.hasInitConfigMap = Ext.clone(prototype.hasInitConfigMap);
-            prototype.hasConfigMap = Ext.Object.chain(prototype.hasConfigMap);
+            prototype.initConfigMap = Ext.Object.chain(prototype.initConfigMap);
             //</feature>
         },
 
@@ -3812,26 +3783,27 @@ var noArgs = [],
          */
         addConfig: function(config, fullMerge) {
             var prototype = this.prototype,
-                configNameCache = Ext.Class.configNameCache,
-                hasConfig = prototype.hasConfigMap,
-                configList = prototype.initConfigList,
-                configMap = prototype.hasInitConfigMap,
-                defaultConfig = prototype.config,
-                initializedName, name, value;
+                initConfigList = prototype.initConfigList,
+                initConfigMap = prototype.initConfigMap,
+                defaultConfig = prototype.defaultConfig,
+                hasInitConfigItem, name, value;
+
+            fullMerge = Boolean(fullMerge);
 
             for (name in config) {
-                if (config.hasOwnProperty(name)) {
-                    if (!hasConfig[name]) {
-                        hasConfig[name] = true;
-                    }
-
+                if (config.hasOwnProperty(name) && (fullMerge || !(name in defaultConfig))) {
                     value = config[name];
+                    hasInitConfigItem = initConfigMap[name];
 
-                    initializedName = configNameCache[name].initialized;
-
-                    if (!configMap[name] && value !== null && !prototype[initializedName]) {
-                        configMap[name] = true;
-                        configList.push(name);
+                    if (value !== null) {
+                        if (!hasInitConfigItem) {
+                            initConfigMap[name] = true;
+                            initConfigList.push(name);
+                        }
+                    }
+                    else if (hasInitConfigItem) {
+                        initConfigMap[name] = false;
+                        Ext.Array.remove(initConfigList, name);
                     }
                 }
             }
@@ -4210,7 +4182,7 @@ var noArgs = [],
         callParent: function(args) {
             var method;
 
-            // This code is intentionally inlined for the least number of debugger stepping
+            // This code is intentionally inlined for the least amount of debugger stepping
             return (method = this.callParent.caller) && (method.$previous ||
                   ((method = method.$owner ? method : method.caller) &&
                         method.$owner.superclass.$class[method.$name])).apply(this, args || noArgs);
@@ -4348,9 +4320,7 @@ var noArgs = [],
 
         initConfigList: [],
 
-        hasConfigMap: {},
-
-        hasInitConfigMap: {},
+        initConfigMap: {},
 
         /**
          * Get the reference to the class from which this object was instantiated. Note that unlike {@link Ext.Base#self},
@@ -4577,6 +4547,9 @@ var noArgs = [],
         },
 
         //<feature classSystem.config>
+
+        wasInstantiated: false,
+
         /**
          * Initialize configuration for this class. a typical example:
          *
@@ -4599,59 +4572,96 @@ var noArgs = [],
          *     alert(awesome.getName()); // 'Super Awesome'
          *
          * @protected
-         * @param {Object} config
+         * @param {Object} instanceConfig
          * @return {Object} mixins The mixin prototypes as key - value pairs
          */
-        initConfig: function(config) {
-            var instanceConfig = config,
-                configNameCache = Ext.Class.configNameCache,
-                defaultConfig = new this.configClass,
-                defaultConfigList = this.initConfigList,
-                hasConfig = this.hasConfigMap,
-                nameMap, i, ln, name, initializedName;
+        initConfig: function(instanceConfig) {
+            var configNameCache = Ext.Class.configNameCache,
+                prototype = this.self.prototype,
+                initConfigList = this.initConfigList,
+                initConfigMap = this.initConfigMap,
+                config = new this.configClass,
+                defaultConfig = this.defaultConfig,
+                i, ln, name, value, nameMap, getName;
 
             this.initConfig = Ext.emptyFn;
 
             this.initialConfig = instanceConfig || {};
 
-            this.config = config = (instanceConfig) ? Ext.merge(defaultConfig, config) : defaultConfig;
-
             if (instanceConfig) {
-                defaultConfigList = defaultConfigList.slice();
+                Ext.merge(config, instanceConfig);
+            }
 
-                for (name in instanceConfig) {
-                    if (hasConfig[name]) {
-                        if (instanceConfig[name] !== null) {
-                            defaultConfigList.push(name);
-                            nameMap = configNameCache[name];
+            this.config = config;
 
-                            this[nameMap.initialized] = false;
-                            this[nameMap.get] = this[nameMap.initGet];
-                        }
+            // Optimize initConfigList *once* per class based on the existence of apply* and update* methods
+            // Happens only once during the first instantiation
+            if (!prototype.hasOwnProperty('wasInstantiated')) {
+                prototype.wasInstantiated = true;
+
+                for (i = 0,ln = initConfigList.length; i < ln; i++) {
+                    name = initConfigList[i];
+                    nameMap = configNameCache[name];
+                    value = defaultConfig[name];
+
+                    if (!(nameMap.apply in prototype)
+                        && !(nameMap.update in prototype)
+                        && prototype[nameMap.set].$isDefault
+                        && typeof value != 'object') {
+                        prototype[nameMap.internal] = defaultConfig[name];
+                        initConfigMap[name] = false;
+                        Ext.Array.remove(initConfigList, name);
+                        i--;
+                        ln--;
                     }
                 }
             }
 
-            for (i = 0,ln = defaultConfigList.length; i < ln; i++) {
-                name = defaultConfigList[i];
-                nameMap = configNameCache[name];
-                initializedName = nameMap.initialized;
+            if (instanceConfig) {
+                initConfigList = initConfigList.slice();
 
-                if (!this[initializedName]) {
-                    this[initializedName] = true;
-                    this[nameMap.set](config[name]);
+                for (name in instanceConfig) {
+                    if (name in defaultConfig && config[name] !== null && !initConfigMap[name]) {
+                        initConfigList.push(name);
+                    }
+                }
+            }
+
+            // Point all getters to the initGetters
+            for (i = 0,ln = initConfigList.length; i < ln; i++) {
+                name = initConfigList[i];
+                nameMap = configNameCache[name];
+                this[nameMap.get] = this[nameMap.initGet];
+            }
+
+            for (i = 0,ln = initConfigList.length; i < ln; i++) {
+                name = initConfigList[i];
+                nameMap = configNameCache[name];
+                getName = nameMap.get;
+
+                if (this.hasOwnProperty(getName)) {
+                    this[nameMap.set].call(this, config[name]);
+                    delete this[getName];
                 }
             }
 
             return this;
         },
 
-        /**
-         * @private
-         * @param config
-         */
-        hasConfig: function(name) {
-            return Boolean(this.hasConfigMap[name]);
+        getCurrentConfig: function() {
+            var defaultConfig = this.defaultConfig,
+                configNameCache = Ext.Class.configNameCache,
+                config = {},
+                name, nameMap;
+
+            for (name in defaultConfig) {
+                if (defaultConfig.hasOwnProperty(name)) {
+                    nameMap = configNameCache[name];
+                    config[name] = this[nameMap.get].call(this);
+                }
+            }
+
+            return config;
         },
 
         /**
@@ -4664,23 +4674,32 @@ var noArgs = [],
 
             var configNameCache = Ext.Class.configNameCache,
                 currentConfig = this.config,
-                hasConfig = this.hasConfigMap,
+                defaultConfig = this.defaultConfig,
                 initialConfig = this.initialConfig,
-                name, value;
+                configList = [],
+                name, value, i, ln, nameMap;
 
             applyIfNotSet = Boolean(applyIfNotSet);
 
             for (name in config) {
-                if (applyIfNotSet && initialConfig.hasOwnProperty(name)) {
+                if ((applyIfNotSet && (name in initialConfig)) || !(name in defaultConfig)) {
                     continue;
                 }
 
                 value = config[name];
                 currentConfig[name] = value;
 
-                if (hasConfig[name]) {
-                    this[configNameCache[name].set](value);
-                }
+                configList.push(name);
+
+                nameMap = configNameCache[name];
+                this[nameMap.get] = this[nameMap.initGet];
+            }
+
+            for (i = 0,ln = configList.length; i < ln; i++) {
+                name = configList[i];
+                nameMap = configNameCache[name];
+                this[nameMap.set].call(this, config[name]);
+                delete this[nameMap.get];
             }
 
             return this;
@@ -4691,9 +4710,14 @@ var noArgs = [],
          * @param name
          */
         getConfig: function(name) {
-            var configNameCache = Ext.Class.configNameCache;
+            return this[Ext.Class.configNameCache[name].get].call(this);
+        },
 
-            return this[configNameCache[name].get]();
+        /**
+         * @private
+         */
+        hasConfig: function(name) {
+            return (name in this.defaultConfig);
         },
 
         /**
@@ -5069,54 +5093,48 @@ var noArgs = [],
          */
         process: function(Class, data, onCreated) {
             var preprocessorStack = data.preprocessors || ExtClass.defaultPreprocessors,
-                registeredPreprocessors = this.preprocessors,
+                preprocessors = this.preprocessors,
                 hooks = {
-                    onBeforeCreated: this.onBeforeCreated
+                    onBeforeCreated: this.onBeforeCreated,
+                    onCreated: onCreated || Ext.emptyFn
                 },
                 index = 0,
-                preprocessors = [],
-                preprocessor, preprocessorsProperties,
-                i, ln, j, subLn, preprocessorProperty, process;
+                name, preprocessor, properties,
+                i, ln, fn, property, process;
 
             delete data.preprocessors;
 
-            for (i = 0,ln = preprocessorStack.length; i < ln; i++) {
-                preprocessor = preprocessorStack[i];
+            process = function(Class, data, hooks) {
+                fn = null;
 
-                if (typeof preprocessor == 'string') {
-                    preprocessor = registeredPreprocessors[preprocessor];
-                    preprocessorsProperties = preprocessor.properties;
+                while (fn === null) {
+                    name = preprocessorStack[index++];
 
-                    if (preprocessorsProperties === true) {
-                        preprocessors.push(preprocessor.fn);
-                    }
-                    else if (preprocessorsProperties) {
-                        for (j = 0,subLn = preprocessorsProperties.length; j < subLn; j++) {
-                            preprocessorProperty = preprocessorsProperties[j];
+                    if (name) {
+                        preprocessor = preprocessors[name];
+                        properties = preprocessor.properties;
 
-                            if (data.hasOwnProperty(preprocessorProperty)) {
-                                preprocessors.push(preprocessor.fn);
-                                break;
+                        if (properties === true) {
+                            fn = preprocessor.fn;
+                        }
+                        else {
+                            for (i = 0,ln = properties.length; i < ln; i++) {
+                                property = properties[i];
+
+                                if (data.hasOwnProperty(property)) {
+                                    fn = preprocessor.fn;
+                                    break;
+                                }
                             }
                         }
                     }
-                }
-                else {
-                    preprocessors.push(preprocessor);
-                }
-            }
-
-            hooks.onCreated = onCreated ? onCreated : Ext.emptyFn;
-
-            process = function(Class, data, hooks) {
-                preprocessor = preprocessors[index++];
-
-                if (!preprocessor) {
-                    hooks.onBeforeCreated.apply(this, arguments);
-                    return;
+                    else {
+                        hooks.onBeforeCreated.apply(this, arguments);
+                        return;
+                    }
                 }
 
-                if (preprocessor.call(this, Class, data, hooks, process) !== false) {
+                if (fn.call(this, Class, data, hooks, process) !== false) {
                     process.apply(this, arguments);
                 }
             };
@@ -5280,8 +5298,8 @@ var noArgs = [],
                 capitalizedName = name.charAt(0).toUpperCase() + name.substr(1);
 
                 map = cache[name] = {
+                    name: name,
                     internal: '_' + name,
-                    initialized: '_is' + capitalizedName + 'Initialized',
                     initializing: 'is' + capitalizedName + 'Initializing',
                     apply: 'apply' + capitalizedName,
                     update: 'update' + capitalizedName,
@@ -5294,6 +5312,65 @@ var noArgs = [],
             }
 
             return map;
+        },
+
+        generateSetter: function(nameMap) {
+            var internalName = nameMap.internal,
+                getName = nameMap.get,
+                applyName = nameMap.apply,
+                updateName = nameMap.update,
+                setter;
+
+            setter = function(value) {
+                var oldValue = this[internalName],
+                    applier = this[applyName],
+                    updater = this[updateName];
+
+                delete this[getName];
+
+                if (applier) {
+                    value = applier.call(this, value, oldValue);
+                }
+
+                if (typeof value != 'undefined') {
+                    this[internalName] = value;
+
+                    if (updater && value !== oldValue) {
+                        updater.call(this, value, oldValue);
+                    }
+                }
+
+                return this;
+            };
+
+            setter.$isDefault = true;
+
+            return setter;
+        },
+
+        generateInitGetter: function(nameMap) {
+            var name = nameMap.name,
+                setName = nameMap.set,
+                getName = nameMap.get,
+                initializingName = nameMap.initializing;
+
+            return function() {
+                this[initializingName] = true;
+                delete this[getName];
+
+                this[setName].call(this, this.config[name]);
+                delete this[initializingName];
+
+                return this[getName].apply(this, arguments);
+            }
+        },
+
+        generateGetter: function(nameMap) {
+            var internalName = nameMap.internal;
+
+            return function() {
+                return this[internalName];
+            }
         }
     });
 
@@ -5314,7 +5391,7 @@ var noArgs = [],
         var Base = Ext.Base,
             basePrototype = Base.prototype,
             extend = data.extend,
-            Parent, parentPrototype, i;
+            Parent, parentPrototype, name;
 
         delete data.extend;
 
@@ -5328,9 +5405,9 @@ var noArgs = [],
         parentPrototype = Parent.prototype;
 
         if (!Parent.$isClass) {
-            for (i in basePrototype) {
-                if (!parentPrototype[i]) {
-                    parentPrototype[i] = basePrototype[i];
+            for (name in basePrototype) {
+                if (!parentPrototype[name]) {
+                    parentPrototype[name] = basePrototype[name];
                 }
             }
         }
@@ -5340,7 +5417,7 @@ var noArgs = [],
         Class.triggerExtended.apply(Class, arguments);
 
         if (data.onClassExtended) {
-            Class.onExtended(data.onClassExtended);
+            Class.onExtended(data.onClassExtended, Class);
             delete data.onClassExtended;
         }
 
@@ -5413,96 +5490,37 @@ var noArgs = [],
      */
     ExtClass.registerPreprocessor('config', function(Class, data) {
         var config = data.config,
-            prototype = Class.prototype;
+            prototype = Class.prototype,
+            defaultConfig = prototype.config,
+            nameMap, name, setName, getName, initGetName, internalName, value;
 
         delete data.config;
 
-        Ext.Object.each(config, function(name, value) {
-            var nameMap = ExtClass.getConfigNameMap(name),
-                internalName = nameMap.internal,
-                initializedName = nameMap.initialized,
-                applyName = nameMap.apply,
-                updateName = nameMap.update,
-                setName = nameMap.set,
-                getName = nameMap.get,
-                initGetName = nameMap.initGet,
-                initializingName = nameMap.initializing,
-                hasOwnSetter = (setName in prototype) || data.hasOwnProperty(setName),
-                hasOwnApplier = (applyName in prototype) || data.hasOwnProperty(applyName),
-                hasOwnUpdater = (updateName in prototype) || data.hasOwnProperty(updateName),
-                optimizedGetter, customGetter;
+        for (name in config) {
+            // Once per config item, per class hierachy
+            if (config.hasOwnProperty(name) && !(name in defaultConfig)) {
+                value = config[name];
+                nameMap = this.getConfigNameMap(name);
+                setName = nameMap.set;
+                getName = nameMap.get;
+                initGetName = nameMap.initGet;
+                internalName = nameMap.internal;
 
-            if (value === null || (!hasOwnSetter && !hasOwnApplier && !hasOwnUpdater)) {
-                prototype[internalName] = value;
-                prototype[initializedName] = true;
-            }
-            else {
-                prototype[initializedName] = false;
-            }
+                data[initGetName] = this.generateInitGetter(nameMap);
 
-            if (!hasOwnSetter) {
-                data[setName] = function(value) {
-                    var oldValue = this[internalName],
-                        applier = this[applyName],
-                        updater = this[updateName];
-
-                    if (!this[initializedName]) {
-                        this[initializedName] = true;
-                    }
-
-                    if (applier) {
-                        value = applier.call(this, value, oldValue);
-                    }
-
-                    if (typeof value != 'undefined') {
-                        this[internalName] = value;
-
-                        if (updater && value !== oldValue) {
-                            updater.call(this, value, oldValue);
-                        }
-                    }
-
-                    return this;
-                }
-            }
-
-            if (!(getName in prototype) || data.hasOwnProperty(getName)) {
-                customGetter = data[getName] || false;
-
-                if (customGetter) {
-                    optimizedGetter = function() {
-                        return customGetter.apply(this, arguments);
-                    };
-                }
-                else {
-                    optimizedGetter = function() {
-                        return this[internalName];
-                    };
+                if (value === null && !data.hasOwnProperty(internalName)) {
+                    data[internalName] = null;
                 }
 
-                data[getName] = prototype[initGetName] = function() {
-                    var currentGetter;
+                if (!data.hasOwnProperty(getName)) {
+                    data[getName] = this.generateGetter(nameMap);
+                }
 
-                    if (!this[initializedName]) {
-                        this[initializedName] = true;
-                        this[initializingName] = true;
-                        this[setName](this.config[name]);
-                        this[initializingName] = false;
-                    }
-
-                    currentGetter = this[getName];
-
-                    if ('$previous' in currentGetter) {
-                        currentGetter.$previous = optimizedGetter;
-                    }
-                    else {
-                        this[getName] = optimizedGetter;
-                    }
-
-                    return optimizedGetter.apply(this, arguments);
-                };
+                if (!data.hasOwnProperty(setName)) {
+                    data[setName] = this.generateSetter(nameMap);
+                }
             }
-        });
+        }
 
         Class.addConfig(config, true);
     });
@@ -5603,7 +5621,6 @@ var noArgs = [],
         return cls;
     };
     //</feature>
-
 })();
 
 /**

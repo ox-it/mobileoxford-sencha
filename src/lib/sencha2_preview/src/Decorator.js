@@ -50,6 +50,23 @@ Ext.define('Ext.Decorator', {
         component: {}
     },
 
+    statics: {
+        generateProxySetter: function(name) {
+            return function(value) {
+                var component = this.getComponent();
+                component[name].call(component, value);
+
+                return this;
+            }
+        },
+        generateProxyGetter: function(name) {
+            return function() {
+                var component = this.getComponent();
+                return component[name].call(component);
+            }
+        }
+    },
+
     onClassExtended: function(Class, members) {
         if (!members.hasOwnProperty('proxyConfig')) {
             return;
@@ -61,25 +78,18 @@ Ext.define('Ext.Decorator', {
 
         members.config = (config) ? Ext.applyIf(config, proxyConfig) : proxyConfig;
 
-        Ext.Object.each(proxyConfig, function(name) {
-            var map = ExtClass.getConfigNameMap(name),
-                setName = map.set,
-                getName = map.get;
+        var name, nameMap, setName, getName;
 
-            Class.addMember(setName, function(value) {
-                var component = this.getComponent();
+        for (name in proxyConfig) {
+            if (proxyConfig.hasOwnProperty(name)) {
+                nameMap = ExtClass.getConfigNameMap(name);
+                setName = nameMap.set;
+                getName = nameMap.get;
 
-                component[setName].call(component, value);
-
-                return this;
-            });
-
-            Class.addMember(getName, function() {
-                var component = this.getComponent();
-
-                return component[getName].call(component);
-            });
-        });
+                members[setName] = this.generateProxySetter(setName);
+                members[getName] = this.generateProxyGetter(getName);
+            }
+        }
     },
 
     // @private
@@ -89,21 +99,35 @@ Ext.define('Ext.Decorator', {
 
     // @private
     updateComponent: function(newComponent, oldComponent) {
-        var element = this.innerElement;
-
         if (oldComponent) {
-            element.dom.removeChild(oldComponent.renderElement.dom);
             if (this.isRendered() && oldComponent.setRendered(false)) {
-                oldComponent.fireEvent('renderedchange', oldComponent, false);
+                oldComponent.fireAction('renderedchange', [this, oldComponent, false],
+                    'doUnsetComponent', this, { args: [oldComponent] });
+            }
+            else {
+                this.doUnsetComponent(oldComponent);
             }
         }
 
         if (newComponent) {
-            element.dom.appendChild(newComponent.renderElement.dom);
             if (this.isRendered() && newComponent.setRendered(true)) {
-                newComponent.fireEvent('renderedchange', newComponent, true);
+                newComponent.fireAction('renderedchange', [this, newComponent, true],
+                    'doSetComponent', this, { args: [newComponent] });
+            }
+            else {
+                this.doSetComponent(newComponent);
             }
         }
+    },
+
+    // @private
+    doUnsetComponent: function(component) {
+        this.innerElement.dom.removeChild(component.renderElement.dom);
+    },
+
+    // @private
+    doSetComponent: function(component) {
+        this.innerElement.dom.appendChild(component.renderElement.dom);
     },
 
     // @private
@@ -116,8 +140,10 @@ Ext.define('Ext.Decorator', {
             if (component) {
                 component.setRendered(rendered);
             }
+
             return true;
         }
+
         return false;
     },
 

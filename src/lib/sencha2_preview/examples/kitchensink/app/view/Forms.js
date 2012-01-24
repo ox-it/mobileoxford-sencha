@@ -73,6 +73,15 @@ Ext.define('Kitchensink.view.Forms', {
                                 clearIcon  : true
                             },
                             {
+                                xtype      : 'spinnerfield',
+                                name       : 'spinner',
+                                label      : 'Spinner',
+                                minValue   : 0,
+                                maxValue   : 10,
+                                increment  : 1,
+                                cycle      : true
+                            },
+                            {
                                 xtype: 'checkboxfield',
                                 name : 'cool',
                                 label: 'Cool'
@@ -199,15 +208,18 @@ Ext.define('Kitchensink.view.Forms', {
                         items: [
                             {
                                 xtype: 'sliderfield',
+                                name: 'thumb',
                                 label: 'Single Thumb'
                             },
                             {
                                 xtype: 'sliderfield',
+                                name: 'multithumb',
                                 label: 'Multiple Thumbs',
                                 values: [10, 70]
                             },
                             {
                                 xtype: 'togglefield',
+                                name: 'toggle',
                                 label: 'Toggle'
                             }
                         ]

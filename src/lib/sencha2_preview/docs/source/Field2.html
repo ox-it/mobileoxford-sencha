@@ -160,6 +160,12 @@ Ext.define('Ext.field.Field', {
         requiredCls: Ext.baseCSSPrefix + 'field-required'
     },
 
+<span id='Ext-field-Field-cfg-isFocused'>    /**
+</span>     * @cfg {Boolean} isFocused
+     * True if this field is currently focused,
+     * @private
+     */
+
     getElementConfig: function() {
         var prefix = Ext.baseCSSPrefix;
 
@@ -262,14 +268,18 @@ Ext.define('Ext.field.Field', {
          * The original value of the field as configured in the {@link #value} configuration.
          * setting is &lt;code&gt;true&lt;/code&gt;.
          */
-            this.originalValue = this.getValue();
+        this.originalValue = this.getInitialConfig().value;
     },
 
 <span id='Ext-field-Field-method-reset'>    /**
 </span>     * Resets the current field value to the originally loaded value and clears any validation messages.
      * @return {Ext.field.Field} this
      */
-    reset: Ext.emptyFn,
+    reset: function() {
+        this.setValue(this.originalValue);
+
+        return this;
+    },
 
 <span id='Ext-field-Field-method-isDirty'>    /**
 </span>     * &lt;p&gt;Returns true if the value of this Field has been changed from its {@link #originalValue}.
@@ -346,20 +356,24 @@ Ext.define('Ext.field.Field', {
         }
     });
 
-    Ext.Object.redefineProperty(prototype, 'fieldEl', function() {
-        //&lt;debug warn&gt;
-        Ext.Logger.deprecate(&quot;'fieldEl' is deprecated, please use getInput() to get an instance of Ext.field.Field instead&quot;, this);
-        //&lt;/debug&gt;
+    Ext.Object.defineProperty(prototype, 'fieldEl', {
+        get: function() {
+            //&lt;debug warn&gt;
+            Ext.Logger.deprecate(&quot;'fieldEl' is deprecated, please use getInput() to get an instance of Ext.field.Field instead&quot;, this);
+            //&lt;/debug&gt;
 
-        return this.getInput().input;
+            return this.getInput().input;
+        }
     });
 
-    Ext.Object.redefineProperty(prototype, 'labelEl', function() {
-        //&lt;debug warn&gt;
-        Ext.Logger.deprecate(&quot;'labelEl' is deprecated&quot;, this);
-        //&lt;/debug&gt;
+    Ext.Object.defineProperty(prototype, 'labelEl', {
+        get: function() {
+            //&lt;debug warn&gt;
+            Ext.Logger.deprecate(&quot;'labelEl' is deprecated&quot;, this);
+            //&lt;/debug&gt;
 
-        return this.getLabel().element;
+            return this.getLabel().element;
+        }
     });
     //&lt;/deprecated&gt;
 });

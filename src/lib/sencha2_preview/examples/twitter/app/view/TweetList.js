@@ -8,7 +8,7 @@
 * The {@link #defaultType} is a tweetlistitem.
 */
 Ext.define('Twitter.view.TweetList', {
-    extend: 'Ext.dataview.ComponentView',
+    extend: 'Ext.DataView',
     xtype: 'tweetlist',
     requires: ['Twitter.view.TweetListItem'],
 
@@ -16,6 +16,7 @@ Ext.define('Twitter.view.TweetList', {
         ui           : 'timeline',
         defaultType  : 'tweetlistitem',
         allowDeselect: false,
+        useComponents: true,
 
         items: [
             {

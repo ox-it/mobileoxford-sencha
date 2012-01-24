@@ -1,3 +1,6 @@
+/**
+ * @private
+ */
 Ext.define('Ext.fx.easing.Linear', {
 
     extend: 'Ext.fx.easing.Abstract',

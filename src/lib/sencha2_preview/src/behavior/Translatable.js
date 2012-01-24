@@ -1,3 +1,6 @@
+/**
+ * @private
+ */
 Ext.define('Ext.behavior.Translatable', {
 
     extend: 'Ext.behavior.Behavior',

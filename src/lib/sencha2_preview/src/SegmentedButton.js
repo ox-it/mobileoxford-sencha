@@ -34,6 +34,7 @@
 Ext.define('Ext.SegmentedButton', {
     extend: 'Ext.Container',
     xtype : 'segmentedbutton',
+    requires: ['Ext.Button'],
 
     config: {
         // @inherited
@@ -82,7 +83,8 @@ Ext.define('Ext.SegmentedButton', {
      * @event toggle
      * Fires when any child button's pressed state has changed.
      * @param {Ext.SegmentedButton} this
-     * @param {Ext.Button[]} pressedButtons The new pressed buttons
+     * @param {Ext.Button} button The toggled button
+     * @param {Boolean} isPressed Boolean to indicate if the button was pressed or not
      */
 
     initialize: function() {
@@ -148,18 +150,18 @@ Ext.define('Ext.SegmentedButton', {
             buttons        = [],
             alreadyPressed;
 
-        if (!me.getDisabled()) {
+        if (!me.getDisabled() && !button.getDisabled()) {
             //if we allow for multiple pressed buttons, use the existing pressed buttons
             if (me.getAllowMultiple()) {
-                buttons = buttons.concat(pressedButtons);
+                buttons = pressedButtons.concat(buttons);
             }
 
-            alreadyPressed = buttons.indexOf(button) !== -1;
+            alreadyPressed = (buttons.indexOf(button) !== -1) || (pressedButtons.indexOf(button) !== -1);
 
             //if we allow for depressing buttons, and the new pressed button is currently pressed, remove it
             if (alreadyPressed && me.getAllowDepress()) {
                 Ext.Array.remove(buttons, button);
-            } else if (!alreadyPressed) {
+            } else if (!alreadyPressed || !me.getAllowDepress()) {
                 buttons.push(button);
             }
 

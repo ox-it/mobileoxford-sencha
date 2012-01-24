@@ -6,7 +6,10 @@ Ext.define('Kiva.view.detail.Information', {
     config: {
         cls: 'detail-card',
         styleHtmlContent: true,
-        scrollable: 'auto',
+        scrollable: {
+            direction: 'vertical',
+            directionLock: true
+        },
 
         tpl: Ext.create('Ext.XTemplate',
             '<h1>{name}</h1>',

@@ -18,6 +18,44 @@ Ext.require([
     'Ext.data.Store'
 ]);
 
+Ext.define('User', {
+    extend: 'Ext.data.Model',
+
+    config: {
+        fields: [
+            {name: 'name', type: 'string'},
+            {name: 'password', type: 'password'},
+            {name: 'disabled', type: 'string'},
+            {name: 'email', type: 'string'},
+            {name: 'url', type: 'string'},
+            {name: 'date', type: 'date'},
+            {name: 'number', type: 'integer'},
+            {name: 'height', type: 'integer'},
+            {name: 'enable', type: 'integer'},
+            {name: 'spinner', type: 'integer'},
+            {name: 'single_slider'},
+            {name: 'multiple_slider'},
+            {name: 'rank', type: 'string'},
+            {name: 'enable', type: 'boolean'},
+            {name: 'cool', type: 'boolean'},
+            {name: 'color', type: 'string'},
+            {name: 'team', type: 'string'},
+            {name: 'secret', type: 'boolean'}
+        ]
+    }
+});
+
+Ext.define('Ranks', {
+    extend: 'Ext.data.Model',
+
+    config: {
+        fields: [
+            {name: 'rank', type: 'string'},
+            {name: 'title', type: 'string'}
+        ]
+    }
+});
+
 Ext.setup({
     icon: 'icon.png',
     tabletStartupScreen: 'tablet_startup.png',
@@ -25,54 +63,20 @@ Ext.setup({
     glossOnIcon: false,
     onReady: function() {
         var form;
-
-        Ext.define('User', {
-            extend: 'Ext.data.Model',
-
-            fields: [
-                {name: 'name',     type: 'string'},
-                {name: 'password', type: 'password'},
-                {name: 'email',    type: 'string'},
-                {name: 'url',      type: 'string'},
-                {name: 'date',     type: 'date'},
-                {name: 'number',   type: 'integer'},
-                {name: 'height',   type: 'integer'},
-                {name: 'enable',   type: 'integer'},
-                {name: 'spinner',  type: 'integer'},
-                {name: 'single_slider'},
-                {name: 'multiple_slider'},
-                {name: 'rank',     type: 'string'},
-                {name: 'enable',   type: 'boolean'},
-                {name: 'cool',     type: 'boolean'},
-                {name: 'color',    type: 'string'},
-                {name: 'team',     type: 'string'},
-                {name: 'secret',   type: 'boolean'}
-            ]
-        });
-
-        Ext.define('Ranks', {
-            extend: 'Ext.data.Model',
-
-            fields: [
-                {name: 'rank',     type: 'string'},
-                {name: 'title',    type: 'string'}
-            ]
-        });
-
         var ranksStore = Ext.create('Ext.data.Store', {
-            data : [
-                { rank : 'master',  title : 'Master'},
-                { rank : 'padawan', title : 'Student'},
-                { rank : 'teacher', title : 'Instructor'},
-                { rank : 'aid',     title : 'Assistant'}
+            data: [
+                { rank: 'master', title: 'Master'},
+                { rank: 'padawan', title: 'Student'},
+                { rank: 'teacher', title: 'Instructor'},
+                { rank: 'aid', title: 'Assistant'}
             ],
-            model : 'Ranks',
-            autoLoad : true,
-            autoDestroy : true
+            model: 'Ranks',
+            autoLoad: true,
+            autoDestroy: true
         });
 
         var formBase = {
-            url           : 'postUser.php',
+            url: 'postUser.php',
             standardSubmit: false,
             items: [
                 {
@@ -80,67 +84,67 @@ Ext.setup({
                     title: 'Personal Info',
                     instructions: 'Please enter the information above.',
                     defaults: {
-                        required  : true,
+                        required: true,
                         labelAlign: 'left',
                         labelWidth: '40%'
                     },
                     items: [
                         {
                             xtype: 'textfield',
-                            name : 'name',
+                            name: 'name',
                             label: 'Name',
                             clearIcon: true,
-                            autoCapitalize : false
+                            autoCapitalize: false
                         },
                         {
                             xtype: 'passwordfield',
-                            name : 'password',
+                            name: 'password',
                             label: 'Password',
                             clearIcon: false
                         },
                         {
                             xtype: 'textfield',
-                            name : 'disabled',
+                            name: 'disabled',
                             label: 'Disabled',
                             disabled: true,
                             clearIcon: true
                         },
                         {
                             xtype: 'emailfield',
-                            name : 'email',
+                            name: 'email',
                             label: 'Email',
                             placeHolder: 'you@sencha.com',
                             clearIcon: true
                         },
                         {
                             xtype: 'urlfield',
-                            name : 'url',
+                            name: 'url',
                             label: 'Url',
                             placeHolder: 'http://sencha.com',
                             clearIcon: true
                         },
                         {
                             xtype: 'checkboxfield',
-                            name : 'cool',
+                            name: 'cool',
                             label: 'Cool',
                             value: true
                         },
                         {
                             xtype: 'spinnerfield',
-                            name : 'spinner',
+                            name: 'spinner',
                             label: 'Spinner'
                         },
                         {
                             xtype: 'selectfield',
-                            name : 'rank',
+                            name: 'rank',
                             label: 'Rank',
-                            valueField : 'rank',
-                            displayField : 'title',
-                            store : ranksStore
+                            valueField: 'rank',
+                            displayField: 'title',
+                            store: ranksStore
                         },
                         {
                             xtype: 'datepickerfield',
-                            name : 'date',
+                            name: 'date',
                             label: 'Start Date',
                             value: new Date(),
                             picker: {
@@ -149,31 +153,31 @@ Ext.setup({
                         },
                         {
                             xtype: 'hiddenfield',
-                            name : 'secret',
+                            name: 'secret',
                             value: 'false'
                         },
                         {
-                            xtype : 'textareafield',
-                            name  : 'bio',
-                            label : 'Bio',
-                            maxLength : 60,
-                            maxRows : 10
+                            xtype: 'textareafield',
+                            name: 'bio',
+                            label: 'Bio',
+                            maxLength: 60,
+                            maxRows: 10
                         },
                         {
                             xtype: 'sliderfield',
-                            name : 'height',
+                            name: 'height',
                             label: 'Height'
                         },
                         {
                             xtype: 'togglefield',
-                            name : 'enable',
+                            name: 'enable',
                             label: 'Security Mode'
                         },
                         {
                             xtype: 'radiofield',
                             name: 'team',
                             label: 'Red Team',
-                            value : 'redteam'
+                            value: 'redteam'
                         },
                         {
                             xtype: 'radiofield',
@@ -184,94 +188,94 @@ Ext.setup({
                     ]
                 },
                 {
-                     xtype: 'fieldset',
-                     title: 'Favorite color',
-                     defaults: { xtype: 'radiofield' },
-                     items: [
-                         { name : 'color', label: 'Red', value : 'red' },
-                         { name : 'color', label: 'Green' , checked : true, value : 'green'}
-                     ]
+                    xtype: 'fieldset',
+                    title: 'Favorite color',
+                    defaults: { xtype: 'radiofield' },
+                    items: [
+                        { name: 'color', label: 'Red', value: 'red' },
+                        { name: 'color', label: 'Green', checked: true, value: 'green'}
+                    ]
                 },
                 {
-                     xtype: 'fieldset',
-                     title: 'HTML5',
-                     items: [
-                         {
-                             xtype: 'numberfield',
-                             name: 'number',
-                             label: 'Number'
-                         },
-                         {
-                             xtype: 'emailfield',
-                             name: 'email2',
-                             label: 'Email',
-                             clearIcon: true
-                         },
-                         {
-                             xtype: 'urlfield',
-                             name: 'url2',
-                             label: 'URL',
-                             clearIcon: true
-                         }
-                     ]
-                },
-               {
                     xtype: 'fieldset',
-                    title: 'Single Select (in fieldset)',
+                    title: 'HTML5',
+                    items: [
+                        {
+                            xtype: 'numberfield',
+                            name: 'number',
+                            label: 'Number'
+                        },
+                        {
+                            xtype: 'emailfield',
+                            name: 'email2',
+                            label: 'Email',
+                            clearIcon: true
+                        },
+                        {
+                            xtype: 'urlfield',
+                            name: 'url2',
+                            label: 'URL',
+                            clearIcon: true
+                        }
+                    ]
+                },
+                {
+                    xtype: 'fieldset',
+                    title: 'Single Select',
                     items: [
                         {
                             xtype: 'selectfield',
                             name: 'options',
                             options: [
-                                {text: 'This is just a big select with text that is overflowing',  value: '1'},
+                                {text: 'This is just a big select with text that is overflowing', value: '1'},
                                 {text: 'Another item', value: '2'}
                             ]
                         }
                     ]
-               },
-                {
-                     xtype: 'fieldset',
-                     title: 'Single Text (in fieldset)',
-                     items: [
-                         {
-                             xtype: 'textfield',
-                             name: 'single_text',
-                             clearIcon: true
-                         }
-                     ]
                 },
                 {
-                     xtype: 'fieldset',
-                     title: 'Single Toggle (in fieldset)',
-                     items: [
-                         {
-                             xtype: 'togglefield',
-                             name: 'single_toggle',
-                             value : 1
-                         }
-                     ]
+                    xtype: 'fieldset',
+                    title: 'Single Text',
+                    items: [
+                        {
+                            xtype: 'textfield',
+                            name: 'single_text',
+                            clearIcon: true
+                        }
+                    ]
                 },
                 {
-                     xtype: 'fieldset',
-                     title: 'Single Slider (in fieldset)',
-                     items: [
-                         {
-                             xtype: 'sliderfield',
-                             name: 'single_slider',
-                             value: 60
-                         }
-                     ]
+                    xtype: 'fieldset',
+                    title: 'Single Toggle',
+                    items: [
+                        {
+                            xtype: 'togglefield',
+                            name: 'single_toggle',
+                            value: 1
+                        }
+                    ]
                 },
                 {
-                     xtype: 'fieldset',
-                     title: 'Multiple Slider Thumbs (in fieldset)',
-                     items: [
-                         {
-                             xtype: 'sliderfield',
-                             name: 'multiple_slider',
-                             values: [40, 90]
-                         }
-                     ]
+                    xtype: 'fieldset',
+                    title: 'Single Slider',
+                    items: [
+                        {
+                            xtype: 'sliderfield',
+                            name: 'single_slider',
+                            value: 60
+                        }
+                    ]
+                },
+                {
+                    xtype: 'fieldset',
+                    title: 'Multiple Slider Thumbs',
+                    items: [
+                        {
+                            xtype: 'sliderfield',
+                            name: 'multiple_slider',
+                            values: [40, 90]
+                        }
+                    ]
                 },
                 {
                     xtype: 'toolbar',
@@ -288,23 +292,24 @@ Ext.setup({
                                     date.setDate(1);
 
                                     formBase.user = Ext.ModelMgr.create({
-                                        'name'           : 'Akura',
-                                        'password'       : 'secret',
-                                        'email'          : 'saru@sencha.com',
-                                        'url'            : 'http://sencha.com',
-                                        'single_slider'  : 10,
+                                        'name': 'Akura',
+                                        'password': 'secret',
+                                        'email': 'saru@sencha.com',
+                                        'disabled': 'disabled',
+                                        'url': 'http://sencha.com',
+                                        'single_slider': 10,
                                         'multiple_slider': [20, 40],
-                                        'number'         : 20,
-                                        'height'         : 20,
-                                        'spinner'        : 5,
-                                        'enable'         : 1,
-                                        'cool'           : true,
-                                        'date'           : date,
-                                        'team'           : 'redteam',
-                                        'color'          : 'blue',
-                                        'rank'           : 'padawan',
-                                        'secret'         : true,
-                                        'bio'            : 'Learned the hard way !'
+                                        'number': 20,
+                                        'height': 20,
+                                        'spinner': 5,
+                                        'enable': 1,
+                                        'cool': true,
+                                        'date': date,
+                                        'team': 'redteam',
+                                        'color': 'blue',
+                                        'rank': 'padawan',
+                                        'secret': true,
+                                        'bio': 'Learned the hard way !'
                                     }, 'User');
                                 }
 
@@ -326,7 +331,7 @@ Ext.setup({
                                     form.updateRecord(formBase.user, true);
                                 }
                                 form.submit({
-                                    waitMsg : {message:'Submitting', cls : 'demos-loading'}
+                                    waitMsg: {message: 'Submitting', cls: 'demos-loading'}
                                 });
                             }
                         }
@@ -353,13 +358,13 @@ Ext.setup({
             form = Ext.Viewport.add(formBase);
         } else {
             Ext.apply(formBase, {
-                autoRender   : true,
-                modal        : true,
+                autoRender: true,
+                modal: true,
                 hideOnMaskTap: false,
-                height       : 505,
-                width        : 480,
-                centered     : true,
-                fullscreen   : true
+                height: 505,
+                width: 480,
+                centered: true,
+                fullscreen: true
             });
 
             form = Ext.create('Ext.form.Panel', formBase);

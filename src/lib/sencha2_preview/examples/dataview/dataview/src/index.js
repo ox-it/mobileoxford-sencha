@@ -1,3 +1,7 @@
+Ext.Loader.setPath({
+    'Ext.data': '../../../src/data'
+});
+
 Ext.setup({
     tabletStartupScreen: 'tablet_startup.png',
     phoneStartupScreen: 'phone_startup.png',
@@ -53,15 +57,16 @@ Ext.setup({
                 {firstName: 'Jay', lastName: 'Robinson'}
             ]
         });
+
         Ext.create('Ext.Panel', {
             fullscreen: true,
             layout: 'fit',
             items: {
                 xtype: 'dataview',
-                id: 'dv2',
                 store: myStore,
+                useComponents: true,
                 itemConfig: {
-                    tpl: '<div>{lastName}, {firstName}</div>'
+                    tpl: '{lastName}, {firstName}'
                 }
             }
         });

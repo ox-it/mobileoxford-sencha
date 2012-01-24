@@ -1,3 +1,6 @@
+/**
+ * @private
+ */
 Ext.define('Ext.fx.easing.EaseOut', {
     extend: 'Ext.fx.easing.Linear',
 

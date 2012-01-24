@@ -3,6 +3,20 @@
  * 
  * The {@link #defaultType} of {@link Ext.Toolbar} is {@link Ext.Button}.
  * 
+ * ## Notes
+ * 
+ * You must use a HTML5 doctype for {@link #docked} `bottom` to work. To do this, simply add the following code to the HTML file:
+ * 
+ *     <!doctype html>
+ * 
+ * So your index.html file should look a little like this:
+ * 
+ *     <!doctype html>
+ *     <html>
+ *         <head>
+ *             <title>MY application title</title>
+ *             ...
+ * 
  * ## Examples
  * 
  *     @example miniphone preview
@@ -119,7 +133,10 @@ Ext.define('Ext.Toolbar', {
     // @private
     applyTitle: function(title) {
         if (typeof title == 'string') {
-            title = {title: title};
+            title = {
+                title: title,
+                centered: true
+            };
         }
 
         return Ext.factory(title, Ext.Title, this.getTitle());

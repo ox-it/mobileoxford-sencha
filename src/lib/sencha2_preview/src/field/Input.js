@@ -57,6 +57,12 @@ Ext.define('Ext.field.Input', {
      * Fires whenever the input has a mousedown occur
      * @param {Ext.EventObject} e The event object
      */
+    
+    /**
+     * @property {String} tag The el tag
+     * @private
+     */
+    tag: 'input',
 
     cachedConfig: {
         /**
@@ -100,12 +106,6 @@ Ext.define('Ext.field.Input', {
     config: {
         // @inherit
         baseCls: Ext.baseCSSPrefix + 'field-input',
-
-        /**
-         * @cfg {String} tag The el tag
-         * @accessor
-         */
-        tag: 'input',
 
         /**
          * @cfg {String} name The field's HTML name attribute
@@ -221,14 +221,13 @@ Ext.define('Ext.field.Input', {
      * @cfg {String/Number} originalValue The original value when the input is rendered
      * @private
      */
-    originalValue: undefined,
 
     // @private
     getTemplate: function() {
         var items = [
             {
                 reference: 'input',
-                tag: this.getTag()
+                tag: this.tag
             },
             {
                 reference: 'clearIcon',
@@ -239,7 +238,7 @@ Ext.define('Ext.field.Input', {
 
         items.push({
             reference: 'mask',
-            classList: [this.getMaskCls()]
+            classList: [this.config.maskCls]
         });
 
         return items;
@@ -258,8 +257,6 @@ Ext.define('Ext.field.Input', {
             focus    : 'onFocus',
             blur     : 'onBlur',
             paste    : 'onPaste'
-            // mousedown: 'onMouseDown',
-            // click    : 'onClick'
         });
 
         me.mask.on({
@@ -273,17 +270,6 @@ Ext.define('Ext.field.Input', {
                 scope: me
             });
         }
-
-        me.doInitValue();
-    },
-
-    // @private
-    doInitValue: function() {
-        /**
-         * @property {Mixed} originalValue
-         * The original value of the field as configured in the {@link #value} configuration
-         */
-        this.originalValue = this.getValue();
     },
 
     applyUseMask: function(useMask) {
@@ -516,6 +502,11 @@ Ext.define('Ext.field.Input', {
         return !!this.checkedRe.test(String(checked));
     },
 
+    setChecked: function(newChecked) {
+        this.updateChecked(this.applyChecked(newChecked));
+        this._checked = newChecked;
+    },
+
     /**
      * Updates the autocorrect attribute with the {@link #autoCorrect} configuration
      * @private
@@ -628,6 +619,20 @@ Ext.define('Ext.field.Input', {
 
         if (el && el.dom.blur) {
             el.dom.blur();
+        }
+        return me;
+    },
+
+    /**
+     * Attempts to forcefully select all the contents of the input field.
+     * @return {Ext.field.Input} this
+     */
+    select: function() {
+        var me = this,
+            el = me.input;
+        
+        if (el && el.dom.setSelectionRange) {
+            el.dom.setSelectionRange(0, 9999);
         }
         return me;
     },

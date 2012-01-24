@@ -21,6 +21,14 @@ Ext.define('Ext.slider.Toggle', {
         maxValueCls: 'x-toggle-on'
     },
 
+    initialize: function() {
+        this.callParent();
+
+        this.on({
+            change: 'onChange'
+        });
+    },
+
     applyMinValue: function() {
         return 0;
     },
@@ -33,24 +41,17 @@ Ext.define('Ext.slider.Toggle', {
         return 1;
     },
 
-    onTap: function() {
-        this.setValue(this.getValue() > 0 ? 0 : 1);
+    setValue: function(newValue, oldValue) {
+        this.callParent(arguments);
+        this.onChange(this, this.getThumbs()[0], newValue, oldValue);
     },
 
-    fireChangeEvent: function() {
-        var me = this,
-            value = this.getValue(),
-            isOn = value > 0,
+    onChange: function(me, thumb, newValue, oldValue) {
+        var isOn = newValue > 0,
             onCls = me.getMaxValueCls(),
             offCls = me.getMinValueCls();
 
-        this.addCls(isOn ? onCls : offCls);
-        this.removeCls(isOn ? offCls : onCls);
-
-        this.callParent();
-    },
-
-    getValue: function() {
-        return this.callParent()[0];
+        this.element.addCls(isOn ? onCls : offCls);
+        this.element.removeCls(isOn ? offCls : onCls);
     }
 });

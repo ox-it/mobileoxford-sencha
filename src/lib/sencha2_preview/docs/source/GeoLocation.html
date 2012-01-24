@@ -51,7 +51,7 @@
  *     geo.updateLocation();
  */
 Ext.define('Ext.util.GeoLocation', {
-    extend: 'Ext.EventedBase',
+    extend: 'Ext.Evented',
 
     config: {
 <span id='Ext-util-GeoLocation-event-locationerror'>        /**
@@ -246,7 +246,7 @@ Ext.define('Ext.util.GeoLocation', {
             provider = me.getProvider();
 
         if (oldAutoUpdate &amp;&amp; provider) {
-            provider.clearWatch(me.watchOperation);
+            clearInterval(me.watchOperationId);
             me.watchOperationId = null;
         }
 
@@ -270,15 +270,22 @@ Ext.define('Ext.util.GeoLocation', {
         var me = this,
             provider = me.getProvider();
 
+        // The native watchPosition method is currently broken in iOS5...
+
         if (me.watchOperationId) {
-            provider.clearWatch(me.watchOperationId);
+            clearInterval(me.watchOperationId);
         }
 
-        me.watchOperationId = provider.watchPosition(
-            Ext.bind(me.fireUpdate, me),
-            Ext.bind(me.fireError, me),
-            me.parseOptions()
-        );
+        function pollPosition() {
+            provider.getCurrentPosition(
+                Ext.bind(me.fireUpdate, me),
+                Ext.bind(me.fireError, me),
+                me.parseOptions()
+            )
+        }
+
+        pollPosition();
+        me.watchOperationId = setInterval(pollPosition, 10000);
     },
 
 <span id='Ext-util-GeoLocation-method-updateLocation'>    /**
@@ -391,6 +398,7 @@ Ext.define('Ext.util.GeoLocation', {
     destroy : function() {
         this.updateAutoUpdate(null);
     }
-});</pre>
+});
+</pre>
 </body>
 </html>

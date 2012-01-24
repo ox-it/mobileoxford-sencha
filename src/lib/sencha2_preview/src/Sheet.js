@@ -8,9 +8,9 @@
  *     var sheet = Ext.create('Ext.Sheet', {
  *         items: [
  *             {
- *                 dock : 'bottom',
+ *                 docked: 'bottom',
  *                 xtype: 'button',
- *                 text : 'Click me'
+ *                 text: 'Click me'
  *             }
  *         ]
  *     });
@@ -18,24 +18,20 @@
  */
 Ext.define('Ext.Sheet', {
     extend: 'Ext.Container',
-    alias : 'widget.sheet',
+
+    xtype: 'sheet',
 
     config: {
         // @inherited
         baseCls: Ext.baseCSSPrefix + 'sheet',
 
         /**
-         * @cfg {Boolean} hidden
-         * True to hide this component
-         * @accessor
+         * @inherit
          */
         hidden: true,
 
         /**
-         * @cfg {Boolean} modal True to make this Component modal. This will create a mask underneath the Component
-         * that covers the whole page and does not allow the user to interact with any other Components until this
-         * Component is dismissed
-         * @accessor
+         * @inherit
          */
         modal: true,
 
@@ -48,13 +44,6 @@ Ext.define('Ext.Sheet', {
         centered: true,
 
         /**
-         * @cfg {Boolean} hideOnMaskTap When using a {@link #modal} Component, setting this to true (the default) will
-         * hide the modal mask and the Component when the mask is tapped on
-         * @accessor
-         */
-        hideOnMaskTap: false,
-
-        /**
          * @cfg {Boolean} stretchX True to stretch this sheet horizontally.
          */
         stretchX: null,
@@ -62,66 +51,55 @@ Ext.define('Ext.Sheet', {
         /**
          * @cfg {Boolean} stretchY True to stretch this sheet vertically.
          */
-        stretchY: null,
+        stretchY: null
 
-        /**
-         * @cfg {String} enter
-         * The viewport side used as the enter point when shown (top, bottom, left, right)
-         * Applies to sliding animation effects only. Defaults to 'bottom'
-         */
-        enter: 'bottom',
-
-        /**
-         * @cfg {String} exit
-         * The viewport side used as the exit point when hidden (top, bottom, left, right)
-         * Applies to sliding animation effects only. Defaults to 'bottom'
-         */
-        exit: 'bottom',
-
-        /**
-         * @cfg {String/Object} enterAnimation
-         * the named Ext.anim effect or animation configuration object used for transitions
-         * when the component is shown. Defaults to 'slide'
-         */
-        enterAnimation: 'slide',
-
-        /**
-         * @cfg {String/Object} exitAnimation
-         * the named Ext.anim effect or animation configuration object used for transitions
-         * when the component is hidden. Defaults to 'slide'
-         */
-        exitAnimation: 'slide'
+        //TODO Bring those configs back when animation is done
+//        /**
+//         * @cfg {String} enter
+//         * The viewport side used as the enter point when shown (top, bottom, left, right)
+//         * Applies to sliding animation effects only. Defaults to 'bottom'
+//         */
+//        enter: 'bottom',
+//
+//        /**
+//         * @cfg {String} exit
+//         * The viewport side used as the exit point when hidden (top, bottom, left, right)
+//         * Applies to sliding animation effects only. Defaults to 'bottom'
+//         */
+//        exit: 'bottom',
+//
+//        /**
+//         * @cfg {String/Object} enterAnimation
+//         * the named Ext.anim effect or animation configuration object used for transitions
+//         * when the component is shown. Defaults to 'slide'
+//         */
+//        enterAnimation: 'slide',
+//
+//        /**
+//         * @cfg {String/Object} exitAnimation
+//         * the named Ext.anim effect or animation configuration object used for transitions
+//         * when the component is hidden. Defaults to 'slide'
+//         */
+//        exitAnimation: 'slide'
     },
 
     updateStretchX: function(newStretchX) {
-        var initialConfig = this.getInitialConfig();
-        
+        this.getLeft();
+        this.getRight();
+
         if (newStretchX) {
             this.setLeft(0);
             this.setRight(0);
-        } else {
-            this.setLeft(initialConfig.left || 'auto');
-            this.setRight(initialConfig.right || 'auto');
         }
     },
 
     updateStretchY: function(newStretchY) {
-        var initialConfig = this.getInitialConfig();
+        this.getTop();
+        this.getBottom();
 
         if (newStretchY) {
             this.setTop(0);
             this.setBottom(0);
-        } else {
-            this.setTop(initialConfig.top || 'auto');
-            this.setBottom(initialConfig.bottom || 'auto');
         }
-    },
-
-    onHiddenChange: function(hidden) {
-        if (!hidden) {
-            Ext.Viewport.hideKeyboard();
-        }
-
-        this.callParent(arguments);
     }
 });

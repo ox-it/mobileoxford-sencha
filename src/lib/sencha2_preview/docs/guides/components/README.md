@@ -30,7 +30,7 @@ Layouts determine how the child Components should be laid out on the screen. In 
 
 ## Instantiating Components
 
-Components are created the same way as all other classes in Sencha Touch - using Ext.create. Here's how we can create a Text field:
+Components are created the same way as all other classes in Sencha Touch - using Ext.create. Here's how we can create a Panel:
 
     var panel = Ext.create('Ext.Panel', {
         html: 'This is my panel'
@@ -88,6 +88,104 @@ Whenever you create a new Component you can pass in configuration options. All o
     alert(panel.getHtml()); //alerts "Some new HTML"
 
 Every config has a getter method and a setter method - these are automatically generated and always follow the same pattern. For example, a config called 'html' will receive getHtml and setHtml methods, a config called defaultType will receive getDefaultType and setDefaultType methods, and so on.
+
+## Using xtype
+
+xtype is an easy way to create Components without using the full class name. This is especially useful when creating
+a {@link Ext.Container Container} that contains child Components. An xtype is simply a shorthand way of specifying a
+Component - for example you can use xtype: 'panel' instead of typing out Ext.panel.Panel.
+
+Sample usage:
+
+    @example miniphone
+    Ext.create('Ext.Container', {
+        fullscreen: true,
+        layout: 'fit',
+        
+        items: [
+            {
+                xtype: 'panel',
+                html: 'This panel is created by xtype'
+            },
+            {
+                xtype: 'toolbar',
+                title: 'So is the toolbar',
+                dock: 'top'
+            }
+        ]
+    });
+
+
+### List of xtypes
+
+This is the list of all xtypes available in Sencha Touch 2:
+
+<pre>
+xtype                   Class
+-----------------       ---------------------
+actionsheet             Ext.ActionSheet
+audio                   Ext.Audio
+button                  Ext.Button
+component               Ext.Component
+container               Ext.Container
+image                   Ext.Img
+label                   Ext.Label
+loadmask                Ext.LoadMask
+map                     Ext.Map
+mask                    Ext.Mask
+media                   Ext.Media
+panel                   Ext.Panel
+segmentedbutton         Ext.SegmentedButton
+sheet                   Ext.Sheet
+spacer                  Ext.Spacer
+title                   Ext.Title
+titlebar                Ext.TitleBar
+toolbar                 Ext.Toolbar
+video                   Ext.Video
+carousel                Ext.carousel.Carousel
+carouselindicator       Ext.carousel.Indicator
+navigationview          Ext.navigation.View
+datepicker              Ext.picker.Date
+picker                  Ext.picker.Picker
+pickerslot              Ext.picker.Slot
+slider                  Ext.slider.Slider
+thumb                   Ext.slider.Thumb
+tabbar                  Ext.tab.Bar
+tabpanel                Ext.tab.Panel
+tab                     Ext.tab.Tab
+viewport                Ext.viewport.Default
+
+DataView Components
+---------------------------------------------
+dataview                Ext.dataview.DataView
+list                    Ext.dataview.List
+listitemheader          Ext.dataview.ListItemHeader
+nestedlist              Ext.dataview.NestedList
+dataitem                Ext.dataview.component.DataItem
+
+Form Components
+---------------------------------------------
+checkboxfield           Ext.field.Checkbox
+datepickerfield         Ext.field.DatePicker
+emailfield              Ext.field.Email
+field                   Ext.field.Field
+hiddenfield             Ext.field.Hidden
+input                   Ext.field.Input
+numberfield             Ext.field.Number
+passwordfield           Ext.field.Password
+radiofield              Ext.field.Radio
+searchfield             Ext.field.Search
+selectfield             Ext.field.Select
+sliderfield             Ext.field.Slider
+spinnerfield            Ext.field.Spinner
+textfield               Ext.field.Text
+textareafield           Ext.field.TextArea
+textareainput           Ext.field.TextAreaInput
+togglefield             Ext.field.Toggle
+urlfield                Ext.field.Url
+fieldset                Ext.form.FieldSet
+formpanel               Ext.form.Panel
+</pre>
 
 ## Adding Components to Containers
 

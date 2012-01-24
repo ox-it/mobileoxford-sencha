@@ -2,9 +2,9 @@
  * @author Ed Spencer
  * @class Ext.data.association.HasMany
  * @extends Ext.data.association.Association
- * 
+ *
  * <p>Represents a one-to-many relationship between two models. Usually created indirectly via a model definition:</p>
- * 
+ *
 <pre><code>
 Ext.define('Product', {
     extend: 'Ext.data.Model',
@@ -25,14 +25,14 @@ Ext.define('User', {
     hasMany: {model: 'Product', name: 'products'}
 });
 </pre></code>
-* 
+*
  * <p>Above we created Product and User models, and linked them by saying that a User hasMany Products. This gives
  * us a new function on every User instance, in this case the function is called 'products' because that is the name
  * we specified in the association configuration above.</p>
- * 
+ *
  * <p>This new function returns a specialized {@link Ext.data.Store Store} which is automatically filtered to load
  * only Products for the given model instance:</p>
- * 
+ *
 <pre><code>
 //first, we load up a User with id of 1
 var user = Ext.create('User', {id: 1, name: 'Ed'});
@@ -49,19 +49,19 @@ products.add({
 //saves the changes to the store - this automatically sets the new Product's user_id to 1 before saving
 products.sync();
 </code></pre>
- * 
+ *
  * <p>The new Store is only instantiated the first time you call products() to conserve memory and processing time,
  * though calling products() a second time returns the same store instance.</p>
- * 
+ *
  * <p><u>Custom filtering</u></p>
- * 
+ *
  * <p>The Store is automatically furnished with a filter - by default this filter tells the store to only return
  * records where the associated model's foreign key matches the owner model's primary key. For example, if a User
  * with ID = 100 hasMany Products, the filter loads only Products with user_id == 100.</p>
- * 
+ *
  * <p>Sometimes we want to filter by another field - for example in the case of a Twitter search application we may
  * have models for Search and Tweet:</p>
- * 
+ *
 <pre><code>
 Ext.define('Search', {
     extend: 'Ext.data.Model',
@@ -86,10 +86,10 @@ Ext.define('Tweet', {
 //returns a Store filtered by the filterProperty
 var store = new Search({query: 'Sencha Touch'}).tweets();
 </code></pre>
- * 
+ *
  * <p>The tweets association above is filtered by the query property by setting the {@link #filterProperty}, and is
  * equivalent to this:</p>
- * 
+ *
 <pre><code>
 var store = Ext.create('Ext.data.Store', {
     model: 'Tweet',
@@ -109,98 +109,142 @@ Ext.define('Ext.data.association.HasMany', {
 
     alias: 'association.hasmany',
 
-    /**
-     * @cfg {String} foreignKey The name of the foreign key on the associated model that links it to the owner
-     * model. Defaults to the lowercased name of the owner model plus "_id", e.g. an association with a where a
-     * model called Group hasMany Users would create 'group_id' as the foreign key. When the remote store is loaded,
-     * the store is automatically filtered so that only records with a matching foreign key are included in the 
-     * resulting child store. This can be overridden by specifying the {@link #filterProperty}.
-     * <pre><code>
-Ext.define('Group', {
-    extend: 'Ext.data.Model',
-    fields: ['id', 'name'],
-    hasMany: 'User'
-});
+    config: {
+        /**
+         * @cfg {String} foreignKey The name of the foreign key on the associated model that links it to the owner
+         * model. Defaults to the lowercased name of the owner model plus "_id", e.g. an association with a
+         * model called Group hasMany Users would create 'group_id' as the foreign key. When the remote store is loaded,
+         * the store is automatically filtered so that only records with a matching foreign key are included in the
+         * resulting child store. This can be overridden by specifying the {@link #filterProperty}.
+         * <pre><code>
+    Ext.define('Group', {
+        extend: 'Ext.data.Model',
+        fields: ['id', 'name'],
+        hasMany: 'User'
+    });
 
-Ext.define('User', {
-    extend: 'Ext.data.Model',
-    fields: ['id', 'name', 'group_id'], // refers to the id of the group that this user belongs to
-    belongsTo: 'Group'
-});
-     * </code></pre>
-     */
-    
-    /**
-     * @cfg {String} name The name of the function to create on the owner model to retrieve the child store.
-     * If not specified, the pluralized name of the child model is used.
-     * <pre><code>
-// This will create a users() method on any Group model instance
-Ext.define('Group', {
-    extend: 'Ext.data.Model',
-    fields: ['id', 'name'],
-    hasMany: 'User'
-});
-var group = new Group();
-console.log(group.users());
+    Ext.define('User', {
+        extend: 'Ext.data.Model',
+        fields: ['id', 'name', 'group_id'], // refers to the id of the group that this user belongs to
+        belongsTo: 'Group'
+    });
+         * </code></pre>
+         */
+        foreignKey: undefined,
 
-// The method to retrieve the users will now be getUserList
-Ext.define('Group', {
-    extend: 'Ext.data.Model',
-    fields: ['id', 'name'],
-    hasMany: {model: 'User', name: 'getUserList'}
-});
-var group = new Group();
-console.log(group.getUserList());
-     * </code></pre>
-     */
-    
-    /**
-     * @cfg {Object} storeConfig Optional configuration object that will be passed to the generated Store. Defaults to 
-     * undefined.
-     */
-    
-    /**
-     * @cfg {String} filterProperty Optionally overrides the default filter that is set up on the associated Store. If
-     * this is not set, a filter is automatically created which filters the association based on the configured 
-     * {@link #foreignKey}. See intro docs for more details. Defaults to undefined
-     */
-    
-    /**
-     * @cfg {Boolean} autoLoad True to automatically load the related store from a remote source when instantiated.
-     * Defaults to <tt>false</tt>.
-     */
-    
-    /**
-     * @cfg {String} type The type configuration can be used when creating associations using a configuration object.
-     * Use 'hasMany' to create a HasMany association
-     * <pre><code>
-associations: [{
-    type: 'hasMany',
-    model: 'User'
-}]
-     * </code></pre>
-     */
-    
-    constructor: function(config) {
-        var me = this,
-            ownerProto,
-            name;
-            
-        me.callParent(arguments);
-        
-        me.name = me.name || Ext.util.Inflector.pluralize(me.associatedName.toLowerCase());
-        
-        ownerProto = me.ownerModel.prototype;
-        name = me.name;
-        
-        Ext.applyIf(me, {
-            storeName : name + "Store",
-            foreignKey: me.ownerName.toLowerCase() + "_id"
+        /**
+         * @cfg {String} name The name of the function to create on the owner model to retrieve the child store.
+         * If not specified, the pluralized name of the child model is used.
+         * <pre><code>
+        // This will create a users() method on any Group model instance
+        Ext.define('Group', {
+            extend: 'Ext.data.Model',
+            fields: ['id', 'name'],
+            hasMany: 'User'
         });
-        
-        ownerProto[name] = me.createStore();
+        var group = new Group();
+        console.log(group.users());
+
+        // The method to retrieve the users will now be getUserList
+        Ext.define('Group', {
+            extend: 'Ext.data.Model',
+            fields: ['id', 'name'],
+            hasMany: {model: 'User', name: 'getUserList'}
+        });
+        var group = new Group();
+        console.log(group.getUserList());
+         * </code></pre>
+         */
+
+        /**
+         * @cfg {Object} store Optional configuration object that will be passed to the generated Store. Defaults to
+         * an empty Object.
+         */
+        store: undefined,
+
+        /**
+         * @cfg {String} storeName Optional The name of the store by which you can reference it on this class as a property.
+         */
+        storeName: undefined,
+
+        /**
+         * @cfg {String} filterProperty Optionally overrides the default filter that is set up on the associated Store. If
+         * this is not set, a filter is automatically created which filters the association based on the configured
+         * {@link #foreignKey}. See intro docs for more details. Defaults to null.
+         */
+        filterProperty: null,
+
+        /**
+         * @cfg {Boolean} autoLoad True to automatically load the related store from a remote source when instantiated.
+         * Defaults to <tt>false</tt>.
+         */
+        autoLoad: false
     },
-    
+
+    constructor: function(config) {
+        config = config || {};
+
+        if (config.storeConfig) {
+            // <debug>
+            Ext.Logger.warn('storeConfig is deprecated on an association. Instead use the store configuration.');
+            // </debug>
+            config.store = config.storeConfig;
+            delete config.storeConfig;
+        }
+
+        this.callParent([config]);
+    },
+
+    applyName: function(name) {
+        if (!name) {
+            name = Ext.util.Inflector.pluralize(this.getAssociatedName().toLowerCase());
+        }
+        return name;
+    },
+
+    applyStoreName: function(name) {
+        if (!name) {
+            name = this.getName() + 'Store';
+        }
+        return name;
+    },
+
+    applyForeignKey: function(foreignKey) {
+        if (!foreignKey) {
+            foreignKey = this.getOwnerName().toLowerCase() + '_id';
+        }
+        return foreignKey;
+    },
+
+    applyAssociationKey: function(associationKey) {
+        if (!associationKey) {
+            var associatedName = this.getAssociatedName();
+            associationKey = Ext.util.Inflector.pluralize(associatedName[0].toLowerCase() + associatedName.slice(1));
+        }
+        return associationKey;
+    },
+
+    updateForeignKey: function(foreignKey, oldForeignKey) {
+        var fields = this.getAssociatedModel().getFields(),
+            field = fields.get(foreignKey);
+
+        if (!field) {
+            field = new Ext.data.Field({
+                name: foreignKey
+            });
+            fields.add(field);
+            fields.isDirty = true;
+        }
+
+        if (oldForeignKey) {
+            field = fields.get(oldForeignKey);
+            if (field) {
+                fields.remove(field);
+                fields.isDirty = true;
+            }
+        }
+    },
+
     /**
      * @private
      * Creates a function that returns an Ext.data.Store which is configured to load a set of data filtered
@@ -208,21 +252,20 @@ associations: [{
      * returns a Store configured to return the filtered set of a single Group's Users.
      * @return {Function} The store-generating function
      */
-    createStore: function() {
-        var that            = this,
-            associatedModel = that.associatedModel,
-            storeName       = that.storeName,
-            foreignKey      = that.foreignKey,
-            primaryKey      = that.primaryKey,
-            filterProperty  = that.filterProperty,
-            autoLoad        = that.autoLoad,
-            storeConfig     = that.storeConfig || {};
-        
+    applyStore: function(storeConfig) {
+        var me = this,
+            associatedModel = me.getAssociatedModel(),
+            storeName       = me.getStoreName(),
+            foreignKey      = me.getForeignKey(),
+            primaryKey      = me.getPrimaryKey(),
+            filterProperty  = me.getFilterProperty(),
+            autoLoad        = me.getAutoLoad();
+
         return function() {
             var me = this,
                 config, filter,
                 modelDefaults = {};
-                
+
             if (me[storeName] === undefined) {
                 if (filterProperty) {
                     filter = {
@@ -237,26 +280,30 @@ associations: [{
                         exactMatch: true
                     };
                 }
-                
+
                 modelDefaults[foreignKey] = me.get(primaryKey);
                 
                 config = Ext.apply({}, storeConfig, {
                     model        : associatedModel,
                     filters      : [filter],
-                    remoteFilter : false,
+                    remoteFilter : true,
                     modelDefaults: modelDefaults
                 });
-                
+
                 me[storeName] = Ext.create('Ext.data.Store', config);
                 if (autoLoad) {
                     me[storeName].load();
                 }
             }
-            
+
             return me[storeName];
         };
     },
-    
+
+    updateStore: function(store) {
+        this.getOwnerModel().prototype[this.getName()] = store;
+    },
+
     /**
      * Read associated data
      * @private
@@ -264,22 +311,23 @@ associations: [{
      * @param {Ext.data.reader.Reader} reader The reader for the associated model
      * @param {Object} associationData The raw associated data
      */
-    read: function(record, reader, associationData){
-        var store = record[this.name](),
+    read: function(record, reader, associationData) {
+        var store = record[this.getName()](),
+            records = reader.read(associationData).getRecords(),
             inverse;
-    
-        store.add(reader.read(associationData).records);
-    
+
+        store.add(records);
+
         //now that we've added the related records to the hasMany association, set the inverse belongsTo
         //association on each of them if it exists
-        inverse = this.associatedModel.prototype.associations.findBy(function(assoc){
-            return assoc.type === 'belongsTo' && assoc.associatedName === record.$className;
+        inverse = this.getAssociatedModel().associations.findBy(function(assoc) {
+            return assoc.type === 'belongsTo' && assoc.getAssociatedName() === record.$className;
         });
-    
+
         //if the inverse association was found, set it now on each record we've just created
         if (inverse) {
-            store.data.each(function(associatedRecord){
-                associatedRecord[inverse.instanceName] = record;
+            store.data.each(function(associatedRecord) {
+                associatedRecord[inverse.getInstanceName()] = record;
             });
         }
     }

@@ -5,7 +5,7 @@
  * Ext.data.Store Store} - often in response to an AJAX request. In general there is usually no need to create
  * a Reader instance directly, since a Reader is almost always used together with a {@link Ext.data.proxy.Proxy Proxy},
  * and is configured using the Proxy's {@link Ext.data.proxy.Proxy#cfg-reader reader} configuration property:
- * 
+ *
  *     Ext.create('Ext.data.Store', {
  *         model: 'User',
  *         proxy: {
@@ -17,9 +17,9 @@
  *             }
  *         },
  *     });
- *     
+ *
  * The above reader is configured to consume a JSON string that looks something like this:
- *  
+ *
  *     {
  *         "success": true,
  *         "users": [
@@ -27,7 +27,7 @@
  *             { "name": "User 2" }
  *         ]
  *     }
- * 
+ *
  *
  * # Loading Nested Data
  *
@@ -158,289 +158,217 @@
  *     3 orders of iPhone
  */
 Ext.define('Ext.data.reader.Reader', {
-    requires: ['Ext.data.ResultSet'],
+    requires: [
+        'Ext.data.ResultSet'
+    ],
     alternateClassName: ['Ext.data.Reader', 'Ext.data.DataReader'],
-    
-    /**
-     * @cfg {String} idProperty
-     * Name of the property within a row object that contains a record identifier value. Defaults to The id of the
-     * model. If an idProperty is explicitly specified it will override that of the one specified on the model
-     */
 
-    /**
-     * @cfg {String} totalProperty
-     * Name of the property from which to retrieve the total number of records in the dataset. This is only needed if
-     * the whole dataset is not passed in one go, but is being paged from the remote server. Defaults to total.
-     */
-    totalProperty: 'total',
-
-    /**
-     * @cfg {String} successProperty
-     * Name of the property from which to retrieve the success attribute. Defaults to success. See
-     * {@link Ext.data.proxy.Server}.{@link Ext.data.proxy.Server#exception exception} for additional information.
-     */
-    successProperty: 'success',
-
-    /**
-     * @cfg {String} root
-     * **(Required)** The name of the property which contains the Array of row objects. Defaults to undefined. An
-     * exception will be thrown if the root property is undefined. The data packet value for this property should be an
-     * empty array to clear the data or show no data.
-     */
-    root: '',
-    
-    /**
-     * @cfg {String} messageProperty
-     * The name of the property which contains a response message. This property is optional.
-     */
-    
-    /**
-     * @cfg {Boolean} implicitIncludes
-     * True to automatically parse models nested within other models in a response object. See the
-     * Ext.data.reader.Reader intro docs for full explanation. Defaults to true.
-     */
-    implicitIncludes: true,
-    
+    // private
     isReader: true,
-    
-    /**
-     * Creates new Reader.
-     * @param {Object} config (optional) Config object.
-     */
-    constructor: function(config) {
-        var me = this;
-        
-        Ext.apply(me, config || {});
-        me.fieldCount = 0;
-        me.model = Ext.ModelManager.getModel(config.model);
-        if (me.model) {
-            me.buildExtractors();
-        }
-    },
 
-    /**
-     * Sets a new model for the reader.
-     * @private
-     * @param {Object} model The model to set.
-     * @param {Boolean} setOnProxy True to also set on the Proxy, if one is configured
-     */
-    setModel: function(model, setOnProxy) {
-        var me = this;
-        
-        me.model = Ext.ModelManager.getModel(model);
-        me.buildExtractors(true);
-        
-        if (setOnProxy && me.proxy) {
-            me.proxy.setModel(me.model, true);
-        }
-    },
-
-    /**
-     * Reads the given response object. This method normalizes the different types of response object that may be passed
-     * to it, before handing off the reading of records to the {@link #readRecords} function.
-     * @param {Object} response The response object. This may be either an XMLHttpRequest object or a plain JS object
-     * @return {Ext.data.ResultSet} The parsed ResultSet object
-     */
-    read: function(response) {
-        var data = response;
-        
-        if (response && response.responseText) {
-            data = this.getResponseData(response);
-        }
-        
-        if (data) {
-            return this.readRecords(data);
-        } else {
-            return this.nullResultSet;
-        }
-    },
-
-    /**
-     * Abstracts common functionality used by all Reader subclasses. Each subclass is expected to call this function
-     * before running its own logic and returning the Ext.data.ResultSet instance. For most Readers additional
-     * processing should not be needed.
-     * @param {Object} data The raw data object
-     * @return {Ext.data.ResultSet} A ResultSet object
-     */
-    readRecords: function(data) {
-        var me  = this;
-        
-        /*
-         * We check here whether the number of fields has changed since the last read.
-         * This works around an issue when a Model is used for both a Tree and another
-         * source, because the tree decorates the model with extra fields and it causes
-         * issues because the readers aren't notified.
+    config: {
+        /**
+         * @cfg {String} idProperty
+         * Name of the property within a row object that contains a record identifier value. Defaults to The id of the
+         * model. If an idProperty is explicitly specified it will override that of the one specified on the model
          */
-        if (me.fieldCount !== me.getFields().length) {
-            me.buildExtractors(true);
-        }
+        idProperty: undefined,
+
+        /**
+         * @cfg {String} clientIdProperty
+         * The name of the property with a response that contains the existing client side id for a record that we are reading.
+         */
+        clientIdProperty: 'clientId',
+
+        /**
+         * @cfg {String} totalProperty
+         * Name of the property from which to retrieve the total number of records in the dataset. This is only needed if
+         * the whole dataset is not passed in one go, but is being paged from the remote server. Defaults to total.
+         */
+        totalProperty: 'total',
+
+        /**
+         * @cfg {String} successProperty
+         * Name of the property from which to retrieve the success attribute. Defaults to success. See
+         * {@link Ext.data.proxy.Server}.{@link Ext.data.proxy.Server#exception exception} for additional information.
+         */
+        successProperty: 'success',
         
         /**
-         * @property {Object} rawData
-         * The raw data object that was last passed to readRecords. Stored for further processing if needed
+         * @cfg {String} messageProperty
+         * The name of the property which contains a response message. This property is optional.
          */
-        me.rawData = data;
+        messageProperty: null,
 
-        data = me.getData(data);
+        /**
+         * @cfg {String} root
+         * The name of the property which contains the Array of row objects.  For JSON reader it's dot-separated list
+         * of property names.  For XML reader it's a CSS selector.  For array reader it's not applicable.
+         *
+         * By default the natural root of the data will be used.  The root Json array, the root XML element, or the array.
+         *
+         * The data packet value for this property should be an empty array to clear the data or show no data.
+         */
+        rootProperty: '',
 
-        // If we pass an array as the data, we dont use getRoot on the data.
-        // Instead the root equals to the data.
-        var root    = Ext.isArray(data) ? data : me.getRoot(data),
-            success = true,
-            recordCount = 0,
-            total, value, records, message;
-            
-        if (root) {
-            total = root.length;
+        /**
+         * @cfg {Boolean} implicitIncludes
+         * True to automatically parse models nested within other models in a response object. See the
+         * Ext.data.reader.Reader intro docs for full explanation. Defaults to true.
+         */
+        implicitIncludes: true,
+
+        model: undefined
+    },
+
+    constructor: function(config) {
+        config = config || {};
+
+        if (config.root) {
+            // <debug>
+            console.warn('root has been deprecated as a configuration on Reader. Please use rootProperty instead.');
+            // </debug>
+
+            config.rootProperty = config.root;
+            delete config.root;
         }
 
-        if (me.totalProperty) {
-            value = parseInt(me.getTotal(data), 10);
-            if (!isNaN(value)) {
-                total = value;
+        this.initConfig(config);
+    },
+
+    /**
+     * @property {Object} metaData
+     * The raw meta data that was most recently read, if any. Meta data can include existing
+     * Reader config options like {@link #idProperty}, {@link #totalProperty}, etc. that get
+     * automatically applied to the Reader, and those can still be accessed directly from the Reader
+     * if needed. However, meta data is also often used to pass other custom data to be processed
+     * by application code. For example, it is common when reconfiguring the data model of a grid to
+     * also pass a corresponding column model config to be applied to the grid. Any such data will
+     * not get applied to the Reader directly (it just gets passed through and is ignored by Ext).
+     * This metaData property gives you access to all meta data that was passed, including any such
+     * custom data ignored by the reader.
+     *
+     * This is a read-only property, and it will get replaced each time a new meta data object is
+     * passed to the reader. Note that typically you would handle proxy's
+     * {@link Ext.data.proxy.Proxy#metachange metachange} event which passes this exact same meta
+     * object to listeners. However this property is available if it's more convenient to access it
+     * via the reader directly in certain cases.
+     */
+
+    fieldCount: 0,
+
+    applyModel: function(model) {
+        if (typeof model == 'string') {
+            model = Ext.data.ModelManager.getModel(model);
+
+            if (!model) {
+                Ext.Logger.error('Model with name ' + arguments[0] + ' doesnt exist.');
             }
         }
 
-        if (me.successProperty) {
-            value = me.getSuccess(data);
-            if (value === false || value === 'false') {
-                success = false;
+        if (model && !model.prototype.isModel && Ext.isObject(model)) {
+            model = Ext.data.ModelManager.registerType(model.storeId || model.id || Ext.id(), model);
+        }
+        
+        return model;
+    },
+
+    applyIdProperty: function(idProperty) {
+        if (!idProperty && this.getModel()) {
+            idProperty = this.getModel().getIdProperty();
+        }
+        return idProperty;
+    },
+
+    updateModel: function(model) {
+        if (model) {
+            if (!this.getIdProperty()) {
+                this.setIdProperty(model.getIdProperty());
             }
+            this.buildExtractors();
         }
-        
-        if (me.messageProperty) {
-            message = me.getMessage(data);
+    },
+
+    /**
+     * @private
+     * This builds optimized functions for retrieving record data and meta data from an object.
+     * Subclasses may need to implement their own getRoot function.
+     */
+    buildExtractors: function() {
+        var me          = this,
+            idProp      = me.getIdProperty(),
+            totalProp   = me.getTotalProperty(),
+            successProp = me.getSuccessProperty(),
+            messageProp = me.getMessageProperty(),
+            clientIdProp= me.getClientIdProperty(),
+            idAccessor, clientIdAccessor;
+
+        //build the extractors for all the meta data
+        if (totalProp) {
+            me.getTotal = me.createAccessor(totalProp);
         }
-        
-        if (root) {
-            records = me.extractData(root);
-            recordCount = records.length;
+
+        if (successProp) {
+            me.getSuccess = me.createAccessor(successProp);
+        }
+
+        if (messageProp) {
+            me.getMessage = me.createAccessor(messageProp);
+        }
+
+        if (idProp) {
+            idAccessor = me.createAccessor(idProp);
+            me.getId = function(record) {
+                var id = idAccessor.call(me, record);
+                return (id === undefined || id === '') ? null : id;
+            };
         } else {
-            recordCount = 0;
-            records = [];
+            me.getId = function() {
+                return null;
+            };
         }
 
-        return Ext.create('Ext.data.ResultSet', {
-            total  : total || recordCount,
-            count  : recordCount,
-            records: records,
-            success: success,
-            message: message
-        });
+        if (clientIdProp) {
+            clientIdAccessor = me.createAccessor(clientIdProp);
+            me.getClientId = function(record) {
+                var id = clientIdAccessor.call(me, record);
+                return (id === undefined || id === '') ? null : id;
+            };
+        } else {
+            me.getClientId = function() {
+                return null;
+            };
+        }
+
+        me.buildFieldExtractors();
     },
 
     /**
-     * Returns extracted, type-cast rows of data.  Iterates to call #extractValues for each row
-     * @param {Object[]/Object} root from server response
      * @private
      */
-    extractData : function(root) {
+    buildFieldExtractors: function() {
         var me = this,
-            values  = [],
-            records = [],
-            Model   = me.model,
-            i       = 0,
-            length  = root.length,
-            idProp  = me.getIdProperty(),
-            node, id, record;
-            
-        if (!root.length && Ext.isObject(root)) {
-            root = [root];
-            length = 1;
-        }
+            fields = me.getFields(),
+            ln = fields.length,
+            i  = 0,
+            extractorFunctions = [],
+            field, mapping;
 
-        for (; i < length; i++) {
-            node   = root[i];
-            values = me.extractValues(node);
-            id     = me.getId(node);
-
-            
-            record = new Model(values, id, node);
-            records.push(record);
-                
-            if (me.implicitIncludes) {
-                me.readAssociated(record, node);
-            }
-        }
-
-        return records;
-    },
-    
-    /**
-     * @private
-     * Loads a record's associations from the data object. This prepopulates hasMany and belongsTo associations
-     * on the record provided.
-     * @param {Ext.data.Model} record The record to load associations for
-     * @param {Object} data The data object
-     * @return {String} Return value description
-     */
-    readAssociated: function(record, data) {
-        var associations = record.associations.items,
-            i            = 0,
-            length       = associations.length,
-            association, associationData, proxy, reader;
-        
-        for (; i < length; i++) {
-            association     = associations[i];
-            associationData = this.getAssociatedDataRoot(data, association.associationKey || association.name);
-            
-            if (associationData) {
-                reader = association.getReader();
-                if (!reader) {
-                    proxy = association.associatedModel.proxy;
-                    // if the associated model has a Reader already, use that, otherwise attempt to create a sensible one
-                    if (proxy) {
-                        reader = proxy.getReader();
-                    } else {
-                        reader = new this.constructor({
-                            model: association.associatedName
-                        });
-                    }
-                }
-                association.read(record, reader, associationData);
-            }  
-        }
-    },
-    
-    /**
-     * @private
-     * Used internally by {@link #readAssociated}. Given a data object (which could be json, xml etc) for a specific
-     * record, this should return the relevant part of that data for the given association name. This is only really
-     * needed to support the XML Reader, which has to do a query to get the associated data object
-     * @param {Object} data The raw data object
-     * @param {String} associationName The name of the association to get data for (uses associationKey if present)
-     * @return {Object} The root
-     */
-    getAssociatedDataRoot: function(data, associationName) {
-        return data[associationName];
-    },
-    
-    getFields: function() {
-        return this.model.prototype.fields.items;
-    },
-
-    /**
-     * @private
-     * Given an object representing a single model instance's data, iterates over the model's fields and
-     * builds an object with the value for each field.
-     * @param {Object} data The data object to convert
-     * @return {Object} Data object suitable for use with a model constructor
-     */
-    extractValues: function(data) {
-        var fields = this.getFields(),
-            i      = 0,
-            length = fields.length,
-            output = {},
-            field, value;
-
-        for (; i < length; i++) {
+        for (; i < ln; i++) {
             field = fields[i];
-            value = this.extractorFunctions[i](data);
-
-            output[field.name] = value;
+            mapping = field.getMapping();
+            if (mapping === undefined || mapping === null) {
+                mapping = field.getName();
+            }
+            extractorFunctions.push(me.createAccessor(mapping));
         }
 
-        return output;
+        me.fieldCount = ln;
+        me.extractorFunctions = extractorFunctions;
+    },
+
+    getFields: function() {
+        return this.getModel().getFields().items;
     },
 
     /**
@@ -467,143 +395,256 @@ Ext.define('Ext.data.reader.Reader', {
     },
 
     /**
-     * Takes a raw response object (as passed to this.read) and returns the useful data segment of it. This must be
-     * implemented by each subclass
-     * @param {Object} response The responce object
-     * @return {Object} The useful data from the response
+     * Reads the given response object. This method normalizes the different types of response object that may be passed
+     * to it, before handing off the reading of records to the {@link #readRecords} function.
+     * @param {Object} response The response object. This may be either an XMLHttpRequest object or a plain JS object
+     * @return {Ext.data.ResultSet} The parsed ResultSet object
      */
-    getResponseData: function(response) {
-        //<debug>
-        Ext.Error.raise("getResponseData must be implemented in the Ext.data.reader.Reader subclass");
-        //</debug>
-    },
+    read: function(response) {
+        var data = response,
+            Model = this.getModel(),
+            resultSet, records, i, ln, record;
 
-    /**
-     * @private
-     * Reconfigures the meta data tied to this Reader
-     */
-    onMetaChange : function(meta) {
-        var fields = meta.fields,
-            me = this,
-            newModel;
-        
-        // save off the raw meta data
-        me.meta = meta;
-        
-        // set any reader-specific configs from meta if available
-        me.root = meta.root || me.root;
-        me.idProperty = meta.idProperty || me.idProperty;
-        me.totalProperty = meta.totalProperty || me.totalProperty;
-        me.successProperty = meta.successProperty || me.successProperty;
-        me.messageProperty = meta.messageProperty || me.messageProperty;
-        
-        if (fields) {
-            if (me.model) {
-                me.model.setFields(fields);
-                me.setModel(me.model, true);
+        if (response) {
+            data = this.getResponseData(response);
+        }
+
+        if (data) {
+            resultSet = this.readRecords(data);
+            records = resultSet.getRecords();
+            for (i = 0, ln = records.length; i < ln; i++) {
+                record = records[i];
+                records[i] = new Model(record.data, record.id, record.node);
             }
-            else {
-                newModel = Ext.define("Ext.data.reader.Json-Model" + Ext.id(), {
-                    extend: 'Ext.data.Model',
-                    fields: fields
-                });
-                me.setModel(newModel, true);
-            }
-        }
-        else {
-            me.buildExtractors(true);
-        }
-    },
-    
-    /**
-     * Get the idProperty to use for extracting data
-     * @private
-     * @return {String} The id property
-     */
-    getIdProperty: function(){
-        var prop = this.idProperty;
-        if (Ext.isEmpty(prop)) {
-            prop = this.model.prototype.idProperty;
-        }
-        return prop;
-    },
-
-    /**
-     * @private
-     * This builds optimized functions for retrieving record data and meta data from an object.
-     * Subclasses may need to implement their own getRoot function.
-     * @param {Boolean} force True to automatically remove existing extractor functions first (defaults to false)
-     */
-    buildExtractors: function(force) {
-        var me          = this,
-            idProp      = me.getIdProperty(),
-            totalProp   = me.totalProperty,
-            successProp = me.successProperty,
-            messageProp = me.messageProperty,
-            accessor;
-            
-        if (force === true) {
-            delete me.extractorFunctions;
-        }
-        
-        if (me.extractorFunctions) {
-            return;
-        }   
-
-        //build the extractors for all the meta data
-        if (totalProp) {
-            me.getTotal = me.createAccessor(totalProp);
-        }
-
-        if (successProp) {
-            me.getSuccess = me.createAccessor(successProp);
-        }
-
-        if (messageProp) {
-            me.getMessage = me.createAccessor(messageProp);
-        }
-
-        if (idProp) {
-            accessor = me.createAccessor(idProp);
-
-            me.getId = function(record) {
-                var id = accessor.call(me, record);
-                return (id === undefined || id === '') ? null : id;
-            };
+            return resultSet;
         } else {
-            me.getId = function() {
-                return null;
-            };
+            return this.nullResultSet;
         }
-        me.buildFieldExtractors();
+    },
+
+    process: function(response) {
+        var data = response;
+
+        if (response) {
+            data = this.getResponseData(response);
+        }
+
+        if (data) {
+            return this.readRecords(data);
+        } else {
+            return this.nullResultSet;
+        }
+    },
+
+    /**
+     * Abstracts common functionality used by all Reader subclasses. Each subclass is expected to call this function
+     * before running its own logic and returning the Ext.data.ResultSet instance. For most Readers additional
+     * processing should not be needed.
+     * @param {Object} data The raw data object
+     * @return {Ext.data.ResultSet} A ResultSet object
+     */
+    readRecords: function(data) {
+        var me  = this;
+
+        /**
+         * @property {Object} rawData
+         * The raw data object that was last passed to readRecords. Stored for further processing if needed
+         */
+        me.rawData = data;
+
+        data = me.getData(data);
+
+        // If we pass an array as the data, we dont use getRoot on the data.
+        // Instead the root equals to the data.
+        var root    = Ext.isArray(data) ? data : me.getRoot(data),
+            success = true,
+            recordCount = 0,
+            total, value, records, message;
+
+        if (root) {
+            total = root.length;
+        }
+
+        if (me.getTotalProperty()) {
+            value = parseInt(me.getTotal(data), 10);
+            if (!isNaN(value)) {
+                total = value;
+            }
+        }
+
+        if (me.getSuccessProperty()) {
+            value = me.getSuccess(data);
+            if (value === false || value === 'false') {
+                success = false;
+            }
+        }
+
+        if (me.getMessageProperty()) {
+            message = me.getMessage(data);
+        }
+
+        if (root) {
+            records = me.extractData(root);
+            recordCount = records.length;
+        } else {
+            recordCount = 0;
+            records = [];
+        }
+
+        return new Ext.data.ResultSet({
+            total  : total || recordCount,
+            count  : recordCount,
+            records: records,
+            success: success,
+            message: message
+        });
+    },
+
+    /**
+     * Returns extracted, type-cast rows of data.
+     * @param {Object[]/Object} root from server response
+     * @private
+     */
+    extractData : function(root) {
+        var me = this,
+            records = [],
+            length  = root.length,
+            fields = me.getFields(),
+            fieldLength = fields.length,
+            fieldsCollection = me.getModel().getFields(),
+            data, node, id, clientId, i, j, value;
+
+        /*
+         * We check here whether the fields are dirty since the last read.
+         * This works around an issue when a Model is used for both a Tree and another
+         * source, because the tree decorates the model with extra fields and it causes
+         * issues because the readers aren't notified.
+         */
+        if (fieldsCollection.isDirty) {
+            me.buildExtractors(true);
+            delete fieldsCollection.isDirty;
+        }
+
+        if (!root.length && Ext.isObject(root)) {
+            root = [root];
+            length = 1;
+        }
+
+        for (i = 0; i < length; i++) {
+            data = {};
+            node = root[i];
+
+            id = me.getId(node);
+            clientId = me.getClientId(node);
+
+            for (j = 0; j < fieldLength; j++) {
+                value = me.extractorFunctions[j](node);
+                if (value !== undefined) {
+                    data[fields[j].getName()] = value;
+                }
+            }
+
+            if (me.getImplicitIncludes()) {
+                 me.readAssociated(data, node);
+            }
+
+            records.push({
+                id: id,
+                clientId: clientId,
+                node: node,
+                data: data
+            });
+        }
+
+        return records;
     },
 
     /**
      * @private
+     * Loads a record's associations from the data object. This prepopulates hasMany and belongsTo associations
+     * on the record provided.
+     * @param {Ext.data.Model} record The record to load associations for
+     * @param {Object} data The data object
+     * @return {String} Return value description
      */
-    buildFieldExtractors: function() {
-        //now build the extractors for all the fields
-        var me = this,
-            fields = me.getFields(),
-            ln = fields.length,
-            i  = 0,
-            extractorFunctions = [],
-            field, map;
+    readAssociated: function(data, node) {
+        var associations = this.getModel().associations.items,
+            i            = 0,
+            length       = associations.length,
+            association, associationData, associationKey;
 
-        for (; i < ln; i++) {
-            field = fields[i];
-            map   = (field.mapping !== undefined && field.mapping !== null) ? field.mapping : field.name;
+        for (; i < length; i++) {
+            association     = associations[i];
+            associationKey  = association.getAssociationKey();
+            associationData = this.getAssociatedDataRoot(node, associationKey);
 
-            extractorFunctions.push(me.createAccessor(map));
+            if (associationData) {
+                data[associationKey] = associationData;
+            }
         }
-        me.fieldCount = ln;
+    },
 
-        me.extractorFunctions = extractorFunctions;
+    /**
+     * @private
+     * Used internally by {@link #readAssociated}. Given a data object (which could be json, xml etc) for a specific
+     * record, this should return the relevant part of that data for the given association name. This is only really
+     * needed to support the XML Reader, which has to do a query to get the associated data object
+     * @param {Object} data The raw data object
+     * @param {String} associationName The name of the association to get data for (uses associationKey if present)
+     * @return {Object} The root
+     */
+    getAssociatedDataRoot: function(data, associationName) {
+        return data[associationName];
     }
+
+//
+//    /**
+//     * @private
+//     * Reconfigures the meta data tied to this Reader
+//     */
+//    onMetaChange : function(meta) {
+//        var fields = meta.fields,
+//            me = this,
+//            newModel;
+//
+//        // save off the raw meta data
+//        me.metaData = meta;
+//
+//        // set any reader-specific configs from meta if available
+//        me.root = meta.root || me.root;
+//        me.idProperty = meta.idProperty || me.idProperty;
+//        me.totalProperty = meta.totalProperty || me.totalProperty;
+//        me.successProperty = meta.successProperty || me.successProperty;
+//        me.messageProperty = meta.messageProperty || me.messageProperty;
+//
+//        if (fields) {
+//            if (me.model) {
+//                me.model.setFields(fields);
+//                me.setModel(me.model, true);
+//            }
+//            else {
+//                newModel = Ext.define("Ext.data.reader.Json-Model" + Ext.id(), {
+//                    extend: 'Ext.data.Model',
+//                    fields: fields
+//                });
+//                if (me.idProperty) {
+//                    // We only do this if the reader actually has a custom idProperty set,
+//                    // otherwise let the model use its own default value. It is valid for
+//                    // the reader idProperty to be undefined, in which case it will use the
+//                    // model's idProperty (in getIdProperty()).
+//                    newModel.idProperty = me.idProperty;
+//                }
+//                me.setModel(newModel, true);
+//            }
+//        }
+//        else {
+//            me.buildExtractors(true);
+//        }
+//    }
 }, function() {
     Ext.apply(this, {
         // Private. Empty ResultSet to return when response is falsy (null|undefined|empty string)
-        nullResultSet: Ext.create('Ext.data.ResultSet', {
+        nullResultSet: new Ext.data.ResultSet({
             total  : 0,
             count  : 0,
             records: [],

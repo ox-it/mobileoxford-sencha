@@ -116,6 +116,7 @@ Ext.define('Ext.field.Checkbox', {
 
         me.getComponent().on({
             scope: me,
+            order: 'before',
             masktap: 'onMaskTap'
         });
     },
@@ -158,11 +159,8 @@ Ext.define('Ext.field.Checkbox', {
      * @return {Mixed} The field value
      */
     getChecked: function() {
-        var component = this.getComponent();
-
         // we need to get the latest value from the {@link #input} and then update the value
-        var checked = component.getChecked();
-        this._checked = checked;
+        this._checked = this.getComponent().getChecked();
 
         return this._checked;
     },
@@ -176,26 +174,25 @@ Ext.define('Ext.field.Checkbox', {
     },
 
     setChecked: function(newChecked) {
-        this.getChecked(); //we do this to sync the input field and field values
         this.updateChecked(newChecked);
         this._checked = newChecked;
     },
 
     updateChecked: function(newChecked) {
-        var component = this.getComponent();
-        component.setChecked(newChecked);
+        this.getComponent().setChecked(newChecked);
     },
 
     // @private
     onMaskTap: function(component, e) {
-        var me = this;
+        var me = this,
+            dom = component.input.dom;
 
         if (me.getDisabled()) {
             return false;
         }
 
         //we must manually update the input dom with the new checked value
-        component.input.dom.checked = !component.input.dom.checked;
+        dom.checked = !dom.checked;
 
         //continue as normal, like a normal tap
         // this.onTap(component, e);

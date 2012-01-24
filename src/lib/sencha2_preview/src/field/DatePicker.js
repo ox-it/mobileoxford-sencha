@@ -160,6 +160,13 @@ Ext.define('Ext.field.DatePicker', {
         tabIndex: -1,
 
         /**
+         * @cfg {String} dateFormat The format to be used when displaying the date in this field.
+         * Accepts any valid date format. You can view formats over in the {@link Ext.Date} documentation.
+         * Defaults to `Ext.util.Format.defaultDateFormat`.
+         */
+        dateFormat: null,
+
+        /**
          * @cfg {Object}
          * @hide
          */
@@ -176,6 +183,8 @@ Ext.define('Ext.field.DatePicker', {
 
             masktap: 'onMaskTap'
         });
+
+        this.getComponent().input.dom.disabled = true;
     },
 
     applyValue: function(value) {
@@ -192,54 +201,76 @@ Ext.define('Ext.field.DatePicker', {
 
     // @inherit
     updateValue: function(newValue) {
-        var picker = this.getPicker();
-        if (this.initialized && picker) {
+        var picker = this._picker;
+        if (picker && picker.isPicker) {
             picker.setValue(newValue);
         }
 
         // Ext.Date.format expects a Date
         if (newValue !== null) {
-            this.getComponent().setValue(Ext.Date.format(newValue, Ext.util.Format.defaultDateFormat));
+            this.getComponent().setValue(Ext.Date.format(newValue, this.getDateFormat() || Ext.util.Format.defaultDateFormat));
         }
-
-        this._value = newValue;
     },
 
+    /**
+     * Updates the date format in the field.
+     * @private
+     */
+    updateDateFormat: function(newDateFormat, oldDateFormat) {
+        var value = this.getValue();
+        if (newDateFormat != oldDateFormat && Ext.isDate(value) && this._picker && this._picker instanceof Ext.picker.Date) {
+            this.getComponent().setValue(Ext.Date.format(value, newDateFormat || Ext.util.Format.defaultDateFormat));
+        }
+    },
+
+    /**
+     * Returns the {@link Date} value of this field.
+     * If you wanted a formated date
+     * @return {Date} The date selected
+     */
     getValue: function() {
+        if (this._picker && this._picker instanceof Ext.picker.Date) {
+            return this._picker.getValue();
+        }
+
         return this._value;
     },
 
     /**
-     * Returns the value of the field, which will be a {@link Date} unless the <tt>format</tt> parameter is true.
-     * @param {Boolean} format True to format the value with <tt>Ext.util.Format.defaultDateFormat</tt>
+     * Returns the value of the field formatted using the specified format. If it is not specified, it will default {@link #dateFormat}
+     * and then {@link Ext.util.Format#defaultDateFormat}.
+     * @param {String} format The format to be returned
      */
     getFormattedValue: function(format) {
         var value = this.getValue();
-        return (Ext.isDate(value)) ? Ext.Date.format(value, format || Ext.util.Format.defaultDateFormat) : value;
+        return (Ext.isDate(value)) ? Ext.Date.format(value, format || this.getDateFormat() || Ext.util.Format.defaultDateFormat) : value;
     },
 
-    applyPicker: function(config) {
-        if (!this.initialized) {
-            //if this field has not been initialized yet, we don't want to create the picker
-            //as it will not be shown immeditely. We will hold this off until the first time
-            //it needs to be shown
-            return null;
+    applyPicker: function(picker, pickerInstance) {
+        if (pickerInstance && pickerInstance.isPicker) {
+            picker = pickerInstance.setConfig(picker);
         }
 
-        return Ext.factory(config, Ext.picker.Date, this.getPicker());
+        return picker;
     },
 
-    updatePicker: function(newPicker) {
-        if (newPicker) {
-            newPicker.on({
+    getPicker: function() {
+        var picker = this._picker;
+
+        if (picker && !picker.isPicker) {
+            picker = Ext.factory(picker, Ext.picker.Date);
+            picker.on({
                 scope: this,
 
                 change: 'onPickerChange',
                 hide  : 'onPickerHide'
             });
-
-            newPicker.hide();
+            picker.hide();
+            picker.setValue(this.getValue());
+            this._picker = picker;
         }
+
+        return picker;
     },
 
     /**
@@ -251,17 +282,11 @@ Ext.define('Ext.field.DatePicker', {
             return false;
         }
 
-        var picker = this.getPicker(),
-            initialConfig = this.getInitialConfig();
-
-        if (!picker) {
-            picker = this.applyPicker(initialConfig.picker);
-            this.updatePicker(picker);
-            picker.setValue(initialConfig.value);
-            this._picker = picker;
+        if (this.getReadOnly()) {
+            return false;
         }
 
-        picker.show();
+        this.getPicker().show();
 
         return false;
     },

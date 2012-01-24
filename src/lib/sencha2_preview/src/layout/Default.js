@@ -20,7 +20,7 @@
  *
  * {@img ../guides/layouts/docktop.jpg}
  *
- * This is simple to achieve with the *dock: 'top'* configuration below. We can dock as many of the items as we like,
+ * This is simple to achieve with the `docked: 'top'` configuration below. We can dock as many of the items as we like,
  * to either the top, right, bottom or left edges of the Container:
  *
  *     Ext.create('Ext.Container', {
@@ -28,7 +28,7 @@
  *         layout: 'hbox',
  *         items: [
  *             {
- *                 dock: 'top',
+ *                 docked: 'top',
  *                 height: 20,
  *                 html: 'This is docked to the top'
  *             },
@@ -55,7 +55,7 @@
  *         layout: 'vbox',
  *         items: [
  *             {
- *                 dock: 'left',
+ *                 docked: 'left',
  *                 width: 100,
  *                 html: 'This is docked to the left'
  *             },
@@ -74,22 +74,13 @@
  * {@link Ext.layout.Fit fit} layouts both accept docking too).
  */
 Ext.define('Ext.layout.Default', {
-    extend: 'Ext.EventedBase',
+    extend: 'Ext.Evented',
+
     alternateClassName: ['Ext.layout.AutoContainerLayout', 'Ext.layout.ContainerLayout'],
 
     alias: ['layout.auto', 'layout.default'],
 
     isLayout: true,
-
-    eventNames: {
-        add: 'add',
-        remove: 'remove',
-        move: 'move',
-        centeredChange: 'centeredchange',
-        floatingChange: 'floatingchange',
-        dockedChange: 'dockedchange',
-        activeItemChange: 'activeitemchange'
-    },
 
     hasDockedItemsCls: clsPrefix + 'hasdocked',
 
@@ -163,18 +154,14 @@ Ext.define('Ext.layout.Default', {
         this.doItemDockedChange.apply(this, arguments);
     },
 
-    onActiveItemChange: function() {
-        this.doActiveItemChange.apply(this, arguments);
-    },
-
     /**
      * @private
      */
     doItemAdd: function(item, index) {
-        var dockedPosition = item.getDocked();
+        var docked = item.getDocked();
 
-        if (dockedPosition) {
-            this.dockItem(item, dockedPosition);
+        if (docked !== null) {
+            this.dockItem(item, docked);
         }
         else if (item.isCentered()) {
             this.centerItem(item, index);
@@ -209,9 +196,12 @@ Ext.define('Ext.layout.Default', {
      */
     doItemMove: function(item, toIndex, fromIndex) {
         if (item.isCentered()) {
-            item.setZIndex(toIndex + 200); //they should always be above other things on the page
+            item.setZIndex((toIndex + 1) * 2);
         }
         else {
+            if (item.isFloating()) {
+                item.setZIndex((toIndex + 1) * 2);
+            }
             this.insertItem(item, toIndex);
         }
     },
@@ -233,71 +223,18 @@ Ext.define('Ext.layout.Default', {
      */
     doItemFloatingChange: function(item, floating) {
         var element = item.element,
-            floatingItemCls = this.floatingItemCls,
-            zIndex = this.container.indexOf(item) + 100;
-
-        if (item.getCentered()) {
-            zIndex += 100;
-        }
+            floatingItemCls = this.floatingItemCls;
 
         if (floating) {
-            // If we are floating and not centered, add a modal mask
-            if (item.getModal() && !item.getCentered()) {
-                this.addModalMask(item);
-
-                //if it is modal, we want it to overlap everything else on the page, even other floating items
-                zIndex += 100;
+            if (item.getZIndex() === null) {
+                item.setZIndex((this.container.indexOf(item) + 1) * 2);
             }
-
-            item.setZIndex(zIndex); //they should always be above other things on the page
             element.addCls(floatingItemCls);
         }
         else {
             item.setZIndex(null);
             element.removeCls(floatingItemCls);
         }
-    },
-
-    addModalMask: function(item) {
-        var me = this,
-            container = me.container,
-            onMaskTap;
-
-        //show the container mask
-        container.mask();
-
-        //if the hideOnMaskTap configuration is set to yes, add a listener to the mask to unmask the
-        //container and hide the item
-        if (item.getHideOnMaskTap()) {
-            onMaskTap = function() {
-                container.unmask();
-                item.hide();
-            };
-        }
-
-        //listen to the erased and painted events. erased means we should hide the mask. painted means we should
-        //show the mask, again.
-        item.on({
-            erased: function() {
-                container.unmask();
-
-                //make sure we remove the listener from the mask
-                if (onMaskTap) {
-                    container.getMask().un('tap', onMaskTap, me);
-                }
-            },
-            painted: function() {
-                container.mask();
-
-                //set the xindex of the mask to 1 below the actual item
-                container.getMask().setZIndex(container.indexOf(item) + 199);
-
-                //add the tap listener
-                if (onMaskTap) {
-                    container.getMask().on('tap', onMaskTap, me);
-                }
-            }
-        });
     },
 
     /**
@@ -313,18 +250,16 @@ Ext.define('Ext.layout.Default', {
         }
     },
 
-    doActiveItemChange: Ext.emptyFn,
-
     centerItem: function(item) {
-        var zIndex = this.container.indexOf(item) + 200;
-
         this.insertItem(item, 0);
 
-        item.setZIndex(zIndex);
+        if (item.getZIndex() === null) {
+            item.setZIndex((this.container.indexOf(item) + 1) * 2);
+        }
 
         this.createCenteringWrapper(item);
 
-        // TODO: Jacky think more about this
+        // Mainly for styling
         item.element.addCls(this.floatingItemCls);
     },
 
@@ -333,7 +268,7 @@ Ext.define('Ext.layout.Default', {
         item.setZIndex(null);
         this.insertItem(item, this.container.indexOf(item));
 
-        // TODO: Jacky think more about this
+        // Mainly for styling
         item.element.removeCls(this.floatingItemCls);
     },
 
@@ -394,11 +329,6 @@ Ext.define('Ext.layout.Default', {
             className: this.centeredItemCls
         });
 
-        //if it is modal, we need to add the mask
-        if (item.getModal()) {
-            this.addModalMask(item);
-        }
-
         return wrapper;
     },
 
@@ -436,7 +366,7 @@ Ext.define('Ext.layout.Default', {
                relativeItem = items[++index];
            }
 
-           // Continue finding the relativeItem that is not currently centered
+           // Continue finding the relativeItem that is neither currently centered nor docked
            while (relativeItem && (relativeItem.isCentered() || relativeItem.isDocked())) {
                relativeItem = items[++index];
            }

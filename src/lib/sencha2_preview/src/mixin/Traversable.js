@@ -15,10 +15,20 @@ Ext.define('Ext.mixin.Traversable', {
         return this;
     },
 
+    /**
+     * @member Ext.Component
+     * Returns `true` if this component has a parent.
+     * @return {Boolean} `true` if this component has a parent.
+     */
     hasParent: function() {
         return Boolean(this.parent);
     },
 
+    /**
+     * @member Ext.Component
+     * Returns the parent of this component, if it has one.
+     * @return {Ext.Component} The parent of this component.
+     */
     getParent: function() {
         return this.parent;
     },

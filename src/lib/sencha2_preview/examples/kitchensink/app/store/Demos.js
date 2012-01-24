@@ -2,8 +2,10 @@
     var animations = {
         text  : 'Animations',
         card  : false,
+        id: 'animations',
         items: [{
             text: 'Slide',
+            id: 'Slide',
             card: false,
             preventHide: true,
             animation: {
@@ -48,6 +50,7 @@
     if (Ext.os.deviceType == 'Desktop' || Ext.os.name == 'iOS') {
         animations.items.push({
             text: 'Pop',
+            id: 'Pop',
             card: false,
             preventHide: true,
             animation: {
@@ -58,6 +61,7 @@
             leaf: true
         }, {
             text: 'Fade',
+            id: 'Fade',
             card: false,
             preventHide: true,
             animation: {
@@ -69,45 +73,59 @@
     }
 
     var root = {
+        id: 'root',
+        text: 'Kitchen Sink',
         items: [{
             text : 'User Interface',
+            id: 'ui',
             cls  : 'launchscreen',
             items: [{
                 text  : 'Buttons',
-                leaf  : true
+                leaf  : true,
+                id: 'buttons'
             }, {
                 text  : 'Forms',
-                leaf  : true
+                leaf  : true,
+                id: 'forms'
             }, {
                 text  : 'List',
-                leaf  : true
+                leaf  : true,
+                id: 'list'
             }, {
                 text  : 'Nested List',
                 view  : 'NestedList',
-                leaf  : true
+                leaf  : true,
+                id: 'nestedlist'
             }, {
                 text  : 'Icons',
-                leaf  : true
+                leaf  : true,
+                id: 'icons'
             }, {
                 text  : 'Toolbars',
-                leaf  : true
+                leaf  : true,
+                id: 'toolbars'
             }, {
                 text  : 'Carousel',
-                leaf  : true
+                leaf  : true,
+                id: 'carousel'
             }, {
                 text  : 'Tabs',
-                leaf  : true
+                leaf  : true,
+                id: 'tabs'
             }, {
                 text  : 'Bottom Tabs',
                 view  : 'BottomTabs',
-                leaf  : true
+                leaf  : true,
+                id: 'bottom-tabs'
             }, {
                 text  : 'Map',
                 view  : 'Map',
-                leaf  : true
+                leaf  : true,
+                id: 'map'
             }, {
                 text  : 'Overlays',
-                leaf  : true
+                leaf  : true,
+                id: 'overlays'
             }
             ]
         }]
@@ -119,41 +137,57 @@
 
     root.items.push(animations, {
             text  : 'Touch Events',
+            id    : 'touchevents',
             view  : 'TouchEvents',
             leaf  : true
         }, {
             text: 'Data',
+            id: 'data',
             items: [{
                 text  : 'Nested Loading',
                 view  : 'NestedLoading',
-                leaf  : true
+                leaf  : true,
+                id: 'nestedloading'
             }, {
                 text  : 'JSONP',
-                leaf  : true
+                leaf  : true,
+                id: 'jsonp'
             }, {
                 text  : 'YQL',
-                leaf  : true
+                leaf  : true,
+                id: 'yql'
             }, {
                 text  : 'Ajax',
-                leaf  : true
+                leaf  : true,
+                id: 'ajax'
             }]
         }, {
             text: 'Media',
+            id: 'media',
             items: [{
                 text  : 'Video',
-                leaf  : true
+                leaf  : true,
+                id: 'video'
             }, {
                 text  : 'Audio',
-                leaf  : true
+                leaf  : true,
+                id: 'audio'
             }]
+        }, {
+            text: 'Themes',
+            id: 'themes',
+            leaf  : true
         });
 
     Ext.define('Kitchensink.store.Demos', {
+        alias: 'store.Demos',
         extend  : 'Ext.data.TreeStore',
-        model   : 'Kitchensink.model.Demo',
         requires: ['Kitchensink.model.Demo'],
 
-        root: root,
-        defaultRootProperty: 'items'
+        config: {
+            model   : 'Kitchensink.model.Demo',
+            root: root,
+            defaultRootProperty: 'items'
+        }
     });
 })();

@@ -12,6 +12,7 @@ Ext.define('Ext.data.proxy.Twitter', {
 
     //this is the url we always query when searching for tweets
     url: 'http://search.twitter.com/search.json',
+    _url: 'http://search.twitter.com/search.json',
     filterParam: undefined,
     
     constructor: function(config) {
@@ -32,7 +33,7 @@ Ext.define('Ext.data.proxy.Twitter', {
             }
         });
         
-        this.callParent([config]);
+        this.callParent(arguments);
     },
     
     /**
@@ -41,22 +42,27 @@ Ext.define('Ext.data.proxy.Twitter', {
      */
     buildRequest: function(operation) {
         var request = this.callParent(arguments),
-            filter  = operation.filters[0],
-            params  = request.params;
+            filter  = operation.getFilters()[0],
+            params  = request.getParams();
         
         Ext.apply(params, {
-            rpp: operation.limit,
-            page: operation.page
+            rpp: operation.getLimit(),
+            page: operation.getPage()
         });
         
         if (filter) {
+            delete params.filter;
             Ext.apply(params, {
                 //q: pass in the query string to the search api
-                q: filter.value
+                q: filter.getValue()
             });
             
+            request.setParams(params);
+            
+            request.setUrl(this._url);
+            
             //as we're modified the request params, we need to regenerate the url now
-            request.url = this.buildUrl(request);
+            request.setUrl(this.buildUrl(request));
         }
         
         return request;

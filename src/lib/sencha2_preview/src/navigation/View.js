@@ -62,7 +62,13 @@ Ext.define('Ext.navigation.View', {
          *         docked: 'bottom'
          *     }
          *
-         * If you want to add a button on the right of the NavigationBar, use the {@link #rightButton} configuration.
+         * You **cannot** specify a *title* property in this configuration. The title of the navigationBar is taken
+         * from the configuration of this views children:
+         *
+         *     view.push({
+         *         title: 'This views title which will be shown in the navigation bar',
+         *         html: 'Some HTML'
+         *     });
          *
          * There will *always* be a NavigationBar, even if you pass false. If you do pass false, it will just
          * be hidden. This means you can show/hide the NavigationBars at any time.
@@ -83,8 +89,8 @@ Ext.define('Ext.navigation.View', {
 
         /**
          * @cfg {Boolean} useTitleForBackButtonText
-         * Set to true if you always want to display the {@link #defaultBackButtonText} as the text
-         * on the back button. False if you want to use the previous views title.
+         * Set to false if you always want to display the {@link #defaultBackButtonText} as the text
+         * on the back button. True if you want to use the previous views title.
          * @accessor
          */
         useTitleForBackButtonText: false,
@@ -126,6 +132,10 @@ Ext.define('Ext.navigation.View', {
         }
 
         // @todo add rightButton configuration
+        // If you do, add to #navigationBar config docs:
+        //
+        //     If you want to add a button on the right of the NavigationBar,
+        //     use the {@link #rightButton} configuration.
     },
 
     /**
@@ -161,7 +171,7 @@ Ext.define('Ext.navigation.View', {
         this.callParent();
         //add a listener onto the back button in the navigationbar
         this.on({
-            delegate: 'navigationbar button[ui=back]',
+            delegate: 'button[ui=back]',
 
             tap: this.pop
         });
@@ -178,8 +188,6 @@ Ext.define('Ext.navigation.View', {
             return;
         }
 
-        this.fireEvent('push', this, view);
-
         this.popping = false;
 
         return this.setActiveItem(view);
@@ -193,6 +201,9 @@ Ext.define('Ext.navigation.View', {
             animation = me.getLayout().getAnimation();
 
         if (!this.canPop()) {
+            //<debug>
+            Ext.Logger.warn('Ext.navigation.View#pop: Trying to pop a view, but there are no views to pop.');
+            //</debug>
             return;
         }
 
@@ -200,8 +211,6 @@ Ext.define('Ext.navigation.View', {
         if (animation && animation.isAnimation) {
             animation.setReverse(true);
         }
-
-        me.fireEvent('pop', this, me.getActiveItem());
 
         //remove the last item in the stack
         me.stack.pop();
@@ -244,12 +253,6 @@ Ext.define('Ext.navigation.View', {
             return false;
         }
 
-        //<debug>
-        if (!canPop) {
-            Ext.Logger.warn('Ext.navigation.View#pop: Trying to pop a view, but there are no views to pop.');
-        }
-        //</debug>
-
         return canPop;
     },
 
@@ -282,6 +285,14 @@ Ext.define('Ext.navigation.View', {
             };
         }
 
+        if (config.title) {
+            delete config.title;
+            //<debug>
+            Ext.Logger.warn("Ext.navigation.View: The 'navigationBar' configuration does not accept a 'title' property. You " +
+                            "set the title of the navigationBar by giving this navigation view's children a 'title' property.");
+            //</debug>
+        }
+
         return Ext.factory(config, Ext.navigation.Bar, this.getNavigationBar());
     },
 
@@ -311,17 +322,23 @@ Ext.define('Ext.navigation.View', {
             navigationBar = me.getNavigationBar(),
             stack = me.stack,
             layout = me.getLayout(),
-            animation = layout.getAnimation() && layout.getAnimation().isAnimation,
+            animation = layout.getAnimation() && layout.getAnimation().isAnimation && this.isPainted(),
             pushFn = (animation) ? 'pushAnimated' : 'push',
-            popFn = (animation) ? 'popAnimated' : 'pop';
+            popFn = (animation) ? 'popAnimated' : 'pop',
+            title;
 
         if (!activeItem) {
             return;
         }
 
+        title = activeItem.getInitialConfig().title;
+
         //if we are not popping a view, then add it to the stack
         if (!me.popping) {
             stack.push(activeItem);
+            me.fireEvent('push', this, activeItem);
+        } else {
+            me.fireEvent('pop', this, activeItem);
         }
 
         if (navigationBar) {
@@ -329,19 +346,51 @@ Ext.define('Ext.navigation.View', {
             //else we should just hide it
             if (stack.length > 1) {
                 if (me.popping) {
-                    navigationBar[popFn](activeItem.title);
+                    navigationBar[popFn](title);
                 } else {
-                    navigationBar[pushFn](activeItem.title);
+                    navigationBar[pushFn](title);
                 }
             } else {
                 if (me.isPainted()) {
-                    navigationBar[popFn](activeItem.title);
+                    navigationBar[popFn](title);
                 } else {
-                    navigationBar.setTitle(activeItem.title);
+                    navigationBar.setTitle(title);
                 }
             }
         }
 
         me.callParent(arguments);
+    },
+
+    /**
+     * Resets the view by removing all items between the first and last item, and animates to the first item.
+     */
+    reset: function() {
+        var me = this,
+            stack = me.stack,
+            newStack = [],
+            layout = me.getLayout(),
+            animation = layout.getAnimation(),
+            ln = stack.length,
+            i;
+
+        //we need to reset the backButtonStack in the navigation bar
+        me.getNavigationBar().reset();
+
+        if (ln > 1) {
+            //we only want to keep the first and last views because we are going from the last view, to the first view
+            newStack.push(stack.shift());
+            newStack.push(stack.pop());
+
+            //loop through all other views in the stack and destroy them
+            ln = stack.length;
+            for (i = 0; i < ln; i++) {
+                stack[i].destroy();
+            }
+
+            //update the stack and pop back to the first view
+            me.stack = newStack;
+            me.pop();
+        }
     }
 });

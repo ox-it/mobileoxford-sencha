@@ -27,8 +27,6 @@ Ext.define('Ext.dom.CompositeElementLite', {
          * @private
          * @static
          * Copies all of the functions from Ext.dom.Element's prototype onto CompositeElementLite's prototype.
-         * This is called twice - once immediately below, and once again after additional Ext.dom.Element
-         * are added in Ext JS
          */
         importElementMethods: function() {
             var name,

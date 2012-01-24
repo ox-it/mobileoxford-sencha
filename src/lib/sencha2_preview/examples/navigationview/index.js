@@ -23,9 +23,6 @@ Ext.setup({
         var view = Ext.create('Ext.navigation.View', {
             fullscreen: true,
 
-            //true means the back button text will always be 'back'
-            // useTitleForBackButtonText: true,
-
             items: [
                 //bottom toolbar containing the settings button
                 {
@@ -42,6 +39,10 @@ Ext.setup({
                                 //on the action sheet
                                 var popButton = optionsSheet.down('#pop');
                                 popButton.setDisabled(!view.canPop());
+
+
+                                var toggleButton = optionsSheet.down('#togglebackbuttontext');
+                                toggleButton.setDisabled(!view.canPop());
 
                                 //show the option sheet
                                 optionsSheet.show();
@@ -134,7 +135,20 @@ Ext.setup({
                 },
                 {
                     xtype: 'button',
+                    text: 'Toggle bar visibility',
+                    handler: function() {
+                        //get the navigation bar, and call show/hide depending if the bar is hidden or not
+                        var bar = view.getNavigationBar();
+                        bar[bar.isHidden() ? 'show' : 'hide']();
+
+                        //hide the sheet
+                        optionsSheet.hide();
+                    }
+                },
+                {
+                    xtype: 'button',
                     text: 'Toggle back button text',
+                    itemId: 'togglebackbuttontext',
                     handler: function() {
                         //simply call the setter for the useTitleForBackButtonText configuration
                         view.setUseTitleForBackButtonText(!view.getUseTitleForBackButtonText());

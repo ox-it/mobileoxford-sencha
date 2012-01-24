@@ -1,91 +1,121 @@
 /**
  * Adds a Load More button at the bottom of the list. When the user presses this button,
  * the next page of data will be loaded into the store and appended to the List.
+ *
+ * By specifying `{@link #autoPaging}: true`, an 'infinite scroll' effect can be achieved,
+ * i.e., the next page of content will load automatically when the user scrolls to the
+ * bottom of the list.
  */
 Ext.define('Ext.plugin.ListPaging', {
-    requires: 'Ext.PluginManager',
-    extend: 'Ext.util.Observable',
-    alternateClassName: 'Ext.plugins.ListPagingPlugin',
+    extend: 'Ext.Component',
+    alias: 'plugin.listpaging',
 
-    /**
-     * @cfg {Boolean} autoPaging True to automatically load the next page when you scroll to the bottom of the list.
-     * Defaults to false.
-     */
-    autoPaging: false,
+    config: {
+        /**
+         * @cfg {Boolean} autoPaging
+         * True to automatically load the next page when you scroll to the bottom of the list.
+         */
+        autoPaging: false,
 
-    /**
-     * @cfg {String} loadMoreText The text used as the label of the Load More button.
-     */
-    loadMoreText: 'Load More...',
+        /**
+         * @cfg {String} loadMoreText The text used as the label of the Load More button.
+         */
+        loadMoreText: 'Load More...',
+
+        loadTpl: [
+            '<div class="{cssPrefix}loading-spinner" style="font-size: 180%; margin: 10px auto;">',
+                 '<span class="{cssPrefix}loading-top"></span>',
+                 '<span class="{cssPrefix}loading-right"></span>',
+                 '<span class="{cssPrefix}loading-bottom"></span>',
+                 '<span class="{cssPrefix}loading-left"></span>',
+            '</div>',
+            '<div class="{cssPrefix}list-paging-msg">{loadMoreText}</div>'
+        ].join('')
+    },
 
     init: function(list) {
-        this.list = list;
 
-        list.onBeforeLoad = Ext.util.Functions.createInterceptor(list.onBeforeLoad, this.onBeforeLoad, this);
+        var me = this;
 
-        // Update the paging button location if its enabled
-        this.mon(list, 'update', this.onListUpdate, this);
+        me.list = list;
+        me.store = list.getStore();
+        me.scroller = list.getScrollable().getScroller();
+
+        me.store.on('load', me.onListUpdate, me);
+
+        Ext.Function.createInterceptor(this.setStore, function(newStore, oldStore) {
+            if (newStore) {
+                newStore.on('load', 'onListUpdate', this);
+            }
+            if (oldStore) {
+                oldStore.un('load', 'onListUpdate', this);
+            }
+        }, this);
+
+        if (this.getAutoPaging()) {
+            me.scroller.on({
+                scrollend: 'onScrollEnd',
+                scope: this
+            });
+        }
+    },
+
+    applyLoadTpl: function(config) {
+        return (Ext.isObject(config) && config.isTemplate) ? config : new Ext.XTemplate(config);
+    },
+
+    onScrollEnd: function(scroller, position) {
+        if (!this.loading && position.y >= scroller.maxPosition.y) {
+            this.loading = true;
+            this.loadNextPage();
+        }
     },
 
     onListUpdate: function() {
-        this.el.appendTo(this.list.getTargetEl());
-        if (!this.autoPaging) {
-            this.el.removeCls(Ext.baseCSSPrefix + 'loading');
-        }
         this.loading = false;
-    },
+        this.addLoadMoreCmp();
 
-    render: function() {
-        var list = this.list,
-            targetEl = list.getTargetEl(),
-            html = '';
-
-        if (!this.autoPaging) {
-            html += '<div class="' + Ext.baseCSSPrefix + 'list-paging-msg">' + this.loadMoreText + '</div>';
+        if (this.scrollY) {
+            this.scroller.scrollTo({ y: this.scrollY });
         }
-
-        this.el = targetEl.createChild({
-            cls: Ext.baseCSSPrefix + 'list-paging' + (this.autoPaging ? ' ' + Ext.baseCSSPrefix + 'loading' : ''),
-            html: html + Ext.LoadingSpinner
-        });
-
-        if (this.autoPaging) {
-            this.mon(targetEl.getScrollParent(), 'scrollend', this.onScrollEnd, this);
-        }
-        else {
-            this.mon(this.el, 'tap', this.onPagingTap, this);
-        }
-
-        this.rendered = true;
+        this.maxScroller = this.scroller.getMaxPosition();
+        this.loadMoreCmp.removeCls(Ext.baseCSSPrefix + 'loading');
     },
 
     onBeforeLoad: function() {
         if (this.loading && this.list.store.getCount() > 0) {
-            this.list.loadMask.disable();
             return false;
         }
     },
 
-    /**
-     * Here we listen for taps on the loadingEl and load the store's next page. Adding the 'x-loading' class to the
-     * loadingEl hides the 'Load next page' text.
-     */
-    onPagingTap: function(e) {
-        if (!this.loading) {
-            this.loading = true;
-            this.list.store.nextPage();
-            this.el.addCls(Ext.baseCSSPrefix + 'loading');
+    addLoadMoreCmp: function() {
+
+        if (this.loadMoreCmp) {
+            return;
         }
+
+        // Disable main list load mask
+        this.list.onBeforeLoad = function() { return true; }
+
+        this.loadMoreCmp = this.list.add({
+            xclass: 'Ext.dataview.element.List',
+            baseCls: Ext.baseCSSPrefix + 'list-paging',
+            html: this.getLoadTpl().apply({
+                cssPrefix: Ext.baseCSSPrefix,
+                loadMoreText: this.getLoadMoreText()
+            }),
+            listeners: {
+                itemtap: 'loadNextPage',
+                scope: this
+            }
+        });
     },
 
-    onScrollEnd: function(scroller, pos) {
-        if (pos.y >= Math.abs(scroller.offsetBoundary.top)) {
-            this.loading = true;
-            this.list.store.nextPage();
-        }
+    loadNextPage: function() {
+
+        this.loadMoreCmp.addCls(Ext.baseCSSPrefix + 'loading');
+        this.scrollY = this.scroller.position.y;
+
+        this.list.getStore().nextPage({ addRecords: true });
     }
-}, function(){
-
-    Ext.preg('listpaging', Ext.plugins.ListPagingPlugin);
-
 });

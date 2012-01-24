@@ -26,7 +26,7 @@ You can render a List simply with static items like this:
 		}
 	});
 
-This will just render one {@link Ext.dataview.ListItem ListItem} for each item in the {@link Ext.data.Store Store}. You can also attach listeners to events on the List,
+This will just render one {@link Ext.dataview.component.DataItem DataItem} for each item in the {@link Ext.data.Store Store}. You can also attach listeners to events on the List,
 
 	Ext.create('Ext.List', {
 		listeners: {

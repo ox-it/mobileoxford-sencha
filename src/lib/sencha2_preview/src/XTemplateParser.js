@@ -35,7 +35,7 @@ Ext.define('Ext.XTemplateParser', {
     // doTag: function (tag)
 
     /**
-     * This method is called to process &lt;tpl else>.
+     * This method is called to process `<tpl else>`.
      * @method doElse
      */
     // doElse: function ()
@@ -48,7 +48,7 @@ Ext.define('Ext.XTemplateParser', {
     // doEval: function (text)
 
     /**
-     * This method is called to process &lt;tpl if="action">. If there are other attributes,
+     * This method is called to process `<tpl if="action">`. If there are other attributes,
      * these are passed in the actions object.
      * @param {String} action
      * @param {Object} actions Other actions keyed by the attribute name (such as 'exec').
@@ -57,7 +57,7 @@ Ext.define('Ext.XTemplateParser', {
     // doIf: function (action, actions)
 
     /**
-     * This method is called to process &lt;tpl elseif="action">. If there are other attributes,
+     * This method is called to process `<tpl elseif="action">`. If there are other attributes,
      * these are passed in the actions object.
      * @param {String} action
      * @param {Object} actions Other actions keyed by the attribute name (such as 'exec').
@@ -66,7 +66,7 @@ Ext.define('Ext.XTemplateParser', {
     // doElseIf: function (action, actions)
 
     /**
-     * This method is called to process &lt;tpl switch="action">. If there are other attributes,
+     * This method is called to process `<tpl switch="action">`. If there are other attributes,
      * these are passed in the actions object.
      * @param {String} action
      * @param {Object} actions Other actions keyed by the attribute name (such as 'exec').
@@ -75,7 +75,7 @@ Ext.define('Ext.XTemplateParser', {
     // doSwitch: function (action, actions)
 
     /**
-     * This method is called to process &lt;tpl case="action">. If there are other attributes,
+     * This method is called to process `<tpl case="action">`. If there are other attributes,
      * these are passed in the actions object.
      * @param {String} action
      * @param {Object} actions Other actions keyed by the attribute name (such as 'exec').
@@ -84,22 +84,22 @@ Ext.define('Ext.XTemplateParser', {
     // doCase: function (action, actions)
 
     /**
-     * This method is called to process &lt;tpl default>.
+     * This method is called to process `<tpl default>`.
      * @method doDefault
      */
     // doDefault: function ()
 
     /**
-     * This method is called to process &lt;/tpl>. It is given the action type that started
+     * This method is called to process `</tpl>`. It is given the action type that started
      * the tpl and the set of additional actions.
      * @param {String} type The type of action that is being ended.
      * @param {Object} actions The other actions keyed by the attribute name (such as 'exec').
      * @method doEnd
      */
-    // doEnd: function (type, actions) 
+    // doEnd: function (type, actions)
 
     /**
-     * This method is called to process &lt;tpl for="action">. If there are other attributes,
+     * This method is called to process `<tpl for="action">`. If there are other attributes,
      * these are passed in the actions object.
      * @param {String} action
      * @param {Object} actions Other actions keyed by the attribute name (such as 'exec').
@@ -108,7 +108,7 @@ Ext.define('Ext.XTemplateParser', {
     // doFor: function (action, actions)
 
     /**
-     * This method is called to process &lt;tpl exec="action">. If there are other attributes,
+     * This method is called to process `<tpl exec="action">`. If there are other attributes,
      * these are passed in the actions object.
      * @param {String} action
      * @param {Object} actions Other actions keyed by the attribute name.
@@ -117,9 +117,9 @@ Ext.define('Ext.XTemplateParser', {
     // doExec: function (action, actions)
 
     /**
-     * This method is called to process an empty &lt;tpl>. This is unlikely to need to be
+     * This method is called to process an empty `<tpl>`. This is unlikely to need to be
      * implemented, so a default (do nothing) version is provided.
-     * @method doTpl
+     * @method
      */
     doTpl: Ext.emptyFn,
 
@@ -160,7 +160,7 @@ Ext.define('Ext.XTemplateParser', {
                 end += 2;
             } else if (m[3]) { // if ('{' token)
                 me.doTag(m[3]);
-            } else if (m[4]) {
+            } else if (m[4]) { // content of a <tpl xxxxxx> tag
                 actions = null;
                 while ((subMatch = actionsRe.exec(m[4])) !== null) {
                     s = subMatch[2] || subMatch[3];
@@ -230,7 +230,7 @@ Ext.define('Ext.XTemplateParser', {
     },
 
     // Internal regexes
-    
+
     topRe:     /(?:(\{\%)|(\{\[)|\{([^{}]*)\})|(?:<tpl([^>]*)\>)|(?:<\/tpl>)/g,
     actionsRe: /\s*(elif|elseif|if|for|exec|switch|case|eval)\s*\=\s*(?:(?:["]([^"]*)["])|(?:[']([^']*)[']))\s*/g,
     defaultRe: /^\s*default\s*$/,

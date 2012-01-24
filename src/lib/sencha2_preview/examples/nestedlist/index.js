@@ -1,3 +1,7 @@
+Ext.Loader.setPath({
+    'Ext.data': '../../src/data'
+});
+
 Ext.require([
     'Ext.data.TreeStore',
     'Ext.NestedList'
@@ -5,12 +9,15 @@ Ext.require([
 
 Ext.define('File', {
     extend: 'Ext.data.Model',
-    // idProperty: 'id',
-    fields: [
-        {name: 'id',       type: 'string'},
-        {name: 'fileName', type: 'string'}
-    ]
+    config: {
+        // idProperty: 'id',
+        fields: [
+            {name: 'id',       type: 'string'},
+            {name: 'fileName', type: 'string'}
+        ]
+    }
 });
+
 Ext.define('Example.SourceView', {
     extend: 'Ext.Panel',
     xtype: 'sourceview',
@@ -110,7 +117,7 @@ Ext.setup({
     onReady: function() {
         var store = Ext.create('Ext.data.TreeStore', {
             model: 'File',
-            root: {},
+            autoLoad: true,
             proxy: {
                 type: 'ajax',
                 url: 'source.json'
@@ -133,13 +140,12 @@ Ext.setup({
             detailCard: new Example.SourceView(),
             store: store,
             listeners: {
-                leafitemtap: function(list, index, item, e) {
-                    var me = list.getParent(),
-                        store = list.getStore(),
+                leafitemtap: function(me, list, index, item, e) {
+                    var store = list.getStore(),
                         record  = store.getAt(index),
                         detailCard = me.getDetailCard();
-                    
-                    list.setMask({
+
+                    list.setMasked({
                         message: 'Loading'
                     });
 

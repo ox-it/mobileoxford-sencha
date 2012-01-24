@@ -31,6 +31,7 @@ Ext.define('Ext.picker.Slot', {
     /**
      * @event slotpick
      * Fires whenever an slot is picked
+     * @param {Ext.picker.Slot} this
      * @param {Mixed} value The value of the pick
      * @param {HTMLElement} node The node element of the pick
      */
@@ -230,19 +231,18 @@ Ext.define('Ext.picker.Slot', {
 
     // @private
     initialize: function() {
-        var me = this,
-            scroller = this.getScrollable().getScroller();
+        this.callParent();
 
-        me.callParent();
+        var scroller = this.getScrollable().getScroller();
 
-        me.on({
+        this.on({
             scope: this,
-            painted: 'onPainted'
+            painted: 'onPainted',
+            itemtap: 'doItemTap'
         });
 
         scroller.on({
             scope: this,
-
             scrollend: 'onScrollEnd'
         });
     },
@@ -310,11 +310,12 @@ Ext.define('Ext.picker.Slot', {
 
     // @private
     doItemTap: function(list, index, item, e) {
-        this.selectedIndex = index;
-        this.selectedNode = item;
-        this.scrollToItem(item, true);
+        var me = this;
+        me.selectedIndex = index;
+        me.selectedNode = item;
+        me.scrollToItem(item, true);
 
-        this.fireEvent('slotpick', this.getValue(), this.selectedNode);
+        me.fireEvent('slotpick', me, me.getValue(), me.selectedNode);
     },
 
     // @private
@@ -337,19 +338,16 @@ Ext.define('Ext.picker.Slot', {
 
     // @private
     onScrollEnd: function(scroller, position) {
-        var picker = this.picker,
-            bar = picker.bar,
-            barHeight = bar.getHeight(),
-            offset = position.y,
-            index = Math.round(offset / barHeight),
-            viewItems = this.getViewItems(),
+        var me = this,
+            index = Math.round(position.y / me.picker.bar.getHeight()),
+            viewItems = me.getViewItems(),
             item = viewItems[index];
 
         if (item) {
-            this.selectedIndex = index;
-            this.selectedNode = item;
+            me.selectedIndex = index;
+            me.selectedNode = item;
 
-            this.fireEvent('slotpick', this.getValue(), this.selectedNode);
+            me.fireEvent('slotpick', me, me.getValue(), me.selectedNode);
         }
     },
 
@@ -378,7 +376,7 @@ Ext.define('Ext.picker.Slot', {
      * @private
      */
     setValue: function(value) {
-        if (!value) {
+        if (!Ext.isDefined(value)){
             return;
         }
 

@@ -3,9 +3,6 @@
  * @private
  */
 Ext.define('Ext.mixin.Selectable', {
-    //this was the name in 1.x, remove this alias in 3.x
-    alternateClassName: 'Ext.AbstractStoreSelectionModel',
-
     extend: 'Ext.mixin.Mixin',
 
     mixinConfig: {
@@ -21,6 +18,7 @@ Ext.define('Ext.mixin.Selectable', {
      * @event beforeselectionchange
      * @preventable selectionchange
      * Fires before an item is selected
+     * @param {Ext.mixin.Selectable} this
      */
 
     /**
@@ -32,12 +30,11 @@ Ext.define('Ext.mixin.Selectable', {
 
     config: {
         /**
-         * @cfg {Boolean} locked
-         * When true, locks the current selection so that the user cannot change what is selected. Defaults to false,
-         * see {@link #setLocked} to dynamically change locking at run time
+         * @cfg {Boolean} disableSelection <p><tt>true</tt> to disable selection.
+         * This configuration will lock the selection model that the DataView uses.</p>
          * @accessor
          */
-        locked: false,
+        disableSelection: null,
 
         /**
          * @cfg {String} mode
@@ -63,14 +60,14 @@ Ext.define('Ext.mixin.Selectable', {
         allowDeselect: false,
 
         /**
-         * @cfg
+         * @cfg {Ext.data.Model} lastSelected
          * @private
          * @accessor
          */
         lastSelected: null,
 
         /**
-         * @cfg
+         * @cfg {Ext.data.Model} lastFocused
          * @private
          * @accessor
          */
@@ -91,13 +88,11 @@ Ext.define('Ext.mixin.Selectable', {
     },
 
     selectableEventHooks: {
-        add: 'onSelectionStoreAdd',
-        remove: 'onSelectionStoreRemove',
-        update: 'onSelectionStoreUpdate',
-        clear: 'onSelectionStoreClear',
+        addrecords: 'onSelectionStoreAdd',
+        removerecords: 'onSelectionStoreRemove',
+        updaterecord: 'onSelectionStoreUpdate',
         load: 'refreshSelection',
-        sort: 'refreshSelection',
-        filter: 'refreshSelection'
+        refresh: 'refreshSelection'
     },
 
     constructor: function() {
@@ -201,7 +196,7 @@ Ext.define('Ext.mixin.Selectable', {
     },
 
     /**
-     * Selects a range of rows if the selection model {@link Ext.mixin.Selectable#getLocked is not locked}.
+     * Selects a range of rows if the selection model {@link Ext.mixin.Selectable#getDisableSelection is not locked}.
      * All rows in between startRow and endRow are also selected.
      * @param {Number} startRow The index of the first row in the range
      * @param {Number} endRow The index of the last row in the range
@@ -215,7 +210,7 @@ Ext.define('Ext.mixin.Selectable', {
             selectedCount = 0,
             tmp, dontDeselect, i;
 
-        if (me.getLocked()) {
+        if (me.getDisableSelection()) {
             return;
         }
 
@@ -261,7 +256,7 @@ Ext.define('Ext.mixin.Selectable', {
         var me = this,
             record;
 
-        if (me.getLocked()) {
+        if (me.getDisableSelection()) {
             return;
         }
 
@@ -285,7 +280,7 @@ Ext.define('Ext.mixin.Selectable', {
         var me = this,
             selected = me.getSelected();
 
-        if (me.getLocked()) {
+        if (me.getDisableSelection()) {
             return;
         }
 
@@ -307,7 +302,7 @@ Ext.define('Ext.mixin.Selectable', {
     },
 
     doMultiSelect: function(records, keepExisting, suppressEvent) {
-        if (records === null || this.getLocked()) {
+        if (records === null || this.getDisableSelection()) {
             return;
         }
         records = !Ext.isArray(records) ? [records] : records;
@@ -346,34 +341,36 @@ Ext.define('Ext.mixin.Selectable', {
      * @param {Boolean} suppressEvent If true the deselect event will not be fired
      */
     deselect: function(records, suppressEvent) {
-        var me = this,
-            selected = me.getSelected(),
-            ln = records.length,
-            change = false,
-            i = 0,
-            record;
+        var me = this;
 
-        if (me.getLocked()) {
+        if (me.getDisableSelection()) {
             return;
         }
 
-        if (typeof records === "number") {
-            records = [me.getStore().getAt(records)];
-        }
+        records = Ext.isArray(records) ? records : [records];
 
-        if (!Ext.isArray(records)) {
-            records = [records];
-            ln = 1;
-        }
+        var selected = me.getSelected(),
+            change   = false,
+            i        = 0,
+            store    = me.getStore(),
+            ln       = records.length,
+            record;
 
         for (; i < ln; i++) {
             record = records[i];
+
+            if (typeof record === 'number') {
+                record = store.getAt(record);
+            }
+
             if (selected.remove(record)) {
                 if (me.getLastSelected() == record) {
                     me.setLastSelected(selected.last());
                 }
-                me.onItemDeselect(record, suppressEvent);
                 change = true;
+            }
+            if (record) {
+                me.onItemDeselect(record, suppressEvent);
             }
         }
         me.fireSelectionChange(change && !suppressEvent);
@@ -392,7 +389,7 @@ Ext.define('Ext.mixin.Selectable', {
         var me = this;
         if (fireEvent) {
             //<deprecated product=touch since=2.0>
-            me.fireAction('beforeselectionchange', [], function() {
+            me.fireAction('beforeselectionchange', [me], function() {
             //</deprecated>
                 me.fireEvent('selectionchange', me, me.getSelection());
             //<deprecated product=touch since=2.0>
@@ -450,7 +447,7 @@ Ext.define('Ext.mixin.Selectable', {
             change = true;
         }
 
-        me.clearSelections();
+        me.deselectAll();
 
         if (newSelection.length) {
             // perform the selection again
@@ -460,9 +457,13 @@ Ext.define('Ext.mixin.Selectable', {
         me.fireSelectionChange(change);
     },
 
+    /*
+     * Deselects any currently selected records and clears all stored selections
+     */
+
     clearSelections: function() {
-        // reset the entire selection to nothing
         var me = this;
+        me.deselect(me.getSelection());
         me.getSelected().clear();
         me.setLastSelected(null);
         me.setLastFocused(null);
@@ -473,7 +474,7 @@ Ext.define('Ext.mixin.Selectable', {
     onSelectionStoreClear: function() {
         var me = this,
             selected = me.getSelected();
-        if (selected.getCount > 0) {
+        if (selected.getCount() > 0) {
             selected.clear();
             me.setLastSelected(null);
             me.setLastFocused(null);
@@ -488,7 +489,7 @@ Ext.define('Ext.mixin.Selectable', {
         var me = this,
             selected = me.getSelected();
 
-        if (me.getLocked()) {
+        if (me.getDisableSelection()) {
             return;
         }
 
@@ -564,8 +565,28 @@ Ext.define('Ext.mixin.Selectable', {
       * @deprecated
       */
 
+     /**
+      * @cfg {Boolean} locked
+      * @deprecated
+      */
+
+     //<deprecated product=touch since=2.0>
+         this.override({
+             constructor: function(config) {
+
+                 if (config && config.hasOwnProperty('locked')) {
+                     var locked = config.locked;
+                     config.disableSelection = locked;
+                     delete config.locked;
+                 }
+
+                 this.callParent([config]);
+            }
+         });
+    //</deprecated>
+
     //<deprecated product=touch since=2.0>
-    Ext.deprecateClassMethod(this, 'isLocked', this.prototype.getLocked, "'isLocked()' is deprecated, please use 'getLocked' instead");
+    Ext.deprecateClassMethod(this, 'isLocked', this.prototype.getDisableSelection, "'isLocked()' is deprecated, please use 'getDisableSelection' instead");
     Ext.deprecateClassMethod(this, 'getSelectionMode', this.prototype.getMode, "'getSelectionMode()' is deprecated, please use 'getMode' instead");
     Ext.deprecateClassMethod(this, 'doDeselect', this.prototype.deselect, "'doDeselect()' is deprecated, please use 'deselect()' instead");
     Ext.deprecateClassMethod(this, 'doSelect', this.prototype.select, "'doSelect()' is deprecated, please use 'select()' instead");

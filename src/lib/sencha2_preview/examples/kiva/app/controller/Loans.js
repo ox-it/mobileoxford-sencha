@@ -1,7 +1,7 @@
 /**
  * @class Kiva.controller.Loans
  * @extends Ext.app.Controller
- * 
+ *
  * The only controller in this simple application - this simply sets up the fullscreen viewport panel
  * and renders a detailed overlay whenever a Loan is tapped on.
  */
@@ -91,7 +91,7 @@ Ext.define('Kiva.controller.Loans', {
 
         var view = this.getDetail();
         view.setLoan(loan);
-        
+
         if (this.getProfile() == "phone") {
             view.setWidth(null);
             view.setHeight('85%');
@@ -115,7 +115,7 @@ Ext.define('Kiva.controller.Loans', {
     },
 
     onStoreLoad: function() {
-        this.getRefreshButton().setDisabled(false);  
+        this.getRefreshButton().setDisabled(false);
     },
 
     /**
@@ -123,18 +123,17 @@ Ext.define('Kiva.controller.Loans', {
      * Listener for the 'filter' event fired by the listView set up in the 'list' action. This simply
      * gets the form values that the user wants to filter on and tells the Store to filter using them.
      */
-    doFilter: function(values, form) {
+    doFilter: function(values) {
         var store   = this.getLoansStore(),
-            filters = [],
-            field;
-        
+            filters = [];
+
         Ext.iterate(values, function(field, value) {
             filters.push(new Ext.util.Filter({
                 property: field,
                 value   : value
             }));
         });
-        
+
         store.clearFilter();
         store.filter(filters);
     }

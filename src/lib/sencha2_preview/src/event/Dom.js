@@ -2,17 +2,26 @@ Ext.define('Ext.event.Dom', {
     extend: 'Ext.event.Event',
 
     constructor: function(event) {
-        var target = event.target;
+        var target = event.target,
+            touches;
 
         if (target && target.nodeType !== 1) {
             target = target.parentNode;
+        }
+        touches = event.changedTouches;
+        if (touches) {
+            touches = touches[0];
+            this.pageX = touches.pageX;
+            this.pageY = touches.pageY;
+        }
+        else {
+            this.pageX = event.pageX;
+            this.pageY = event.pageY;
         }
 
         this.browserEvent = this.event = event;
         this.target = this.delegatedTarget = target;
         this.type = event.type;
-        this.pageX = event.pageX;
-        this.pageY = event.pageY;
 
         this.timeStamp = this.time = event.timeStamp;
 
@@ -26,7 +35,7 @@ Ext.define('Ext.event.Dom', {
     /**
      * @property {Number} disatance
      * The disatance of the event.
-     * 
+     *
      * **This is only available when the event type is `swipe` and `pinch`**
      * @member Ext.event.Event
      */
@@ -42,7 +51,7 @@ Ext.define('Ext.event.Dom', {
      * @property {Number} pageX The browsers x coordinate of the event.
      * @member Ext.event.Event
      */
-    
+
     /**
      * @property {Number} pageY The browsers y coordinate of the event.
      * @member Ext.event.Event
@@ -99,7 +108,7 @@ Ext.define('Ext.event.Dom', {
 
     /**
      * Gets the target for the event. Unlike {@link #target}, this returns the main element for your event. So if you are
-     * listening to a tap event on Ext.Viewport.element, and you tap on an inner element of Ext.Viewport.element, this will 
+     * listening to a tap event on Ext.Viewport.element, and you tap on an inner element of Ext.Viewport.element, this will
      * return Ext.Viewport.element.
      *
      * If you want the element you tapped on, then use {@link #target}.
@@ -127,7 +136,7 @@ Ext.define('Ext.event.Dom', {
     getTime: function() {
         return this.time;
     },
-    
+
     setDelegatedTarget: function(target) {
         this.delegatedTarget = target;
     }

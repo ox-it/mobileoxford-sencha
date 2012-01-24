@@ -15,10 +15,8 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js"><span id='Ext-ModelManager'>/**
+  <pre class="prettyprint lang-js"><span id='Ext-data-ModelManager'>/**
 </span> * @author Ed Spencer
- * @class Ext.ModelManager
- * @extends Ext.AbstractManager
 
 The ModelManager keeps track of all {@link Ext.data.Model} types defined in your application.
 
@@ -68,24 +66,25 @@ are normal classes, you can access the type directly. The following snippets are
     var UserType = User;
 
  * @markdown
- * @singleton
  */
-Ext.define('Ext.ModelManager', {
+Ext.define('Ext.data.ModelManager', {
     extend: 'Ext.AbstractManager',
-    alternateClassName: 'Ext.ModelMgr',
-    requires: ['Ext.data.association.Association'],
-    
+    alternateClassName: ['Ext.ModelMgr', 'Ext.ModelManager'],
+    //requires: ['Ext.data.association.Association'],
+
     singleton: true,
 
-    typeName: 'mtype',
+    // typeName: 'mtype',
+    //
+    // /**
+    //  * Private stack of associations that must be created once their associated model has been defined
+    //  * @property {Ext.data.Association[]} associationStack
+    //  */
+    // associationStack: [],
 
-<span id='Ext-ModelManager-property-associationStack'>    /**
-</span>     * Private stack of associations that must be created once their associated model has been defined
-     * @property {Ext.data.Association[]} associationStack
-     */
-    associationStack: [],
+    modelNamespace: null,
 
-<span id='Ext-ModelManager-method-registerType'>    /**
+<span id='Ext-data-ModelManager-method-registerType'>    /**
 </span>     * Registers a model definition. All model plugins marked with isDefault: true are bootstrapped
      * immediately, as are any addition plugins defined in the model config.
      * @private
@@ -93,59 +92,62 @@ Ext.define('Ext.ModelManager', {
     registerType: function(name, config) {
         var proto = config.prototype,
             model;
+
         if (proto &amp;&amp; proto.isModel) {
             // registering an already defined model
             model = config;
         } else {
-            // passing in a configuration
-            if (!config.extend) {
-                config.extend = 'Ext.data.Model';
-            }
+            config = {
+                extend: config.extend || 'Ext.data.Model',
+                config: config
+            };
             model = Ext.define(name, config);
         }
         this.types[name] = model;
         return model;
     },
 
-<span id='Ext-ModelManager-method-onModelDefined'>    /**
-</span>     * @private
-     * Private callback called whenever a model has just been defined. This sets up any associations
-     * that were waiting for the given model to be defined
-     * @param {Function} model The model that was just created
-     */
-    onModelDefined: function(model) {
-        var stack  = this.associationStack,
-            length = stack.length,
-            create = [],
-            association, i, created;
+    onModelDefined: Ext.emptyFn,
 
-        for (i = 0; i &lt; length; i++) {
-            association = stack[i];
+    // /**
+    //  * @private
+    //  * Private callback called whenever a model has just been defined. This sets up any associations
+    //  * that were waiting for the given model to be defined
+    //  * @param {Function} model The model that was just created
+    //  */
+    // onModelDefined: function(model) {
+    //     var stack  = this.associationStack,
+    //         length = stack.length,
+    //         create = [],
+    //         association, i, created;
+    //
+    //     for (i = 0; i &lt; length; i++) {
+    //         association = stack[i];
+    //
+    //         if (association.associatedModel == model.modelName) {
+    //             create.push(association);
+    //         }
+    //     }
+    //
+    //     for (i = 0, length = create.length; i &lt; length; i++) {
+    //         created = create[i];
+    //         this.types[created.ownerModel].prototype.associations.add(Ext.data.association.Association.create(created));
+    //         Ext.Array.remove(stack, created);
+    //     }
+    // },
+    //
+    // /**
+    //  * Registers an association where one of the models defined doesn't exist yet.
+    //  * The ModelManager will check when new models are registered if it can link them
+    //  * together
+    //  * @private
+    //  * @param {Ext.data.association.Association} association The association
+    //  */
+    // registerDeferredAssociation: function(association){
+    //     this.associationStack.push(association);
+    // },
 
-            if (association.associatedModel == model.modelName) {
-                create.push(association);
-            }
-        }
-
-        for (i = 0, length = create.length; i &lt; length; i++) {
-            created = create[i];
-            this.types[created.ownerModel].prototype.associations.add(Ext.data.association.Association.create(created));
-            Ext.Array.remove(stack, created);
-        }
-    },
-
-<span id='Ext-ModelManager-method-registerDeferredAssociation'>    /**
-</span>     * Registers an association where one of the models defined doesn't exist yet.
-     * The ModelManager will check when new models are registered if it can link them
-     * together
-     * @private
-     * @param {Ext.data.association.Association} association The association
-     */
-    registerDeferredAssociation: function(association){
-        this.associationStack.push(association);
-    },
-
-<span id='Ext-ModelManager-method-getModel'>    /**
+<span id='Ext-data-ModelManager-method-getModel'>    /**
 </span>     * Returns the {@link Ext.data.Model} for a given model name
      * @param {String/Object} id The id of the model or the model instance.
      * @return {Ext.data.Model} a model class.
@@ -154,11 +156,14 @@ Ext.define('Ext.ModelManager', {
         var model = id;
         if (typeof model == 'string') {
             model = this.types[model];
+            if (!model &amp;&amp; this.modelNamespace) {
+                model = this.types[this.modelNamespace + '.' + model];
+            }
         }
         return model;
     },
 
-<span id='Ext-ModelManager-method-create'>    /**
+<span id='Ext-data-ModelManager-method-create'>    /**
 </span>     * Creates a new instance of a Model using the given data.
      *
      * This method is deprecated.  Use {@link Ext#create Ext.create} instead.  For example:
@@ -174,7 +179,6 @@ Ext.define('Ext.ModelManager', {
      */
     create: function(config, name, id) {
         var con = typeof name == 'function' ? name : this.types[name || config.name];
-
         return new con(config, id);
     }
 }, function() {
@@ -191,7 +195,7 @@ Ext.define('Ext.ModelManager', {
      * @param {Object} config A configuration object for the Model you wish to create.
      * @return {Ext.data.Model} The newly registered Model
      * @member Ext
-     * @deprecated 4.0.0 Use {@link Ext#define} instead.
+     * @deprecated 2.0.0 Use {@link Ext#define} instead.
      */
     Ext.regModel = function() {
         //&lt;debug&gt;

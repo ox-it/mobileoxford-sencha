@@ -58,10 +58,10 @@ Ext.setup({
         };
 
         var makeYqlRequest = function(btn) {
-            Ext.Viewport.setMask({
+            Ext.Viewport.setMasked({
                 message: 'Loading...'
             });
-            
+
             var selected = btn.value;
             var opts = demoLookup[selected];
             if (opts) {

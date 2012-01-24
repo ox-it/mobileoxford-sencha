@@ -47,10 +47,13 @@
  * - locate
  * - home
  *
+ * You can also use other pictos icons by using the {@link Global_CSS#pictos-iconmask pictos-iconmask} mixin in your SASS.
+ *
  * ## Badges
  *
  * Buttons can also have a badge on them, by using the {@link #badgeText} configuration:
  *
+ *     @example
  *     var badgedButton = Ext.create('Ext.Button', {
  *         text: 'My Button',
  *         badgeText: '2'
@@ -286,8 +289,8 @@ Ext.define('Ext.Button', {
 
         /**
          * @cfg {String} iconAlign
-         * The position within the Button to render the icon Options are: top, right, botom, left.
-         * If you have no {@link #text} set, the icon will be center aligned.
+         * The position within the Button to render the icon Options are: `top`, `right`, `botom`, `left` and `center` (when you have 
+         * no {@link #text} set).
          * @accessor
          */
         iconAlign: 'left',
@@ -323,15 +326,22 @@ Ext.define('Ext.Button', {
          */
         autoEvent: null,
 
-        baseCls: Ext.baseCSSPrefix + 'button',
-
         /**
          * @cfg {String} ui
          * The ui style to render this button with. The valid default options are:
          * 'normal', 'back', 'round', 'action', and 'forward'.
          * @accessor
          */
-        ui: 'normal'
+        ui: 'normal',
+
+        /**
+         * @cfg {String} html The html to put in this button.
+         * 
+         * If you want to just add text, please use the {@link #text} configuration
+         */
+
+        // @inherit
+        baseCls: Ext.baseCSSPrefix + 'button'
     },
 
     template: [
@@ -388,14 +398,29 @@ Ext.define('Ext.Button', {
      * @private
      */
     updateText: function(text) {
-        var element = this.textElement;
+        var textElement = this.textElement;
 
         if (text) {
-            element.show();
-            element.setText(text);
+            textElement.show();
+            textElement.update(text);
         }
         else {
-            element.hide();
+            textElement.hide();
+        }
+    },
+
+    /**
+     * @private
+     */
+    updateHtml: function(html) {
+        var textElement = this.textElement;
+
+        if (html) {
+            textElement.show();
+            textElement.update(html);
+        }
+        else {
+            textElement.hide();
         }
     },
 
@@ -439,17 +464,18 @@ Ext.define('Ext.Button', {
      * @private
      */
     updateIcon: function(icon) {
-        var element = this.iconElement;
+        var me = this,
+            element = me.iconElement;
 
         if (icon) {
-            element.show();
+            me.showIconElement();
             element.setStyle('background-image', icon ? 'url(' + icon + ')' : '');
-            this.refreshIconAlign();
-            this.refreshIconMask();
+            me.refreshIconAlign();
+            me.refreshIconMask();
         }
         else {
-            element.hide();
-            this.setIconAlign(false);
+            me.hideIconElement();
+            me.setIconAlign(false);
         }
     },
 
@@ -457,17 +483,18 @@ Ext.define('Ext.Button', {
      * @private
      */
     updateIconCls: function(iconCls, oldIconCls) {
-        var element = this.iconElement;
+        var me = this,
+            element = me.iconElement;
 
         if (iconCls) {
-            element.show();
+            me.showIconElement();
             element.replaceCls(oldIconCls, iconCls);
-            this.refreshIconAlign();
-            this.refreshIconMask();
+            me.refreshIconAlign();
+            me.refreshIconMask();
         }
         else {
-            element.hide();
-            this.setIconAlign(false);
+            me.hideIconElement();
+            me.setIconAlign(false);
         }
     },
 
@@ -540,6 +567,61 @@ Ext.define('Ext.Button', {
         });
 
         this.setScope(scope);
+    },
+
+    /**
+     * Used by icon and iconCls configurations to hide the icon element.
+     * We do this because Tab needs to change the visibility of the icon, not make
+     * it display:none
+     * @private
+     */
+    hideIconElement: function() {
+        this.iconElement.hide();
+    },
+
+    /**
+     * Used by icon and iconCls configurations to show the icon element.
+     * We do this because Tab needs to change the visibility of the icon, not make
+     * it display:node
+     * @private
+     */
+    showIconElement: function() {
+        this.iconElement.show();
+    },
+
+    /**
+     * We override this to check for '{ui}-back'. This is because if you have a UI of back, you need to actually add two class names.
+     * The ui class, and the back class:
+     *
+     * `ui: 'action-back'` would turn into:
+     *
+     * `class="x-button-action x-button-back"`
+     *
+     * But `ui: 'action' would turn into:
+     *
+     * `class="x-button-action"`
+     *
+     * So we just split it up into an array and add both of them as a UI, when it has `back`.
+     * @private
+     */
+    applyUi: function(config) {
+        if (config && Ext.isString(config)) {
+            var array  = config.split('-');
+            if (array && (array[1] == "back" || array[1] == "forward")) {
+                return array;
+            }
+        }
+
+        return config;
+    },
+
+    getUi: function() {
+        //Now that the UI can sometimes be an array, we need to check if it an array and return the proper value.
+        var ui = this._ui;
+        if (Ext.isArray(ui)) {
+            return ui.join('-');
+        }
+        return ui;
     },
 
     applyPressedDelay: function(delay) {
@@ -656,18 +738,6 @@ Ext.define('Ext.Button', {
                     Ext.Logger.deprecate("'badge' config is deprecated, please use 'badgeText' config instead", this);
                     //</debug>
                     config.badgeText = config.badge;
-                }
-
-                /**
-                 * @cfg {String} html
-                 * The Button text.
-                 * @deprecated 2.0.0 Please use {@link #text} instead
-                 */
-                if (config.hasOwnProperty('html')) {
-                    //<debug warn>
-                    Ext.Logger.deprecate("'html' config is deprecated, please use 'text' config instead", this);
-                    //</debug>
-                    config.text = config.html;
                 }
             }
 

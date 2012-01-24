@@ -9,243 +9,208 @@ Ext.define('Ext.data.NodeStore', {
     alias: 'store.node',
     requires: ['Ext.data.NodeInterface'],
 
-    /**
-     * @cfg {Ext.data.Model} node The Record you want to bind this Store to. Note that
-     * this record will be decorated with the Ext.data.NodeInterface if this is not the
-     * case yet.
-     */
-    node: null,
+    config: {
+        /**
+         * @cfg {Ext.data.Model} node The Record you want to bind this Store to. Note that
+         * this record will be decorated with the Ext.data.NodeInterface if this is not the
+         * case yet.
+         * @accessor
+         */
+        node: null,
 
-    /**
-     * @cfg {Boolean} recursive Set this to true if you want this NodeStore to represent
-     * all the descendents of the node in its flat data collection. This is useful for
-     * rendering a tree structure to a DataView and is being used internally by
-     * the TreeView. Any records that are moved, removed, inserted or appended to the
-     * node at any depth below the node this store is bound to will be automatically
-     * updated in this Store's internal flat data structure.
-     */
-    recursive: false,
+        /**
+         * @cfg {Boolean} recursive Set this to true if you want this NodeStore to represent
+         * all the descendents of the node in its flat data collection. This is useful for
+         * rendering a tree structure to a DataView and is being used internally by
+         * the TreeView. Any records that are moved, removed, inserted or appended to the
+         * node at any depth below the node this store is bound to will be automatically
+         * updated in this Store's internal flat data structure.
+         * @accessor
+         */
+        recursive: false,
 
-    /**
-     * @cfg {Boolean} rootVisible <tt>false</tt> to not include the root node in this Stores collection (defaults to <tt>true</tt>)
-     */
-    rootVisible: false,
+        /**
+         * @cfg {Boolean} rootVisible False to not include the root node in this Stores collection.
+         * @accessor
+         */
+        rootVisible: false,
 
-    constructor: function(config) {
-        var me = this,
-            node;
+        sorters: undefined,
+        filters: undefined
+    },
 
-        config = config || {};
-        Ext.apply(me, config);
+    afterEdit: function(record, modifiedFields) {
+        if (modifiedFields) {
+            if (modifiedFields.indexOf('loaded') !== -1) {
+                this.add(this.retrieveChildNodes(record));
+            }
+            if (modifiedFields.indexOf('expanded') !== -1) {
+                this.filter();
+            }
+        }
+        this.callParent(arguments);
+    },
 
+    onNodeAppend: function(parent, node) {
+        this.add([node].concat(this.retrieveChildNodes(node)));
+    },
+
+    onNodeInsert: function(parent, node) {
+        this.add([node].concat(this.retrieveChildNodes(node)));
+    },
+
+    onNodeRemove: function(parent, node) {
+        this.remove([node].concat(this.retrieveChildNodes(node)));
+    },
+
+    onNodeSort: function() {
+        this.sort();
+    },
+
+    applySorters: function(sorters) {
+        return function(node1, node2) {
+            // A shortcut for siblings
+            if (node1.parentNode === node2.parentNode) {
+                return (node1.data.index < node2.data.index) ? -1 : 1;
+            }
+
+            // @NOTE: with the following algorithm we can only go 80 levels deep in the tree
+            // and each node can contain 10000 direct children max
+
+            var weight1 = 0,
+                weight2 = 0,
+                parent1 = node1,
+                parent2 = node2;
+
+            while (parent1) {
+                weight1 += (Math.pow(10, (parent1.data.depth+1) * -4) * (parent1.data.index+1));
+                parent1 = parent1.parentNode;
+            }
+            while (parent2) {
+                weight2 += (Math.pow(10, (parent2.data.depth+1) * -4) * (parent2.data.index+1));
+                parent2 = parent2.parentNode;
+            }
+
+            if (weight1 > weight2) {
+                return 1;
+            } else if (weight1 < weight2) {
+                return -1;
+            }
+            return (node1.data.index > node2.data.index) ? 1 : -1;
+        };
+    },
+
+    applyFilters: function(filters) {
+        var me = this;
+        return function(item) {
+            return me.isVisible(item);
+        };
+    },
+
+    applyProxy: function(proxy) {
         //<debug>
-        if (Ext.isDefined(me.proxy)) {
-            Ext.Error.raise("A NodeStore cannot be bound to a proxy. Instead bind it to a record " +
+        if (proxy) {
+            Ext.Logger.warn("A NodeStore cannot be bound to a proxy. Instead bind it to a record " +
                             "decorated with the NodeInterface by setting the node config.");
         }
         //</debug>
+    },
 
-        config.proxy = {type: 'proxy'};
-        me.callParent([config]);
-
-        node = me.node;
+    applyNode: function(node) {
         if (node) {
-            me.node = null;
-            me.setNode(node);
+            node = Ext.data.NodeInterface.decorate(node);
         }
+        return node;
     },
 
-    setNode: function(node) {
-        var me = this;
-
-        if (me.node && me.node != node) {
-            // We want to unbind our listeners on the old node
-            me.mun(me.node, {
-                expand: me.onNodeExpand,
-                collapse: me.onNodeCollapse,
-                append: me.onNodeAppend,
-                insert: me.onNodeInsert,
-                remove: me.onNodeRemove,
-                sort: me.onNodeSort,
-                scope: me
+    updateNode: function(node, oldNode) {
+        if (oldNode) {
+            oldNode.un({
+                append  : 'onNodeAppend',
+                insert  : 'onNodeInsert',
+                remove  : 'onNodeRemove',
+                sort    : 'onNodeSort',
+                load    : 'onNodeLoad',
+                scope: this
             });
-            me.node = null;
+            oldNode.unjoin(this);
         }
 
-        if (node !== me.node) {
-            Ext.data.NodeInterface.decorate(node);
-            me.removeAll();
-            if (me.rootVisible) {
-                me.add(node);
-            }
-            else if (!node.isExpanded()) {
-                node.expand();
-            }
-
-            me.mon(node, {
-                expand: me.onNodeExpand,
-                collapse: me.onNodeCollapse,
-                append: me.onNodeAppend,
-                insert: me.onNodeInsert,
-                remove: me.onNodeRemove,
-                sort: me.onNodeSort,
-                scope: me
+        if (node) {
+            node.on({
+                scope   : this,
+                append  : 'onNodeAppend',
+                insert  : 'onNodeInsert',
+                remove  : 'onNodeRemove',
+                sort    : 'onNodeSort',
+                load    : 'onNodeLoad'
             });
-            me.node = node;
-            if (node.isExpanded() && node.isLoaded()) {
-                me.onNodeExpand(node, node.childNodes, true);
+
+            var data = [];
+            if (node.childNodes.length) {
+                data = data.concat(this.retrieveChildNodes(node));
             }
+            if (this.getRootVisible()) {
+                data.push(node);
+            } else if (node.isLoaded() || node.isLoading()) {
+                node.set('expanded', true);
+            }
+
+            this.setData(data);
+
+            node.join(this);
         }
     },
 
-    onNodeSort: function(node, childNodes) {
-        var me = this;
+    /**
+     * Private method used to deeply retrieve the children of a record without recursion.
+     * @private
+     * @param parent
+     */
+    retrieveChildNodes: function(root) {
+        var node = this.getNode(),
+            recursive = this.getRecursive(),
+            added = [],
+            child = root;
 
-        if ((me.indexOf(node) !== -1 || (node === me.node && !me.rootVisible) && node.isExpanded())) {
-            me.onNodeCollapse(node, childNodes, true);
-            me.onNodeExpand(node, childNodes, true);
-        }
-    },
-
-    onNodeExpand: function(parent, records, suppressEvent) {
-        var me = this,
-            insertIndex = me.indexOf(parent) + 1,
-            ln = records ? records.length : 0,
-            i, record;
-
-        if (!me.recursive && parent !== me.node) {
-            return;
+        if (!root.childNodes.length || (!recursive && root !== node)) {
+            return added;
         }
 
-        if (parent !== this.node && !me.isVisible(parent)) {
-            return;
+        if (!recursive) {
+            return root.childNodes;
         }
 
-        if (!suppressEvent && me.fireEvent('beforeexpand', parent, records, insertIndex) === false) {
-            return;
-        }
-
-        if (ln) {
-            for (i = 0; i < ln; i++) {
-                record = records[i];
-                // Don't re-insert records we already have in the store
-                if (me.data.indexOf(record) === -1) {
-                    me.insert(insertIndex, record);
-                    insertIndex++;
+        while (child) {
+            if (child._added) {
+                delete child._added;
+                if (child === root) {
+                    break;
+                } else {
+                    child = child.nextSibling || child.parentNode;
                 }
-                if (record.isExpanded()) {
-                    if (record.isLoaded()) {
-                        // Take a shortcut
-                        me.onNodeExpand(record, record.childNodes, true);
-                    }
-                    else {
-                        record.set('expanded', false);
-                        record.expand();
-                    }
-                }
-            }
-        }
-
-        if (!suppressEvent) {
-            me.fireEvent('expand', parent, records);
-        }
-    },
-
-    onNodeCollapse: function(parent, records, suppressEvent) {
-        var me = this,
-            ln = records.length,
-            collapseIndex = me.indexOf(parent) + 1,
-            i, record;
-
-        if (!me.recursive && parent !== me.node) {
-            return;
-        }
-
-        if (!suppressEvent && me.fireEvent('beforecollapse', parent, records, collapseIndex) === false) {
-            return;
-        }
-
-        for (i = 0; i < ln; i++) {
-            record = records[i];
-            me.remove(record);
-            if (record.isExpanded()) {
-                me.onNodeCollapse(record, record.childNodes, true);
-            }
-        }
-
-        if (!suppressEvent) {
-            me.fireEvent('collapse', parent, records, collapseIndex);
-        }
-    },
-
-    onNodeAppend: function(parent, node, index) {
-        var me = this,
-            refNode, sibling;
-
-        if (me.isVisible(node)) {
-            if (index === 0) {
-                refNode = parent;
             } else {
-                sibling = node.previousSibling;
-                while (sibling.isExpanded() && sibling.lastChild) {
-                    sibling = sibling.lastChild;
+                if (child !== root) {
+                    added.push(child);
                 }
-                refNode = sibling;
-            }
-            me.insert(me.indexOf(refNode) + 1, node);
-            if (!node.isLeaf() && node.isExpanded()) {
-                if (node.isLoaded()) {
-                    // Take a shortcut
-                    me.onNodeExpand(node, node.childNodes, true);
-                }
-                else {
-                    node.set('expanded', false);
-                    node.expand();
+                if (child.firstChild) {
+                    child._added = true;
+                    child = child.firstChild;
+                } else {
+                    child = child.nextSibling || child.parentNode;
                 }
             }
         }
-    },
 
-    onNodeInsert: function(parent, node, refNode) {
-        var me = this,
-            index = this.indexOf(refNode);
-
-        if (index != -1 && me.isVisible(node)) {
-            me.insert(index, node);
-            if (!node.isLeaf() && node.isExpanded()) {
-                if (node.isLoaded()) {
-                    // Take a shortcut
-                    me.onNodeExpand(node, node.childNodes, true);
-                }
-                else {
-                    node.set('expanded', false);
-                    node.expand();
-                }
-            }
-        }
-    },
-
-    onNodeRemove: function(parent, node, index) {
-        var me = this;
-        if (me.indexOf(node) != -1) {
-            if (!node.isLeaf() && node.isExpanded()) {
-                me.onNodeCollapse(node, node.childNodes, true);
-            }
-            me.remove(node);
-        }
+        return added;
     },
 
     isVisible: function(node) {
         var parent = node.parentNode;
         while (parent) {
-            if (parent === this.node && !this.rootVisible && parent.isExpanded()) {
-                return true;
-            }
-
-            if (this.indexOf(parent) === -1 || !parent.isExpanded()) {
+            if (!parent.isExpanded()) {
                 return false;
             }
-
             parent = parent.parentNode;
         }
         return true;

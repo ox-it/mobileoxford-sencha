@@ -2,7 +2,7 @@
  * @private
  */
 Ext.define('Ext.fx.runner.Css', {
-    extend: 'Ext.EventedBase',
+    extend: 'Ext.Evented',
 
     requires: [
         'Ext.fx.Animation'

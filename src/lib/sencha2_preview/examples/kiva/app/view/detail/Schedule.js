@@ -6,9 +6,12 @@ Ext.define('Kiva.view.detail.Schedule', {
     config: {
         cls: 'detail-card',
         styleHtmlContent: true,
-        scrollable: 'auto',
+        scrollable: {
+            direction: 'vertical',
+            directionLock: true
+        },
 
-        tpl: Ext.create('Ext.XTemplate', 
+        tpl: Ext.create('Ext.XTemplate',
             '<h1>Repayment Schedule</h1>',
             '<tpl for=".">',
                 '<div class="payment">',

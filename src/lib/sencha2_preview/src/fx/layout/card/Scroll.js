@@ -36,7 +36,7 @@ Ext.define('Ext.fx.layout.card.Scroll', {
         this.getEasing().setDuration(duration + 100);
     },
 
-    onActiveItemChange: function(newItem, oldItem) {
+    onActiveItemChange: function(cardLayout, newItem, oldItem, options, controller) {
         var containerElement, inElement, outElement, easing,
             containerWidth, reverse;
 
@@ -54,6 +54,7 @@ Ext.define('Ext.fx.layout.card.Scroll', {
 
             this.oldItem = oldItem;
             this.newItem = newItem;
+            this.currentEventController = controller;
             this.containerElement = containerElement;
             this.isReverse = reverse = this.getReverse();
 
@@ -79,7 +80,7 @@ Ext.define('Ext.fx.layout.card.Scroll', {
 
             this.startAnimation();
 
-            return false;
+            controller.pause();
         }
     },
 
@@ -104,7 +105,7 @@ Ext.define('Ext.fx.layout.card.Scroll', {
     },
 
     stopAnimation: function() {
-        this.oldItem.hide();
+        this.currentEventController.resume();
 
         if (this.isReverse) {
             this.oldItem.renderElement.setLeft(null);

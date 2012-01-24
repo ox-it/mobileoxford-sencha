@@ -1,12 +1,15 @@
 /**
  * Wraps an HTML5 number field. Example usage:
  *
- *     new Ext.field.Spinner({
+ *     @example miniphone
+ *     var spinner = Ext.create('Ext.field.Spinner', {
+ *         label: 'Spinner Field',
  *         minValue: 0,
  *         maxValue: 100,
- *         incrementValue: 2,
+ *         increment: 2,
  *         cycle: true
  *     });
+ *     Ext.Viewport.add(spinner);
  *
  */
 Ext.define('Ext.field.Spinner', {
@@ -44,6 +47,7 @@ Ext.define('Ext.field.Spinner', {
          * @accessor
          */
         minValue: Number.NEGATIVE_INFINITY,
+        
         /**
          * @cfg {Number} [maxValue=infinity] The maximum allowed value.
          * @accessor
@@ -54,7 +58,7 @@ Ext.define('Ext.field.Spinner', {
          * @cfg {Number} increment Value that is added or subtracted from the current value when a spinner is used.
          * @accessor
          */
-        increment: .1,
+        increment: 0.1,
 
         /**
          * @cfg {Boolean} accelerateOnTapHold True if autorepeating should start slowly and accelerate.
@@ -76,6 +80,10 @@ Ext.define('Ext.field.Spinner', {
          */
         clearIcon: false,
 
+        /**
+         * @cfg {Number} defaultValue The default value for this field when no value has been set. It is also used when
+         *                            the value is set to `NaN`.
+         */
         defaultValue: 0,
 
         /**
@@ -122,7 +130,7 @@ Ext.define('Ext.field.Spinner', {
     // @inherit
     applyValue: function(value) {
         value = parseFloat(value);
-        if (isNaN(value)) {
+        if (isNaN(value) || value === null) {
             value = this.getDefaultValue();
         }
 
@@ -179,19 +187,33 @@ Ext.define('Ext.field.Spinner', {
     // @private
     spin: function(down) {
         var me = this,
-            value = me.getValue(),
+            originalValue = me.getValue(),
             increment = me.getIncrement(),
-            direction = down ? 'down' : 'up';
+            direction = down ? 'down' : 'up',
+            minValue = me.getMinValue(),
+            maxValue = me.getMaxValue(),
+            value;
 
         if (down) {
-            value -= increment;
+            value = originalValue - increment;
         }
         else {
-            value += increment;
+            value = originalValue + increment;
+        }
+
+        //if cycle is true, then we need to check fi the value hasn't changed and we cycle the value
+        if (me.getCycle()) {
+            if (originalValue == minValue && value < minValue) {
+                value = maxValue;
+            }
+
+            if (originalValue == maxValue && value > maxValue) {
+                value = minValue;
+            }
         }
 
         me.setValue(value);
-        value = me._value;
+        value = me.getValue();
 
         me.fireEvent('spin', me, value, direction);
         me.fireEvent('spin' + direction, me, value);
@@ -208,5 +230,26 @@ Ext.define('Ext.field.Spinner', {
         me.callParent(arguments);
     }
 }, function() {
-    //incrementValue
+    //<deprecated product=touch since=2.0>
+    this.override({
+        constructor: function(config) {
+            if (config) {
+                /**
+                 * @cfg {String} incrementValue
+                 * The increment value of this spinner field.
+                 * @deprecated 2.0.0 Please use {@link #increment} instead
+                 */
+                if (config.hasOwnProperty('incrementValue')) {
+                    //<debug warn>
+                    Ext.Logger.deprecate("'incrementValue' config is deprecated, please use 'increment' config instead", this);
+                    //</debug>
+                    config.increment = config.incrementValue;
+                    delete config.incrementValue;
+                }
+            }
+
+            this.callParent([config]);
+        }
+    });
+    //</deprecated>
 });

@@ -7,7 +7,7 @@
  * The configured store loads the Search model instances using Search's default proxy (see app/models/Search.js).
  */
 Ext.define('Twitter.view.SearchList', {
-    extend: 'Ext.dataview.ComponentView',
+    extend: 'Ext.DataView',
     xtype : 'searchlist',
     requires: ['Twitter.view.SearchListItem'],
 
@@ -16,8 +16,9 @@ Ext.define('Twitter.view.SearchList', {
         baseCls      : 'x-list',
         store        : 'Searches',
         defaultType  : 'searchlistitem',
+        scrollable   : 'vertical',
         allowDeselect: false,
-        scrollable   : 'auto',
+        useComponents: true,
         deselectOnContainerClick: false
     }
 });

@@ -1,3 +1,6 @@
+/**
+ * @private
+ */
 Ext.define('Ext.fx.Easing', {
     requires: ['Ext.fx.easing.Linear'],
 

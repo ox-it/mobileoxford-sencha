@@ -51,12 +51,12 @@ Ext.define('Ext.plugin.PullRefresh', {
         pullTpl: [
             '<div class="x-list-pullrefresh">',
                 '<div class="x-list-pullrefresh-arrow"></div>',
-//                '<div class="x-loading-spinner">',
-//                    '<span class="x-loading-top"></span>',
-//                    '<span class="x-loading-right"></span>',
-//                    '<span class="x-loading-bottom"></span>',
-//                    '<span class="x-loading-left"></span>',
-//                '</div>',
+                '<div class="x-loading-spinner">',
+                    '<span class="x-loading-top"></span>',
+                    '<span class="x-loading-right"></span>',
+                    '<span class="x-loading-bottom"></span>',
+                    '<span class="x-loading-left"></span>',
+                '</div>',
                 '<div class="x-list-pullrefresh-wrap">',
                     '<h3 class="x-list-pullrefresh-message">{message}</h3>',
                     '<div class="x-list-pullrefresh-updated">Last Updated: <span>{lastUpdated:date("m/d/Y h:iA")}</span></div>',
@@ -66,7 +66,6 @@ Ext.define('Ext.plugin.PullRefresh', {
     },
 
     isRefreshing: false,
-    isLoading: false,
     currentViewState: '',
 
     initialize: function() {
@@ -83,36 +82,31 @@ Ext.define('Ext.plugin.PullRefresh', {
     },
 
     init: function(list) {
-        var pullTpl = this.getPullTpl(),
-            element = this.element,
+        var me = this,
+            pullTpl = me.getPullTpl(),
+            element = me.element,
             scroller = list.getScrollable().getScroller();
 
-        this.setList(list);
-        this.lastUpdated = new Date();
+        me.setList(list);
+        me.lastUpdated = new Date();
 
-        this.getList().insert(0, this);
-
-        if (!this.getRefreshFn()) {
-            this.onLoadComplete.call(this);
-        }
-
-        list.onAfter('refresh', this.onLoadComplete, this);
+        me.getList().insert(0, me);
 
         pullTpl.overwrite(element, {
-            message: this.getPullRefreshText(),
-            lastUpdated: this.lastUpdated
+            message: me.getPullRefreshText(),
+            lastUpdated: me.lastUpdated
         }, true);
 
-        this.loadingElement = element.getFirstChild();
-        this.messageEl = element.down('.x-list-pullrefresh-message');
-        this.updatedEl = element.down('.x-list-pullrefresh-updated > span');
+        me.loadingElement = element.getFirstChild();
+        me.messageEl = element.down('.x-list-pullrefresh-message');
+        me.updatedEl = element.down('.x-list-pullrefresh-updated > span');
 
-        this.maxScroller = scroller.getMaxPosition();
+        me.maxScroller = scroller.getMaxPosition();
 
         scroller.on({
-            maxpositionchange: this.setMaxScroller,
-            scroll: this.onScrollChange,
-            scope: this
+            maxpositionchange: me.setMaxScroller,
+            scroll: me.onScrollChange,
+            scope: me
         });
     },
 
@@ -137,92 +131,111 @@ Ext.define('Ext.plugin.PullRefresh', {
     },
 
     onBounceTop: function(y) {
-        var list = this.getList(),
+        var me = this,
+            list = me.getList(),
             scroller = list.getScrollable().getScroller();
 
-        if (!this.isRefreshing && -y >= this.pullHeight) {
-            this.isRefreshing = true;
-            this.isLoading = true;
+        if (!me.isRefreshing && -y >= me.pullHeight + 10) {
+            me.isRefreshing = true;
 
-            scroller.minPosition.y = -this.pullHeight;
-            this.setViewState('loading');
+            me.setViewState('release');
 
-            if (this.refreshFn) {
-                this.refreshFn.call(this, this.onLoadComplete, this);
+            if (me.refreshFn) {
+                me.refreshFn.call(me, me.onLoadComplete, me);
             }
             else {
-                list.getStore().load();
+                scroller.getContainer().onBefore({
+                    dragend: 'onScrollerDragEnd',
+                    single: true,
+                    scope: me
+                });
             }
         }
+        else if (me.isRefreshing && -y < me.pullHeight + 10) {
+            me.isRefreshing = false;
+            me.setViewState('pull');
+        }
     },
 
-    onBounceBottom: function(y) {
+    onScrollerDragEnd: function() {
+        var me = this;
+        if (me.isRefreshing) {
+            var list = me.getList(),
+                scroller = list.getScrollable().getScroller();
+
+            scroller.minPosition.y = -me.pullHeight;
+            scroller.on({
+                scrollend: 'loadStore',
+                single: true,
+                scope: me
+            });
+        }
     },
+
+    loadStore: function() {
+        var me = this,
+            list = me.getList(),
+            scroller = list.getScrollable().getScroller(),
+            store = list.getStore();
+
+        me.setViewState('loading');
+        Ext.defer(function() {
+            scroller.on({
+                scrollend: function() {
+                    store.load();
+                    me.resetRefreshState()
+                },
+                delay: 100,
+                single: true,
+                scope: me
+            });
+            scroller.minPosition.y = 0;
+            scroller.scrollToAnimated(null, 0);
+        }, 500, me);
+    },
+
+    onBounceBottom: Ext.emptyFn,
 
     setViewState: function(state) {
-        if (state === this.currentViewState) {
-            return this;
-        }
-        this.currentViewState = state;
-
+        var me = this;
         var prefix = Ext.baseCSSPrefix,
-            messageEl = this.messageEl,
-            loadingElement = this.loadingElement;
+            messageEl = me.messageEl,
+            loadingElement = me.loadingElement;
+
+        if (state === me.currentViewState) {
+            return me;
+        }
+        me.currentViewState = state;
+
 
         if (messageEl && loadingElement) {
             switch (state) {
                 case 'pull':
-                    messageEl.setHTML(this.getPullRefreshText());
+                    messageEl.setHTML(me.getPullRefreshText());
                     loadingElement.removeCls([prefix + 'list-pullrefresh-release', prefix + 'list-pullrefresh-loading']);
                 break;
 
                 case 'release':
-                    messageEl.setHTML(this.getReleaseRefreshText());
+                    messageEl.setHTML(me.getReleaseRefreshText());
                     loadingElement.addCls(prefix + 'list-pullrefresh-release');
                 break;
 
                 case 'loading':
-                    messageEl.setHTML(this.getLoadingText());
+                    messageEl.setHTML(me.getLoadingText());
                     loadingElement.addCls(prefix + 'list-pullrefresh-loading');
                     break;
             }
         }
 
-        return this;
-    },
-
-    /**
-     * This function is called after the List has been refreshed. It resets the Pull to Refresh markup and
-     * updates the last updated date. It also animates the pull to refresh markup away.
-     * @private
-     */
-    onLoadComplete: function() {
-        var list = this.getList(),
-            scroller = list.getScrollable().getScroller();
-
-        if (this.isLoading) {
-            scroller.minPosition.y = 0;
-
-            if (!scroller.isDragging) {
-                this.resetRefreshState();
-                scroller.scrollToAnimated(null, 0);
-            }
-            else {
-                scroller.on({
-                    scrollend: this.resetRefreshState,
-                    single: true,
-                    scope: this
-                });
-            }
-        }
+        return me;
     },
 
     resetRefreshState: function() {
-        this.isRefreshing = false;
-        this.isLoading = false;
-        this.lastUpdated = new Date();
+        var me = this;
+        me.isRefreshing = false;
+        me.lastUpdated = new Date();
 
-        this.setViewState('pull');
-        this.updatedEl.setHTML(Ext.util.Format.date(this.lastUpdated, "m/d/Y h:iA"));
+        me.setViewState('pull');
+        me.updatedEl.setHTML(Ext.util.Format.date(me.lastUpdated, "m/d/Y h:iA"));
     }
 });

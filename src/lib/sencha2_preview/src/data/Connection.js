@@ -38,43 +38,48 @@ Ext.define('Ext.data.Connection', {
         requestId: 0
     },
 
-    url: null,
-    async: true,
-    method: null,
-    username: '',
-    password: '',
+    config: {
+        url: null,
+        async: true,
+        method: null,
+        username: '',
+        password: '',
 
-    /**
-     * @cfg {Boolean} disableCaching
-     * True to add a unique cache-buster param to GET requests. (defaults to true)
-     */
-    disableCaching: true,
+        /**
+         * @cfg {Boolean} disableCaching
+         * True to add a unique cache-buster param to GET requests. (defaults to true)
+         */
+        disableCaching: true,
 
-    /**
-     * @cfg {String} disableCachingParam
-     * Change the parameter which is sent went disabling caching through a cache buster. Defaults to '_dc'
-     */
-    disableCachingParam: '_dc',
+        /**
+         * @cfg {String} disableCachingParam
+         * Change the parameter which is sent went disabling caching through a cache buster. Defaults to '_dc'
+         */
+        disableCachingParam: '_dc',
 
-    /**
-     * @cfg {Number} timeout
-     * The timeout in milliseconds to be used for requests. (defaults to 30000)
-     */
-    timeout : 30000,
+        /**
+         * @cfg {Number} timeout
+         * The timeout in milliseconds to be used for requests. (defaults to 30000)
+         */
+        timeout : 30000,
 
-    /**
-     * @cfg {Object} extraParams
-     * Any parameters to be appended to the request.
-     */
+        /**
+         * @cfg {Object} extraParams
+         * Any parameters to be appended to the request.
+         */
 
-    useDefaultHeader : true,
-    defaultPostHeader : 'application/x-www-form-urlencoded; charset=UTF-8',
-    useDefaultXhrHeader : true,
-    defaultXhrHeader : 'XMLHttpRequest',
+        defaultHeaders: null,
+        useDefaultHeader : true,
+        defaultPostHeader : 'application/x-www-form-urlencoded; charset=UTF-8',
+        useDefaultXhrHeader : true,
+        defaultXhrHeader : 'XMLHttpRequest',
+
+        extraParams: null,
+        autoAbort: false
+    },
 
     constructor : function(config) {
-        config = config || {};
-        Ext.apply(this, config);
+        this.initConfig(config);
 
         /**
          * @event beforerequest
@@ -101,7 +106,6 @@ Ext.define('Ext.data.Connection', {
          * @param {Object} options The options config object passed to the {@link #request} method.
          */
         this.requests = {};
-        this.mixins.observable.constructor.call(this);
     },
 
     /**
@@ -214,8 +218,8 @@ Ext.define('Ext.data.Connection', {
         options = options || {};
         var me = this,
             scope = options.scope || window,
-            username = options.username || me.username,
-            password = options.password || me.password || '',
+            username = options.username || me.getUsername(),
+            password = options.password || me.getPassword() || '',
             async,
             requestOptions,
             request,
@@ -223,7 +227,6 @@ Ext.define('Ext.data.Connection', {
             xhr;
 
         if (me.fireEvent('beforerequest', me, options) !== false) {
-
             requestOptions = me.setOptions(options, scope);
 
             if (this.isFormUpload(options) === true) {
@@ -232,14 +235,14 @@ Ext.define('Ext.data.Connection', {
             }
 
             // if autoabort is set, cancel the current transactions
-            if (options.autoAbort === true || me.autoAbort) {
+            if (options.autoAbort === true || me.getAutoAbort()) {
                 me.abort();
             }
 
             // create a connection object
             xhr = this.getXhrInstance();
 
-            async = options.async !== false ? (options.async || me.async) : false;
+            async = options.async !== false ? (options.async || me.getAsync()) : false;
 
             // open the request
             if (username) {
@@ -252,7 +255,7 @@ Ext.define('Ext.data.Connection', {
 
             // create the transaction object
             request = {
-                id: ++Ext.data.Connection.requestId,
+                id: ++this.self.requestId,
                 xhr: xhr,
                 headers: headers,
                 options: options,
@@ -260,7 +263,7 @@ Ext.define('Ext.data.Connection', {
                 timeout: setTimeout(function() {
                     request.timedout = true;
                     me.abort(request);
-                }, options.timeout || me.timeout)
+                }, options.timeout || me.getTimeout())
             };
             me.requests[request.id] = request;
 
@@ -427,14 +430,13 @@ Ext.define('Ext.data.Connection', {
     setOptions: function(options, scope) {
         var me = this,
             params = options.params || {},
-            extraParams = me.extraParams,
+            extraParams = me.getExtraParams(),
             urlParams = options.urlParams,
-            url = options.url || me.url,
+            url = options.url || me.getUrl(),
             jsonData = options.jsonData,
             method,
             disableCache,
             data;
-
 
         // allow params to be a method that returns the params object
         if (Ext.isFunction(params)) {
@@ -479,14 +481,14 @@ Ext.define('Ext.data.Connection', {
         params = this.setupParams(options, params);
 
         // decide the proper method for this request
-        method = (options.method || me.method || ((params || data) ? 'POST' : 'GET')).toUpperCase();
+        method = (options.method || me.getMethod() || ((params || data) ? 'POST' : 'GET')).toUpperCase();
         this.setupMethod(options, method);
 
 
-        disableCache = options.disableCaching !== false ? (options.disableCaching || me.disableCaching) : false;
+        disableCache = options.disableCaching !== false ? (options.disableCaching || me.getDisableCaching()) : false;
         // if the method is get append date to prevent caching
         if (method === 'GET' && disableCache) {
-            url = Ext.urlAppend(url, (options.disableCachingParam || me.disableCachingParam) + '=' + (new Date().getTime()));
+            url = Ext.urlAppend(url, (options.disableCachingParam || me.getDisableCachingParam()) + '=' + (new Date().getTime()));
         }
 
         // if the method is get or there is json/xml data append the params to the url
@@ -564,8 +566,8 @@ Ext.define('Ext.data.Connection', {
      */
     setupHeaders: function(xhr, options, data, params) {
         var me = this,
-            headers = Ext.apply({}, options.headers || {}, me.defaultHeaders || {}),
-            contentType = me.defaultPostHeader,
+            headers = Ext.apply({}, options.headers || {}, me.getDefaultHeaders() || {}),
+            contentType = me.getDefaultPostHeader(),
             jsonData = options.jsonData,
             xmlData = options.xmlData,
             key,
@@ -586,8 +588,8 @@ Ext.define('Ext.data.Connection', {
             headers['Content-Type'] = contentType;
         }
 
-        if (me.useDefaultXhrHeader && !headers['X-Requested-With']) {
-            headers['X-Requested-With'] = me.defaultXhrHeader;
+        if (me.getUseDefaultXhrHeader() && !headers['X-Requested-With']) {
+            headers['X-Requested-With'] = me.getDefaultXhrHeader();
         }
         // set up all the request headers on the xhr object
         try {

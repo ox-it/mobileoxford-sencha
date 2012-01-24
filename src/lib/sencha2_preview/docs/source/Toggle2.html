@@ -16,8 +16,55 @@
 </head>
 <body onload="prettyPrint(); highlight();">
   <pre class="prettyprint lang-js"><span id='Ext-field-Toggle'>/**
-</span> * Specialized Slider with a single thumb and only two values. By default the toggle component can
- * be switched between the values of 0 and 1.
+</span> * Specialized {@link Ext.field.Slider} with a single thumb which only supports two {@link #value values}.
+ *
+ * # Examples
+ *
+ *     @example preview
+ *     Ext.Viewport.add({
+ *         xtype: 'togglefield',
+ *         name: 'awesome',
+ *         label: 'Are you awesome?',
+ *         labelWidth: '40%'
+ *     });
+ *
+ * Having a default value of 'toggled':
+ *
+ *     @example preview
+ *     Ext.Viewport.add({
+ *         xtype: 'togglefield',
+ *         name: 'awesome',
+ *         value: 1,
+ *         label: 'Are you awesome?',
+ *         labelWidth: '40%'
+ *     });
+ *
+ * And using the {@link #value} {@link #toggle} method:
+ *
+ *     @example preview
+ *     Ext.Viewport.add(
+ *         {
+ *             xtype: 'togglefield',
+ *             name: 'awesome',
+ *             value: 1,
+ *             label: 'Are you awesome?',
+ *             labelWidth: '40%'
+ *         },
+ *         {
+ *             xtype: 'toolbar',
+ *             docked: 'top',
+ *             items: [
+ *                 {
+ *                     xtype: 'button',
+ *                     text: 'Toggle',
+ *                     flex: 1,
+ *                     handler: function() {
+ *                         Ext.ComponentQuery.query('togglefield')[0].toggle();
+ *                     }
+ *                 }
+ *             ]
+ *         }
+ *     );
  */
 Ext.define('Ext.field.Toggle', {
     extend: 'Ext.field.Slider',
@@ -47,6 +94,31 @@ Ext.define('Ext.field.Toggle', {
     // @private
     applyComponent: function(config) {
         return Ext.factory(config, Ext.slider.Toggle);
+    },
+
+<span id='Ext-field-Toggle-method-setValue'>    /**
+</span>     * Sets the value of the toggle.
+     * @param {Number} value **1** for toggled, **0** for untoggled.
+     */
+    setValue: function(newValue) {
+        if (newValue === true) {
+            newValue = 1;
+        }
+
+        this.getComponent().setValue(newValue);
+
+        return this;
+    },
+
+<span id='Ext-field-Toggle-method-toggle'>    /**
+</span>     * Toggles the value of this toggle field.
+     * @return this
+     */
+    toggle: function() {
+        var value = this.getValue();
+        this.setValue((value == 1) ? 0 : 1);
+
+        return this;
     }
 });
 </pre>

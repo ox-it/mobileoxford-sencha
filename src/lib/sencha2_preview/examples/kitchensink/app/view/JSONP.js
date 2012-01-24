@@ -24,7 +24,7 @@ Ext.define('Kitchensink.view.JSONP', {
                         '</div>'
                     ]);
 
-                    panel.getParent().setMask({
+                    panel.getParent().setMasked({
                         message: 'Loading...'
                     });
 

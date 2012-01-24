@@ -1,12 +1,15 @@
-Ext.regModel('Contact', {
-    fields: ['firstName', 'lastName']
+Ext.define('Contact', {
+    extend: 'Ext.data.Model',
+    config: {
+        fields: ['firstName', 'lastName']
+    }
 });
 
 Ext.create('Ext.data.Store', {
     id: 'ListStore',
     model: 'Contact',
     sorters: 'firstName',
-    getGroupString : function(record) {
+    grouper: function(record) {
         return record.get('firstName')[0];
     },
     data: [

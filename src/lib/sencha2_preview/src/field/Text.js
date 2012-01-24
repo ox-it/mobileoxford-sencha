@@ -198,6 +198,10 @@ Ext.define('Ext.field.Text', {
             mousedown   : 'onMouseDown',
             clearicontap: 'onClearIconTap'
         });
+
+        // set the originalValue of the textfield, if one exists
+        me.originalValue = me.originalValue || "";
+        me.getComponent().originalValue = me.originalValue;
     },
 
     // @private
@@ -348,11 +352,20 @@ Ext.define('Ext.field.Text', {
     },
 
     onFocus: function(e) {
+        this.isFocused = true;
         this.fireEvent('focus', this, e);
     },
 
     onBlur: function(e) {
-        this.fireEvent('blur', this, e);
+        var me = this;
+
+        this.isFocused = false;
+
+        me.fireEvent('blur', me, e);
+
+        setTimeout(function() {
+            me.isFocused = false;
+        }, 50);
     },
 
     onPaste: function(e) {
@@ -378,6 +391,15 @@ Ext.define('Ext.field.Text', {
      */
     blur: function() {
         this.getComponent().blur();
+        return this;
+    },
+
+    /**
+     * Attempts to forcefully select all the contents of the input field.
+     * @return {Ext.field.Text} this
+     */
+    select: function() {
+        this.getComponent().select();
         return this;
     },
 

@@ -394,8 +394,7 @@ Ext.define('Ext.event.publisher.TouchGesture', {
             currentTouches = this.currentTouches,
             changedTouches = e.changedTouches,
             ln = changedTouches.length,
-            isEnded = false,
-            identifier, i, touch;
+            isEnded, identifier, i, touch;
 
         e.setTargets(currentTargets);
 

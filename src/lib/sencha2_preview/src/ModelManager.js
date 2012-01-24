@@ -1,7 +1,5 @@
 /**
  * @author Ed Spencer
- * @class Ext.ModelManager
- * @extends Ext.AbstractManager
 
 The ModelManager keeps track of all {@link Ext.data.Model} types defined in your application.
 
@@ -51,13 +49,12 @@ are normal classes, you can access the type directly. The following snippets are
     var UserType = User;
 
  * @markdown
- * @singleton
  */
 Ext.define('Ext.ModelManager', {
     extend: 'Ext.AbstractManager',
     alternateClassName: 'Ext.ModelMgr',
     requires: ['Ext.data.association.Association'],
-    
+
     singleton: true,
 
     typeName: 'mtype',

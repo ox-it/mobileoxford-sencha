@@ -1,3 +1,6 @@
+/**
+ * @private
+ */
 Ext.define('Ext.carousel.Item', {
     extend: 'Ext.Decorator',
 

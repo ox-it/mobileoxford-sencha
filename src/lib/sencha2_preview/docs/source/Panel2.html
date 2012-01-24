@@ -163,7 +163,7 @@ Ext.define('Ext.form.Panel', {
 
     config: {
         // @inherit
-        cls: Ext.baseCSSPrefix + 'form',
+        baseCls: Ext.baseCSSPrefix + 'form',
 
 <span id='Ext-form-Panel-cfg-standardSubmit'>        /**
 </span>         * @cfg {Boolean} standardSubmit
@@ -178,9 +178,6 @@ Ext.define('Ext.form.Panel', {
          * @accessor
          */
         url: null,
-
-        // @inherit
-        elConfig: { tag: 'form' },
 
 <span id='Ext-form-Panel-cfg-baseParams'>        /**
 </span>         * @cfg {Object} baseParams
@@ -226,8 +223,15 @@ Ext.define('Ext.form.Panel', {
 
         // @inherit
         scrollable: {
-            scrollMethod: 'scrollposition'
+            // scrollMethod: 'scrollposition'
         }
+    },
+
+    getElementConfig: function() {
+        var config = this.callParent();
+        config.tag = &quot;form&quot;;
+
+        return config;
     },
 
     // @private
@@ -242,7 +246,7 @@ Ext.define('Ext.form.Panel', {
 
         me.element.on({
             submit: 'onSubmit',
-            scope : this
+            scope : me
         });
     },
 
@@ -258,6 +262,20 @@ Ext.define('Ext.form.Panel', {
             }
         }
         return waitTpl;
+    },
+
+    updateRecord: function(newRecord) {
+        var fields, values, name;
+
+        if (newRecord &amp;&amp; (fields = newRecord.fields)) {
+            values = this.getValues();
+            for (name in values) {
+                if (values.hasOwnProperty(name) &amp;&amp; fields.containsKey(name)) {
+                    newRecord.set(name, values[name]);
+                }
+            }
+        }
+        return this;
     },
 
 <span id='Ext-form-Panel-method-setRecord'>    /**
@@ -465,26 +483,6 @@ Ext.define('Ext.form.Panel', {
         }
     },
 
-<span id='Ext-form-Panel-method-updateRecord'>    /**
-</span>     * Updates a model instance with the current values of this form
-     * @param {Ext.data.Model} instance The model instance
-     * @param {Boolean} enabled &lt;tt&gt;true&lt;/tt&gt; to update the Model with values from enabled fields only
-     * @return {Ext.form.Panel} This form
-     */
-    updateRecord: function(instance, enabled) {
-        var fields, values, name;
-
-        if (instance &amp;&amp; (fields = instance.fields)) {
-            values = this.getValues(enabled);
-            for (name in values) {
-                if (values.hasOwnProperty(name) &amp;&amp; fields.containsKey(name)) {
-                    instance.set(name, values[name]);
-                }
-            }
-        }
-        return this;
-    },
-
 <span id='Ext-form-Panel-method-setValues'>    /**
 </span>     * Sets the values of form fields in bulk. Example usage:
      *
@@ -650,6 +648,9 @@ Ext.define('Ext.form.Panel', {
         return this;
     },
 
+<span id='Ext-form-Panel-method-getFieldsAsArray'>    /**
+</span>     * @private
+     */
     getFieldsAsArray: function() {
         var fields = [],
             getFieldsFrom = function(item) {
@@ -669,7 +670,7 @@ Ext.define('Ext.form.Panel', {
 
 <span id='Ext-form-Panel-method-getFields'>    /**
 </span>     * @private
-     * Returns all {@link Ext.Field field} instances inside this form
+     * Returns all {@link Ext.field.Field field} instances inside this form
      * @param byName return only fields that match the given name, otherwise return all fields.
      * @return {Object/Array} All field instances, mapped by field name; or an array if byName is passed
      */
@@ -703,6 +704,29 @@ Ext.define('Ext.form.Panel', {
         this.items.each(getFieldsFrom);
 
         return (byName) ? (fields[byName] || []) : fields;
+    },
+
+<span id='Ext-form-Panel-method-getFieldsArray'>    /**
+</span>     * Returns an array of fields in this formpanel
+     * @return {Ext.field.Field[]} An array of fields in this form panel
+     * @private
+     */
+    getFieldsArray: function() {
+        var fields = [];
+
+        var getFieldsFrom = function(item) {
+            if (item.isField) {
+                fields.push(item);
+            }
+
+            if (item.isContainer) {
+                item.items.each(getFieldsFrom);
+            }
+        };
+
+        this.items.each(getFieldsFrom);
+
+        return fields;
     },
 
     getFieldsFromItem: Ext.emptyFn,
@@ -753,6 +777,101 @@ Ext.define('Ext.form.Panel', {
             me.setMaskTarget(null);
         }
         return me;
+    },
+
+<span id='Ext-form-Panel-method-getFocusedField'>    /**
+</span>     * Returns the currently focused field
+     * @return {Null/Ext.field.Field} The currently focused field, if one is focused.
+     * @private
+     */
+    getFocusedField: function() {
+        var fields = this.getFieldsArray(),
+            ln = fields.length,
+            field, i;
+
+        for (i = 0; i &lt; ln; i++) {
+            field = fields[i];
+            if (field.isFocused) {
+                return field;
+            }
+        }
+
+        return null;
+    },
+
+<span id='Ext-form-Panel-method-getNextField'>    /**
+</span>     * @private
+     * @return {Boolean/Ext.field.Field} The next field if one exists, or false
+     * @private
+     */
+    getNextField: function() {
+        var fields = this.getFieldsArray(),
+            focusedField = this.getFocusedField(),
+            ln = fields.length,
+            index;
+
+        if (focusedField) {
+            index = fields.indexOf(focusedField);
+
+            if (index !== fields.length - 1) {
+                index++;
+                return fields[index];
+            }
+        }
+
+        return false;
+    },
+
+<span id='Ext-form-Panel-method-focusNextField'>    /**
+</span>     * Tries to focus the next field in the form, if there is currently a focused field.
+     * @return {Boolean/Ext.field.Field} The next field that was focused, or false
+     * @private
+     */
+    focusNextField: function() {
+        var field = this.getNextField();
+        if (field) {
+            field.focus();
+            return field;
+        }
+
+        return false;
+    },
+
+<span id='Ext-form-Panel-method-getPreviousField'>    /**
+</span>     * @private
+     * @return {Boolean/Ext.field.Field} The next field if one exists, or false
+     */
+    getPreviousField: function() {
+        var fields = this.getFieldsArray(),
+            focusedField = this.getFocusedField(),
+            ln = fields.length,
+            index;
+
+        if (focusedField) {
+            index = fields.indexOf(focusedField);
+
+            if (index !== 0) {
+                index--;
+                return fields[index];
+            }
+        }
+
+        return false;
+    },
+
+<span id='Ext-form-Panel-method-focusPreviousField'>    /**
+</span>     * Tries to focus the previous field in the form, if there is currently a focused field.
+     * @return {Boolean/Ext.field.Field} The previous field that was focused, or false
+     * @private
+     */
+    focusPreviousField: function() {
+        var field = this.getPreviousField();
+        if (field) {
+            field.focus();
+            return field;
+        }
+
+        return false;
     }
 }, function() {
     //&lt;deprecated product=touch since=2.0&gt;

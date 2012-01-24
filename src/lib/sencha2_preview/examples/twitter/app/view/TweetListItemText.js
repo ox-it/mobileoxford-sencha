@@ -18,7 +18,7 @@ Ext.define('Twitter.view.TweetListItemText', {
      */
     applyHtml: function(html) {
         // replace URLs with proper tags
-        html = html.replace(/(http:\/\/[^\s]*)/g, "<span class=\"link\" ref=\"$1\">$1</span>");
+        html = html.replace(/(http:\/\/[^\s]*)/g, "<a class=\"link\" target=\"_blank\" href=\"$1\">$1</a>");
 
         // usernames
         html = html.replace(/(^|\s)@(\w+)/g, "$1<span class=\"username\">@$2</span>");

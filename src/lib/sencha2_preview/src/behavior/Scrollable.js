@@ -1,3 +1,6 @@
+/**
+ * @private
+ */
 Ext.define('Ext.behavior.Scrollable', {
 
     extend: 'Ext.behavior.Behavior',

@@ -16,7 +16,7 @@ Ext.define('Ext.fx.layout.card.Abstract', {
         var layout = this.getLayout();
 
         if (layout) {
-            layout.on(layout.eventNames.activeItemChange, 'onActiveItemChange', this);
+            layout.onBefore('activeitemchange', 'onActiveItemChange', this);
         }
     },
 
@@ -24,7 +24,7 @@ Ext.define('Ext.fx.layout.card.Abstract', {
         var layout = this.getLayout();
 
         if (layout) {
-            layout.un(layout.eventNames.activeItemChange, 'onActiveItemChange', this);
+            layout.unBefore('activeitemchange', 'onActiveItemChange', this);
         }
     },
 
@@ -34,8 +34,7 @@ Ext.define('Ext.fx.layout.card.Abstract', {
         var layout = this.getLayout();
 
         if (layout) {
-            this._layout = null;
-            layout.un(layout.eventNames.activeItemChange, 'onActiveItemChange', this);
+            layout.unBefore('activeitemchange', 'onActiveItemChange', this);
         }
     }
 });

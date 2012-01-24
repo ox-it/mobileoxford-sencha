@@ -47,8 +47,8 @@
  *
  */
 Ext.define('Ext.data.NodeInterface', {
-    requires: ['Ext.data.Field'],
-    
+    requires: ['Ext.data.Field', 'Ext.data.ModelManager'],
+
     alternateClassName: 'Ext.data.Node',
 
 <span id='Ext-data-NodeInterface-property-nextSibling'>    /**
@@ -92,18 +92,16 @@ Ext.define('Ext.data.NodeInterface', {
         decorate: function(record) {
             if (!record.isNode) {
                 // Apply the methods and fields to the prototype
-                // @TODO: clean this up to use proper class system stuff
-                var mgr = Ext.ModelManager,
+                var mgr = Ext.data.ModelManager,
                     modelName = record.modelName,
                     modelClass = mgr.getModel(modelName),
-                    idName = modelClass.prototype.idProperty,
                     newFields = [],
                     i, newField, len;
 
                 // Start by adding the NodeInterface methods to the Model's prototype
                 modelClass.override(this.getPrototypeBody());
+
                 newFields = this.applyFields(modelClass, [
-                    {name: idName,       type: 'string',  defaultValue: null},
                     {name: 'parentId',   type: 'string',  defaultValue: null},
                     {name: 'index',      type: 'int',     defaultValue: null},
                     {name: 'depth',      type: 'int',     defaultValue: 0},
@@ -127,134 +125,147 @@ Ext.define('Ext.data.NodeInterface', {
                 ]);
 
                 len = newFields.length;
+
+                // We set a dirty flag on the fields collection of the model. Any reader that
+                // will read in data for this model will update their extractor functions.
+                modelClass.getFields().isDirty = true;
+
                 // Set default values
                 for (i = 0; i &lt; len; ++i) {
                     newField = newFields[i];
-                    if (record.get(newField.name) === undefined) {
-                        record.data[newField.name] = newField.defaultValue;
+                    if (record.get(newField.getName()) === undefined) {
+                        record.data[newField.getName()] = newField.getDefaultValue();
                     }
                 }
             }
 
-            Ext.applyIf(record, {
-                firstChild: null,
-                lastChild: null,
-                parentNode: null,
-                previousSibling: null,
-                nextSibling: null,
-                childNodes: []
-            });
-            // Commit any fields so the record doesn't show as dirty initially
-            record.commit(true);
+            if (!record.isDecorated) {
+                record.isDecorated = true;
 
-            record.enableBubble([
-<span id='Ext-data-NodeInterface-event-append'>                /**
-</span>                 * @event append
-                 * Fires when a new child node is appended
-                 * @param {Ext.data.NodeInterface} this This node
-                 * @param {Ext.data.NodeInterface} node The newly appended node
-                 * @param {Number} index The index of the newly appended node
-                 */
-                &quot;append&quot;,
+                Ext.applyIf(record, {
+                    firstChild: null,
+                    lastChild: null,
+                    parentNode: null,
+                    previousSibling: null,
+                    nextSibling: null,
+                    childNodes: []
+                });
 
-<span id='Ext-data-NodeInterface-event-remove'>                /**
-</span>                 * @event remove
-                 * Fires when a child node is removed
-                 * @param {Ext.data.NodeInterface} this This node
-                 * @param {Ext.data.NodeInterface} node The removed node
-                 */
-                &quot;remove&quot;,
+                // Commit any fields so the record doesn't show as dirty initially
+                // @TODO: why would they be flagged dirty to begin with?
+                //record.commit(true);
 
-<span id='Ext-data-NodeInterface-event-move'>                /**
-</span>                 * @event move
-                 * Fires when this node is moved to a new location in the tree
-                 * @param {Ext.data.NodeInterface} this This node
-                 * @param {Ext.data.NodeInterface} oldParent The old parent of this node
-                 * @param {Ext.data.NodeInterface} newParent The new parent of this node
-                 * @param {Number} index The index it was moved to
-                 */
-                &quot;move&quot;,
+                record.enableBubble([
+<span id='Ext-data-NodeInterface-event-append'>                    /**
+</span>                     * @event append
+                     * Fires when a new child node is appended
+                     * @param {Ext.data.NodeInterface} this This node
+                     * @param {Ext.data.NodeInterface} node The newly appended node
+                     * @param {Number} index The index of the newly appended node
+                     */
+                    &quot;append&quot;,
 
-<span id='Ext-data-NodeInterface-event-insert'>                /**
-</span>                 * @event insert
-                 * Fires when a new child node is inserted.
-                 * @param {Ext.data.NodeInterface} this This node
-                 * @param {Ext.data.NodeInterface} node The child node inserted
-                 * @param {Ext.data.NodeInterface} refNode The child node the node was inserted before
-                 */
-                &quot;insert&quot;,
+<span id='Ext-data-NodeInterface-event-remove'>                    /**
+</span>                     * @event remove
+                     * Fires when a child node is removed
+                     * @param {Ext.data.NodeInterface} this This node
+                     * @param {Ext.data.NodeInterface} node The removed node
+                     */
+                    &quot;remove&quot;,
 
-<span id='Ext-data-NodeInterface-event-beforeappend'>                /**
-</span>                 * @event beforeappend
-                 * Fires before a new child is appended, return false to cancel the append.
-                 * @param {Ext.data.NodeInterface} this This node
-                 * @param {Ext.data.NodeInterface} node The child node to be appended
-                 */
-                &quot;beforeappend&quot;,
+<span id='Ext-data-NodeInterface-event-move'>                    /**
+</span>                     * @event move
+                     * Fires when this node is moved to a new location in the tree
+                     * @param {Ext.data.NodeInterface} this This node
+                     * @param {Ext.data.NodeInterface} oldParent The old parent of this node
+                     * @param {Ext.data.NodeInterface} newParent The new parent of this node
+                     * @param {Number} index The index it was moved to
+                     */
+                    &quot;move&quot;,
 
-<span id='Ext-data-NodeInterface-event-beforeremove'>                /**
-</span>                 * @event beforeremove
-                 * Fires before a child is removed, return false to cancel the remove.
-                 * @param {Ext.data.NodeInterface} this This node
-                 * @param {Ext.data.NodeInterface} node The child node to be removed
-                 */
-                &quot;beforeremove&quot;,
+<span id='Ext-data-NodeInterface-event-insert'>                    /**
+</span>                     * @event insert
+                     * Fires when a new child node is inserted.
+                     * @param {Ext.data.NodeInterface} this This node
+                     * @param {Ext.data.NodeInterface} node The child node inserted
+                     * @param {Ext.data.NodeInterface} refNode The child node the node was inserted before
+                     */
+                    &quot;insert&quot;,
 
-<span id='Ext-data-NodeInterface-event-beforemove'>                /**
-</span>                 * @event beforemove
-                 * Fires before this node is moved to a new location in the tree. Return false to cancel the move.
-                 * @param {Ext.data.NodeInterface} this This node
-                 * @param {Ext.data.NodeInterface} oldParent The parent of this node
-                 * @param {Ext.data.NodeInterface} newParent The new parent this node is moving to
-                 * @param {Number} index The index it is being moved to
-                 */
-                &quot;beforemove&quot;,
+<span id='Ext-data-NodeInterface-event-beforeappend'>                    /**
+</span>                     * @event beforeappend
+                     * Fires before a new child is appended, return false to cancel the append.
+                     * @param {Ext.data.NodeInterface} this This node
+                     * @param {Ext.data.NodeInterface} node The child node to be appended
+                     */
+                    &quot;beforeappend&quot;,
 
-<span id='Ext-data-NodeInterface-event-beforeinsert'>                 /**
-</span>                  * @event beforeinsert
-                  * Fires before a new child is inserted, return false to cancel the insert.
-                  * @param {Ext.data.NodeInterface} this This node
-                  * @param {Ext.data.NodeInterface} node The child node to be inserted
-                  * @param {Ext.data.NodeInterface} refNode The child node the node is being inserted before
-                  */
-                &quot;beforeinsert&quot;,
+<span id='Ext-data-NodeInterface-event-beforeremove'>                    /**
+</span>                     * @event beforeremove
+                     * Fires before a child is removed, return false to cancel the remove.
+                     * @param {Ext.data.NodeInterface} this This node
+                     * @param {Ext.data.NodeInterface} node The child node to be removed
+                     */
+                    &quot;beforeremove&quot;,
 
-<span id='Ext-data-NodeInterface-event-expand'>                /**
-</span>                 * @event expand
-                 * Fires when this node is expanded.
-                 * @param {Ext.data.NodeInterface} this The expanding node
-                 */
-                &quot;expand&quot;,
+<span id='Ext-data-NodeInterface-event-beforemove'>                    /**
+</span>                     * @event beforemove
+                     * Fires before this node is moved to a new location in the tree. Return false to cancel the move.
+                     * @param {Ext.data.NodeInterface} this This node
+                     * @param {Ext.data.NodeInterface} oldParent The parent of this node
+                     * @param {Ext.data.NodeInterface} newParent The new parent this node is moving to
+                     * @param {Number} index The index it is being moved to
+                     */
+                    &quot;beforemove&quot;,
 
-<span id='Ext-data-NodeInterface-event-collapse'>                /**
-</span>                 * @event collapse
-                 * Fires when this node is collapsed.
-                 * @param {Ext.data.NodeInterface} this The collapsing node
-                 */
-                &quot;collapse&quot;,
+<span id='Ext-data-NodeInterface-event-beforeinsert'>                     /**
+</span>                      * @event beforeinsert
+                      * Fires before a new child is inserted, return false to cancel the insert.
+                      * @param {Ext.data.NodeInterface} this This node
+                      * @param {Ext.data.NodeInterface} node The child node to be inserted
+                      * @param {Ext.data.NodeInterface} refNode The child node the node is being inserted before
+                      */
+                    &quot;beforeinsert&quot;,
 
-<span id='Ext-data-NodeInterface-event-beforeexpand'>                /**
-</span>                 * @event beforeexpand
-                 * Fires before this node is expanded.
-                 * @param {Ext.data.NodeInterface} this The expanding node
-                 */
-                &quot;beforeexpand&quot;,
+<span id='Ext-data-NodeInterface-event-expand'>                    /**
+</span>                     * @event expand
+                     * Fires when this node is expanded.
+                     * @param {Ext.data.NodeInterface} this The expanding node
+                     */
+                    &quot;expand&quot;,
 
-<span id='Ext-data-NodeInterface-event-beforecollapse'>                /**
-</span>                 * @event beforecollapse
-                 * Fires before this node is collapsed.
-                 * @param {Ext.data.NodeInterface} this The collapsing node
-                 */
-                &quot;beforecollapse&quot;,
+<span id='Ext-data-NodeInterface-event-collapse'>                    /**
+</span>                     * @event collapse
+                     * Fires when this node is collapsed.
+                     * @param {Ext.data.NodeInterface} this The collapsing node
+                     */
+                    &quot;collapse&quot;,
 
-<span id='Ext-data-NodeInterface-event-sort'>                /**
-</span>                 * @event sort
-                 * Fires when this node's childNodes are sorted.
-                 * @param {Ext.data.NodeInterface} this This node.
-                 * @param {Ext.data.NodeInterface[]} childNodes The childNodes of this node.
-                 */
-                &quot;sort&quot;
-            ]);
+<span id='Ext-data-NodeInterface-event-beforeexpand'>                    /**
+</span>                     * @event beforeexpand
+                     * Fires before this node is expanded.
+                     * @param {Ext.data.NodeInterface} this The expanding node
+                     */
+                    &quot;beforeexpand&quot;,
+
+<span id='Ext-data-NodeInterface-event-beforecollapse'>                    /**
+</span>                     * @event beforecollapse
+                     * Fires before this node is collapsed.
+                     * @param {Ext.data.NodeInterface} this The collapsing node
+                     */
+                    &quot;beforecollapse&quot;,
+
+<span id='Ext-data-NodeInterface-event-sort'>                    /**
+</span>                     * @event sort
+                     * Fires when this node's childNodes are sorted.
+                     * @param {Ext.data.NodeInterface} this This node.
+                     * @param {Ext.data.NodeInterface[]} childNodes The childNodes of this node.
+                     */
+                    &quot;sort&quot;,
+
+                    'load'
+                ]);
+            }
 
             return record;
         },
@@ -264,13 +275,13 @@ Ext.define('Ext.data.NodeInterface', {
                 fields = modelPrototype.fields,
                 keys = fields.keys,
                 ln = addFields.length,
-                addField, i, name,
+                addField, i,
                 newFields = [];
 
             for (i = 0; i &lt; ln; i++) {
                 addField = addFields[i];
                 if (!Ext.Array.contains(keys, addField.name)) {
-                    addField = Ext.create('data.field', addField);
+                    addField = Ext.create('Ext.data.Field', addField);
 
                     newFields.push(addField);
                     fields.add(addField);
@@ -287,10 +298,11 @@ Ext.define('Ext.data.NodeInterface', {
 <span id='Ext-data-NodeInterface-method-createNode'>                /**
 </span>                 * Ensures that the passed object is an instance of a Record with the NodeInterface applied
                  * @return {Boolean}
+                 * @private
                  */
                 createNode: function(node) {
                     if (Ext.isObject(node) &amp;&amp; !node.isModel) {
-                        node = Ext.ModelManager.create(node, this.modelName);
+                        node = Ext.data.ModelManager.create(node, this.modelName);
                     }
                     // Make sure the node implements the node interface
                     return Ext.data.NodeInterface.decorate(node);
@@ -331,15 +343,14 @@ Ext.define('Ext.data.NodeInterface', {
                  */
                 updateInfo: function(silent) {
                     var me = this,
-                        isRoot = me.isRoot(),
                         parentNode = me.parentNode,
                         isFirst = (!parentNode ? true : parentNode.firstChild == me),
                         isLast = (!parentNode ? true : parentNode.lastChild == me),
                         depth = 0,
                         parent = me,
                         children = me.childNodes,
-                        len = children.length,
-                        i = 0;
+                        ln = children.length,
+                        i;
 
                     while (parent.parentNode) {
                         ++depth;
@@ -359,7 +370,7 @@ Ext.define('Ext.data.NodeInterface', {
                         me.commit(silent);
                     }
 
-                    for (i = 0; i &lt; len; i++) {
+                    for (i = 0; i &lt; ln; i++) {
                         children[i].updateInfo(silent);
                     }
                 },
@@ -516,6 +527,10 @@ Ext.define('Ext.data.NodeInterface', {
                         me.setLastChild(node.previousSibling);
                     }
 
+                    if (suppressEvents !== true) {
+                        me.fireEvent(&quot;remove&quot;, me, node);
+                    }
+
                     // update siblings
                     if (node.previousSibling) {
                         node.previousSibling.nextSibling = node.nextSibling;
@@ -525,11 +540,6 @@ Ext.define('Ext.data.NodeInterface', {
                         node.nextSibling.previousSibling = node.previousSibling;
                         node.nextSibling.updateInfo(suppressNodeUpdate);
                     }
-
-                    if (suppressEvents !== true) {
-                        me.fireEvent(&quot;remove&quot;, me, node);
-                    }
-
 
                     // If this node suddenly doesnt have childnodes anymore, update myself
                     if (!me.childNodes.length) {
@@ -1023,76 +1033,30 @@ Ext.define('Ext.data.NodeInterface', {
                 expand: function(recursive, callback, scope) {
                     var me = this;
 
-                    // all paths must call the callback (eventually) or things like
-                    // selectPath fail
-
-                    // First we start by checking if this node is a parent
                     if (!me.isLeaf()) {
-                        // If it's loaded, wait until it loads before proceeding
                         if (me.isLoading()) {
-                            me.on('expand', function(){
+                            me.on('expand', function() {
                                 me.expand(recursive, callback, scope);
                             }, me, {single: true});
-                        } else {
-                            // Now we check if this record is already expanding or expanded
+                        }
+                        else {
                             if (!me.isExpanded()) {
                                 // The TreeStore actually listens for the beforeexpand method and checks
                                 // whether we have to asynchronously load the children from the server
                                 // first. Thats why we pass a callback function to the event that the
                                 // store can call once it has loaded and parsed all the children.
-                                me.fireEvent('beforeexpand', me, function(){
+                                me.fireAction('expand', [this], function() {
                                     me.set('expanded', true);
-                                    me.fireEvent('expand', me, me.childNodes, false);
-
-                                    // Call the expandChildren method if recursive was set to true
-                                    if (recursive) {
-                                        me.expandChildren(true, callback, scope);
-                                    } else {
-                                        Ext.callback(callback, scope || me, [me.childNodes]);
-                                    }
-                                }, me);
-                            } else if (recursive) {
-                                // If it is is already expanded but we want to recursively expand then call expandChildren
-                                me.expandChildren(true, callback, scope);
-                            } else {
+                                    Ext.callback(callback, scope || me, [me.childNodes]);
+                                });
+                            }
+                            else {
                                 Ext.callback(callback, scope || me, [me.childNodes]);
                             }
                         }
                     } else {
-                        // If it's not then we fire the callback right away
-                        Ext.callback(callback, scope || me); // leaf = no childNodes
+                        Ext.callback(callback, scope || me);
                     }
-                },
-
-<span id='Ext-data-NodeInterface-method-expandChildren'>                /**
-</span>                 * Expand all the children of this node.
-                 * @param {Function} recursive (Optional) True to recursively expand all the children
-                 * @param {Function} callback (Optional) The function to execute once all the children are expanded
-                 * @param {Object} scope (Optional) The scope to run the callback in
-                 */
-                expandChildren: function(recursive, callback, scope) {
-                    var me = this,
-                        i = 0,
-                        nodes = me.childNodes,
-                        ln = nodes.length,
-                        node,
-                        expanding = 0;
-
-                    for (; i &lt; ln; ++i) {
-                        node = nodes[i];
-                        if (!node.isLeaf() &amp;&amp; !node.isExpanded()) {
-                            expanding++;
-                            nodes[i].expand(recursive, function () {
-                                expanding--;
-                                if (callback &amp;&amp; !expanding) {
-                                    Ext.callback(callback, scope || me, [me.childNodes]);
-                                }
-                            });
-                        }
-                    }
-
-                    if (!expanding &amp;&amp; callback) {
-                        Ext.callback(callback, scope || me, [me.childNodes]);                    }
                 },
 
 <span id='Ext-data-NodeInterface-method-collapse'>                /**
@@ -1105,61 +1069,12 @@ Ext.define('Ext.data.NodeInterface', {
                     var me = this;
 
                     // First we start by checking if this node is a parent
-                    if (!me.isLeaf()) {
-                        // Now we check if this record is already collapsing or collapsed
-                        if (!me.collapsing &amp;&amp; me.isExpanded()) {
-                            me.fireEvent('beforecollapse', me, function() {
-                                me.set('expanded', false);
-                                me.fireEvent('collapse', me, me.childNodes, false);
-
-                                // Call the collapseChildren method if recursive was set to true
-                                if (recursive) {
-                                    me.collapseChildren(true, callback, scope);
-                                }
-                                else {
-                                    Ext.callback(callback, scope || me, [me.childNodes]);
-                                }
-                            }, me);
-                        }
-                        // If it is is already collapsed but we want to recursively collapse then call collapseChildren
-                        else if (recursive) {
-                            me.collapseChildren(true, callback, scope);
-                        }
-                    }
-                    // If it's not then we fire the callback right away
-                    else {
-                        Ext.callback(callback, scope || me, [me.childNodes]);
-                    }
-                },
-
-<span id='Ext-data-NodeInterface-method-collapseChildren'>                /**
-</span>                 * Collapse all the children of this node.
-                 * @param {Function} recursive (Optional) True to recursively collapse all the children
-                 * @param {Function} callback (Optional) The function to execute once all the children are collapsed
-                 * @param {Object} scope (Optional) The scope to run the callback in
-                 */
-                collapseChildren: function(recursive, callback, scope) {
-                    var me = this,
-                        i = 0,
-                        nodes = me.childNodes,
-                        ln = nodes.length,
-                        node,
-                        collapsing = 0;
-
-                    for (; i &lt; ln; ++i) {
-                        node = nodes[i];
-                        if (!node.isLeaf() &amp;&amp; node.isExpanded()) {
-                            collapsing++;
-                            nodes[i].collapse(recursive, function () {
-                                collapsing--;
-                                if (callback &amp;&amp; !collapsing) {
-                                    Ext.callback(callback, scope || me, [me.childNodes]);
-                                }
-                            });
-                        }
-                    }
-
-                    if (!collapsing &amp;&amp; callback) {
+                    if (!me.isLeaf() &amp;&amp; me.isExpanded()) {
+                        this.fireAction('collapse', [me], function() {
+                            me.set('expanded', false);
+                            Ext.callback(callback, scope || me, [me.childNodes]);
+                        });
+                    } else {
                         Ext.callback(callback, scope || me, [me.childNodes]);
                     }
                 }

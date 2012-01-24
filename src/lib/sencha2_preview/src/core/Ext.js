@@ -1,8 +1,4 @@
 /**
- * Additional functions for Ext Core and Ext JS
- */
-
-/**
  * @class Ext
  * @singleton
  */
@@ -142,7 +138,7 @@
          * @param {Function} superclass
          * @param {Object} overrides
          * @return {Function} The subclass constructor from the <tt>overrides</tt> parameter, or a generated one if not provided.
-         * @deprecated 4.0.0 Use {@link Ext#define Ext.define} instead
+         * @deprecated 2.0.0 Use {@link Ext#define Ext.define} instead
          */
         extend: function() {
             // inline overrides
@@ -580,7 +576,7 @@
 
     /**
      * Old alias to {@link Ext#typeOf}
-     * @deprecated 4.0.0 Use {@link Ext#typeOf} instead
+     * @deprecated 2.0.0 Use {@link Ext#typeOf} instead
      * @method
      */
     Ext.type = Ext.typeOf;

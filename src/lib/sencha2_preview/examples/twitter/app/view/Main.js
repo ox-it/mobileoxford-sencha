@@ -8,6 +8,8 @@
  */
 Ext.define('Twitter.view.Main', {
     extend: 'Ext.Container',
+    xtype: 'mainview',
+    
     requires: [
         'Twitter.view.SearchBar',
         'Twitter.view.SearchList',

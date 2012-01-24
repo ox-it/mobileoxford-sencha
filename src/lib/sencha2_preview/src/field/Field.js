@@ -143,6 +143,12 @@ Ext.define('Ext.field.Field', {
         requiredCls: Ext.baseCSSPrefix + 'field-required'
     },
 
+    /**
+     * @cfg {Boolean} isFocused
+     * True if this field is currently focused,
+     * @private
+     */
+
     getElementConfig: function() {
         var prefix = Ext.baseCSSPrefix;
 
@@ -245,14 +251,18 @@ Ext.define('Ext.field.Field', {
          * The original value of the field as configured in the {@link #value} configuration.
          * setting is <code>true</code>.
          */
-            this.originalValue = this.getValue();
+        this.originalValue = this.getInitialConfig().value;
     },
 
     /**
      * Resets the current field value to the originally loaded value and clears any validation messages.
      * @return {Ext.field.Field} this
      */
-    reset: Ext.emptyFn,
+    reset: function() {
+        this.setValue(this.originalValue);
+
+        return this;
+    },
 
     /**
      * <p>Returns true if the value of this Field has been changed from its {@link #originalValue}.
@@ -329,20 +339,24 @@ Ext.define('Ext.field.Field', {
         }
     });
 
-    Ext.Object.redefineProperty(prototype, 'fieldEl', function() {
-        //<debug warn>
-        Ext.Logger.deprecate("'fieldEl' is deprecated, please use getInput() to get an instance of Ext.field.Field instead", this);
-        //</debug>
+    Ext.Object.defineProperty(prototype, 'fieldEl', {
+        get: function() {
+            //<debug warn>
+            Ext.Logger.deprecate("'fieldEl' is deprecated, please use getInput() to get an instance of Ext.field.Field instead", this);
+            //</debug>
 
-        return this.getInput().input;
+            return this.getInput().input;
+        }
     });
 
-    Ext.Object.redefineProperty(prototype, 'labelEl', function() {
-        //<debug warn>
-        Ext.Logger.deprecate("'labelEl' is deprecated", this);
-        //</debug>
+    Ext.Object.defineProperty(prototype, 'labelEl', {
+        get: function() {
+            //<debug warn>
+            Ext.Logger.deprecate("'labelEl' is deprecated", this);
+            //</debug>
 
-        return this.getLabel().element;
+            return this.getLabel().element;
+        }
     });
     //</deprecated>
 });

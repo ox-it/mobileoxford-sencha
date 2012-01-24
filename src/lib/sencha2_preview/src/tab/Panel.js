@@ -68,6 +68,8 @@ Ext.define('Ext.tab.Panel', {
     config: {
         /**
          * @cfg {String} ui
+         * Sets the UI of this component.
+         * Available values are: `light` and `dark`.
          * @accessor
          */
         ui: 'dark',
@@ -81,7 +83,8 @@ Ext.define('Ext.tab.Panel', {
 
         /**
          * @cfg {String} tabBarPosition
-         * The docked position for the {@link #tabBar} instance
+         * The docked position for the {@link #tabBar} instance.
+         * Possible values are 'top' and 'bottom'.
          * @accessor
          */
         tabBarPosition: 'top',
@@ -136,14 +139,28 @@ Ext.define('Ext.tab.Panel', {
             var items = this.getInnerItems(),
                 oldIndex = items.indexOf(oldActiveItem),
                 newIndex = items.indexOf(newActiveItem),
-                reverse = oldIndex > newIndex;
+                reverse = oldIndex > newIndex,
+                animation = this.getLayout().getAnimation(),
+                tabBar = this.getTabBar(),
+                oldTab = tabBar.parseActiveTab(oldIndex),
+                newTab = tabBar.parseActiveTab(newIndex);
 
-            this.getLayout().getAnimation().setReverse(reverse);
+            if (animation && animation.setReverse) {
+                animation.setReverse(reverse);
+            }
 
             this.callParent(arguments);
 
             if (newIndex != -1) {
                 this.getTabBar().setActiveTab(newIndex);
+
+                if (oldTab) {
+                    oldTab.setActive(false);
+                }
+
+                if (newTab) {
+                    newTab.setActive(true);
+                }
             }
         }
     },
@@ -152,8 +169,15 @@ Ext.define('Ext.tab.Panel', {
      * Updates this container with the new active item.
      */
     doTabChange: function(tabBar, newTab, oldTab) {
-        var index = tabBar.indexOf(newTab);
+        var index = tabBar.indexOf(newTab),
+            activeItem = this.getActiveItem();
+
         this.setActiveItem(index);
+
+        //check if the item has changed, if not, then return false so the active tab doesn't get changed
+        if (activeItem == this.getActiveItem()) {
+            return false;
+        }
     },
 
     /**
@@ -210,6 +234,7 @@ Ext.define('Ext.tab.Panel', {
             tabConfig          = initialConfig.tab || {},
             tabTitle           = initialConfig.title,
             tabIconCls         = initialConfig.iconCls,
+            tabHidden          = initialConfig.hidden,
             tabBadgeText       = initialConfig.badgeText,
             innerItems         = me.getInnerItems(),
             index              = innerItems.indexOf(card),
@@ -224,6 +249,10 @@ Ext.define('Ext.tab.Panel', {
 
         if (tabIconCls && !tabConfig.iconCls) {
             tabConfig.iconCls = tabIconCls;
+        }
+
+        if (tabHidden && !tabConfig.hidden) {
+            tabConfig.hidden = tabHidden;
         }
 
         if (tabBadgeText && !tabConfig.badgeText) {
@@ -244,49 +273,15 @@ Ext.define('Ext.tab.Panel', {
             tabBar.insert(index, tabInstance);
         }
 
+        card.tab = tabInstance;
+
         me.callParent(arguments);
-    }
-
-//    onRemove: function(cmp, autoDestroy) {
-//        // remove the tab from the tabBar
-//        if (!this.destroying) {
-//            this.getTabBar().remove(cmp.tab, autoDestroy);
-//        }
-//    },
-
-
-//    applyDelay: function(config) {
-//        var sortable  = this.getSortable();
-//        if (sortable) {
-//            sortable.setDelay(config);
-//        }
-//    },
-
-//    getDelay: function() {
-//        var sortable  = this.getSortable();
-//        return sortable ? sortable.getDelay() : null;
-//    },
-
-//    applySortable: function(config) {
-//        var me = this,
-//            tabBar = me.getTabBar().setSortable(config),
-//            delay = this.getDelay();
-//        if (delay) {
-//            this.setDelay(delay);
-//        }
-//        return tabBar;
-//    },
-
-//    getSortable: function(){
-//        return this.getTabBar().getSortable();
-//    },
+    },
 
     // @private
-//    applyCardSwitchAnimation: function(config){
-//        //return this.tabBar.cardSwitchAnimation = config;
-//    },
-//
-//    getCardSwitchAnimation: function(){
-//        //return this.tabBar.cardSwitchAnimation;
-//    }
+    onItemRemove: function(item, autoDestroy) {
+        this.getTabBar().remove(item.tab, autoDestroy);
+
+        this.callParent(arguments);
+    }
 });

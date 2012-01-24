@@ -87,6 +87,7 @@ Ext.setup({
             doneButton: false,
             cancelButton: false,
             toolbar: {
+                xtype: 'toolbar',
                 items: items
             }
         });

@@ -3,14 +3,12 @@
  */
 Ext.define('Ext.scroll.scroller.Abstract', {
 
+    extend: 'Ext.Evented',
+
     requires: [
         'Ext.scroll.easing.BoundMomentum',
         'Ext.scroll.easing.EaseOut',
         'Ext.util.SizeMonitor'
-    ],
-
-    mixins: [
-        'Ext.mixin.Observable'
     ],
 
     /**
@@ -23,11 +21,13 @@ Ext.define('Ext.scroll.scroller.Abstract', {
     /**
      * @event refresh
      * Fires whenever the Scroller is refreshed
+     * @param {Ext.scroll.scroller.Abstract} this
      */
 
     /**
      * @event scrollstart
      * Fires whenever the scrolling is started
+     * @param {Ext.scroll.scroller.Abstract} this
      */
 
     /**
@@ -170,9 +170,9 @@ Ext.define('Ext.scroll.scroller.Abstract', {
     },
 
     updateElement: function(element) {
-        element.addCls(this.getCls());
+        this.initialize();
 
-        this.initConfig(this.initialConfig);
+        element.addCls(this.getCls());
 
         this.onAfterInitialized();
 
@@ -424,7 +424,7 @@ Ext.define('Ext.scroll.scroller.Abstract', {
         this.setContainerScrollSize(this.givenContainerScrollSize);
         this.setDirection(this.givenDirection);
 
-        this.fireEvent('refresh');
+        this.fireEvent('refresh', this);
     },
 
     refresh: function() {

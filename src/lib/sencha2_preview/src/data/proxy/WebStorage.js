@@ -1,19 +1,26 @@
 /**
  * @author Ed Spencer
  *
- * WebStorageProxy is simply a superclass for the {@link Ext.data.proxy.LocalStorage localStorage} and {@link
- * Ext.data.proxy.SessionStorage sessionStorage} proxies. It uses the new HTML5 key/value client-side storage objects to
+ * WebStorageProxy is simply a superclass for the {@link Ext.data.proxy.LocalStorage LocalStorage} and {@link
+ * Ext.data.proxy.SessionStorage SessionStorage} proxies. It uses the new HTML5 key/value client-side storage objects to
  * save {@link Ext.data.Model model instances} for offline use.
+ * @private
  */
 Ext.define('Ext.data.proxy.WebStorage', {
     extend: 'Ext.data.proxy.Client',
     alternateClassName: 'Ext.data.WebStorageProxy',
-    
-    /**
-     * @cfg {String} id
-     * The unique ID used as the key in which all record data are stored in the local storage object.
-     */
-    id: undefined,
+
+    config: {
+        /**
+         * @cfg {String} id
+         * The unique ID used as the key in which all record data are stored in the local storage object.
+         */
+        id: undefined,
+
+        // WebStorage proxies dont use readers and writers
+        reader: null,
+        writer: null
+    },
 
     /**
      * Creates the proxy, throws an error if local storage is not supported in the current browser.
@@ -21,7 +28,7 @@ Ext.define('Ext.data.proxy.WebStorage', {
      */
     constructor: function(config) {
         this.callParent(arguments);
-        
+
         /**
          * @property {Object} cache
          * Cached map of records already retrieved by this Proxy. Ensures that the same instance is always retrieved.
@@ -33,26 +40,21 @@ Ext.define('Ext.data.proxy.WebStorage', {
             Ext.Error.raise("Local Storage is not supported in this browser, please use another type of data proxy");
         }
         //</debug>
+    },
 
-        //if an id is not given, try to use the store's id instead
-        this.id = this.id || (this.store ? this.store.storeId : undefined);
-
-        //<debug>
-        if (this.id === undefined) {
-            Ext.Error.raise("No unique id was provided to the local storage proxy. See Ext.data.proxy.LocalStorage documentation for details");
+    updateModel: function(model) {
+        if (!this.getId()) {
+            this.setId(model.modelName);
         }
-        //</debug>
-
-        this.initialize();
     },
 
     //inherit docs
     create: function(operation, callback, scope) {
-        var records = operation.records,
+        var records = operation.getRecords(),
             length  = records.length,
             ids     = this.getIds(),
             id, record, i;
-        
+
         operation.setStarted();
 
         for (i = 0; i < length; i++) {
@@ -81,17 +83,18 @@ Ext.define('Ext.data.proxy.WebStorage', {
 
     //inherit docs
     read: function(operation, callback, scope) {
-        //TODO: respect sorters, filters, start and limit options on the Operation
+        // @TODO: respect sorters, filters, start and limit options on the Operation
 
         var records = [],
             ids     = this.getIds(),
             length  = ids.length,
-            i, recordData, record;
-        
+            i, record;
+
         //read a single record
+        // @TODO: operation has no id yet?
         if (operation.id) {
             record = this.getRecord(operation.id);
-            
+
             if (record) {
                 records.push(record);
                 operation.setSuccessful();
@@ -102,14 +105,15 @@ Ext.define('Ext.data.proxy.WebStorage', {
             }
             operation.setSuccessful();
         }
-        
+
         operation.setCompleted();
 
-        operation.resultSet = Ext.create('Ext.data.ResultSet', {
+        operation.setResultSet(Ext.create('Ext.data.ResultSet', {
             records: records,
             total  : records.length,
             loaded : true
-        });
+        }));
+        operation.setRecords(records);
 
         if (typeof callback == 'function') {
             callback.call(scope || this, operation);
@@ -118,7 +122,7 @@ Ext.define('Ext.data.proxy.WebStorage', {
 
     //inherit docs
     update: function(operation, callback, scope) {
-        var records = operation.records,
+        var records = operation.getRecords(),
             length  = records.length,
             ids     = this.getIds(),
             record, id, i;
@@ -128,7 +132,9 @@ Ext.define('Ext.data.proxy.WebStorage', {
         for (i = 0; i < length; i++) {
             record = records[i];
             this.setRecord(record);
-            
+
+            // @TODO: This is not entirely the case. Every record now has an id. Figure out if this causes a bug.
+
             //we need to update the set of ids here because it's possible that a non-phantom record was added
             //to this proxy - in which case the record's id would never have been added via the normal 'create' call
             id = record.getId();
@@ -148,7 +154,7 @@ Ext.define('Ext.data.proxy.WebStorage', {
 
     //inherit
     destroy: function(operation, callback, scope) {
-        var records = operation.records,
+        var records = operation.getRecords(),
             length  = records.length,
             ids     = this.getIds(),
 
@@ -162,7 +168,7 @@ Ext.define('Ext.data.proxy.WebStorage', {
         }
 
         this.setIds(newIds);
-        
+
         operation.setCompleted();
         operation.setSuccessful();
 
@@ -181,39 +187,41 @@ Ext.define('Ext.data.proxy.WebStorage', {
         if (this.cache[id] === undefined) {
             var rawData = Ext.decode(this.getStorageObject().getItem(this.getRecordKey(id))),
                 data    = {},
-                Model   = this.model,
-                fields  = Model.prototype.fields.items,
+                Model   = this.getModel(),
+                fields  = Model.getFields().items,
                 length  = fields.length,
                 i, field, name, record;
 
-            if (!rawData) {
-                return;
-            }
-
             for (i = 0; i < length; i++) {
                 field = fields[i];
-                name  = field.name;
+                name  = field.getName();
 
-                if (typeof field.decode == 'function') {
-                    data[name] = field.decode(rawData[name]);
+                if (typeof field.getDecode() == 'function') {
+                    data[name] = field.getDecode()(rawData[name]);
                 } else {
-                    data[name] = rawData[name];
+                    if (field.getType().type == 'date') {
+                        data[name] = new Date(rawData[name]);
+                    } else {
+                        data[name] = rawData[name];
+                    }
                 }
             }
 
             record = new Model(data, id);
-            record.phantom = false;
+            // @TODO: make sure we don't have to set phantom to false. we give it an id, so it shouldnt
+            // be phantom after we created it right?
+            //record.phantom = false;
 
             this.cache[id] = record;
         }
-        
+
         return this.cache[id];
     },
 
     /**
      * Saves the given record in the Proxy. Runs each field's encode function (if present) to encode the data.
      * @param {Ext.data.Model} record The model instance
-     * @param {String} id The id to save the record under (defaults to the value of the record's getId() function)
+     * @param {String} [id] The id to save the record under (defaults to the value of the record's getId() function)
      */
     setRecord: function(record, id) {
         if (id) {
@@ -223,31 +231,35 @@ Ext.define('Ext.data.proxy.WebStorage', {
         }
 
         var me = this,
-            rawData = record.data,
+            rawData = record.getData(),
             data    = {},
-            model   = me.model,
-            fields  = model.prototype.fields.items,
+            Model   = me.getModel(),
+            fields  = Model.getFields().items,
             length  = fields.length,
             i = 0,
             field, name, obj, key;
 
         for (; i < length; i++) {
             field = fields[i];
-            name  = field.name;
+            name  = field.getName();
 
-            if (typeof field.encode == 'function') {
-                data[name] = field.encode(rawData[name], record);
+            if (typeof field.getEncode() == 'function') {
+                data[name] = field.getEncode()(rawData[name], record);
             } else {
-                data[name] = rawData[name];
+                if (field.getType().type == 'date') {
+                    data[name] = rawData[name].getTime();
+                } else {
+                    data[name] = rawData[name];
+                }
             }
         }
 
         obj = me.getStorageObject();
         key = me.getRecordKey(id);
-        
+
         //keep the cache up to date
         me.cache[id] = record;
-        
+
         //iPad bug requires that we remove the item before setting it
         obj.removeItem(key);
         obj.setItem(key, Ext.encode(data));
@@ -262,7 +274,7 @@ Ext.define('Ext.data.proxy.WebStorage', {
     removeRecord: function(id, updateIds) {
         var me = this,
             ids;
-            
+
         if (id.isModel) {
             id = id.getId();
         }
@@ -288,7 +300,7 @@ Ext.define('Ext.data.proxy.WebStorage', {
             id = id.getId();
         }
 
-        return Ext.String.format("{0}-{1}", this.id, id);
+        return Ext.String.format("{0}-{1}", this.getId(), id);
     },
 
     /**
@@ -298,7 +310,7 @@ Ext.define('Ext.data.proxy.WebStorage', {
      * @return {String} The counter key
      */
     getRecordCounterKey: function() {
-        return Ext.String.format("{0}-counter", this.id);
+        return Ext.String.format("{0}-counter", this.getId());
     },
 
     /**
@@ -307,12 +319,16 @@ Ext.define('Ext.data.proxy.WebStorage', {
      * @return {Number[]} The record IDs. Each is cast as a Number
      */
     getIds: function() {
-        var ids    = (this.getStorageObject().getItem(this.id) || "").split(","),
+        var ids    = (this.getStorageObject().getItem(this.getId()) || "").split(","),
             length = ids.length,
             i;
 
         if (length == 1 && ids[0] === "") {
             ids = [];
+        } else {
+            for (i = 0; i < length; i++) {
+                ids[i] = parseInt(ids[i], 10);
+            }
         }
 
         return ids;
@@ -325,12 +341,13 @@ Ext.define('Ext.data.proxy.WebStorage', {
      */
     setIds: function(ids) {
         var obj = this.getStorageObject(),
-            str = ids.join(",");
-        
-        obj.removeItem(this.id);
-        
+            str = ids.join(","),
+            id = this.getId();
+
+        obj.removeItem(id);
+
         if (!Ext.isEmpty(str)) {
-            obj.setItem(this.id, str);
+            obj.setItem(id, str);
         }
     },
 
@@ -345,15 +362,15 @@ Ext.define('Ext.data.proxy.WebStorage', {
             key  = this.getRecordCounterKey(),
             last = obj.getItem(key),
             ids, id;
-        
+
         if (last === null) {
             ids = this.getIds();
             last = ids[ids.length - 1] || 0;
         }
-        
+
         id = parseInt(last, 10) + 1;
         obj.setItem(key, id);
-        
+
         return id;
     },
 
@@ -363,8 +380,9 @@ Ext.define('Ext.data.proxy.WebStorage', {
      * automatically by the constructor, this should not need to be called again unless {@link #clear} has been called.
      */
     initialize: function() {
+        this.callParent(arguments);
         var storageObject = this.getStorageObject();
-        storageObject.setItem(this.id, storageObject.getItem(this.id) || "");
+        storageObject.setItem(this.getId(), storageObject.getItem(this.getId()) || "");
     },
 
     /**
@@ -384,7 +402,7 @@ Ext.define('Ext.data.proxy.WebStorage', {
 
         //remove the supporting objects
         obj.removeItem(this.getRecordCounterKey());
-        obj.removeItem(this.id);
+        obj.removeItem(this.getId());
     },
 
     /**

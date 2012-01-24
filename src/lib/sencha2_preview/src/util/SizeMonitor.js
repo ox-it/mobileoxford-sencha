@@ -1,6 +1,9 @@
+/**
+ * @private
+ */
 Ext.define('Ext.util.SizeMonitor', {
 
-    extend: 'Ext.EventedBase',
+    extend: 'Ext.Evented',
 
     config: {
         element: null,

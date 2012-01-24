@@ -1,3 +1,6 @@
+/**
+ * @private
+ */
 Ext.define('Ext.ItemCollection', {
     extend: 'Ext.util.MixedCollection',
 

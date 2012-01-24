@@ -1,9 +1,10 @@
 /**
  * @class Ext.Date
+ * @mixins Ext.DateExtras
  * A set of useful static methods to deal with date.
  * 
  * **Please note:** Unless you require `Ext.DateExtras`, only the {@link #now} method will be available. You **MUST** 
- * require `Ext.DateExtras` to use the other methods available below.**
+ * require `Ext.DateExtras` to use the other methods available below.
  * 
  * Usage with {@link Ext#setup}:
  * 
@@ -138,6 +139,14 @@ function xf(format) {
     });
 }
 
+/**
+ * Extra methods to be mixed into Ext.Date.
+ * 
+ * Require this class to get Ext.Date with all the methods listed below.
+ *
+ * @singleton
+ * @private
+ */
 Ext.DateExtras = {
     /**
      * Returns the current timestamp

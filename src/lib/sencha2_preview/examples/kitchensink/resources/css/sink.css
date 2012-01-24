@@ -145,8 +145,12 @@ code, pre {
 .x-desktop #ext-nestedlist-1 .x-list-inner .x-list-item:last-child {
   overflow: visible;
 }
-.x-tablet #ext-nestedlist-1 .x-list-inner .x-list-item:last-child:after,
-.x-desktop #ext-nestedlist-1 .x-list-inner .x-list-item:last-child:after {
+.x-tablet #mainNestedList .x-list-inner .x-list-item:last-child,
+.x-desktop #mainNestedList .x-list-inner .x-list-item:last-child {
+  overflow:visible;
+}
+.x-tablet #mainNestedList .x-list-inner .x-list-item:last-child:after,
+.x-desktop #mainNestedList .x-list-inner .x-list-item:last-child:after {
   content: "\00a0";
   position: absolute;
   bottom: -80px;

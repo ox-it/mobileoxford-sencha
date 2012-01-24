@@ -18,12 +18,12 @@
  *
  *         items: [
  *             {
- *                 dock : 'top',
+ *                 docked: 'top',
  *                 xtype: 'toolbar',
  *                 title: 'Standard Titlebar'
  *             },
  *             {
- *                 dock : 'top',
+ *                 docked: 'top',
  *                 xtype: 'toolbar',
  *                 ui   : 'light',
  *                 items: [

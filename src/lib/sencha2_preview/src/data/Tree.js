@@ -14,148 +14,145 @@ Ext.define('Ext.data.Tree', {
     alias: 'data.tree',
 
     mixins: {
-        observable: "Ext.util.Observable"
+        observable: "Ext.mixin.Observable"
     },
 
-    /**
-     * @property {Ext.data.NodeInterface}
-     * The root node for this tree
-     */
-    root: null,
+    config: {
+        /**
+         * @property {Ext.data.NodeInterface}
+         * The root node for this tree
+         */
+        rootNode: null
+    },
+
+    relayNodeEvents: [
+        /**
+         * @event append
+         * @alias Ext.data.NodeInterface#append
+         */
+        "append",
+
+        /**
+         * @event remove
+         * @alias Ext.data.NodeInterface#remove
+         */
+        "remove",
+
+        /**
+         * @event move
+         * @alias Ext.data.NodeInterface#move
+         */
+        "move",
+
+        /**
+         * @event insert
+         * @alias Ext.data.NodeInterface#insert
+         */
+        "insert",
+
+        /**
+         * @event beforeappend
+         * @alias Ext.data.NodeInterface#beforeappend
+         */
+        "beforeappend",
+
+        /**
+         * @event beforeremove
+         * @alias Ext.data.NodeInterface#beforeremove
+         */
+        "beforeremove",
+
+        /**
+         * @event beforemove
+         * @alias Ext.data.NodeInterface#beforemove
+         */
+        "beforemove",
+
+        /**
+         * @event beforeinsert
+         * @alias Ext.data.NodeInterface#beforeinsert
+         */
+        "beforeinsert",
+
+        /**
+         * @event expand
+         * @alias Ext.data.NodeInterface#expand
+         */
+        "expand",
+
+        /**
+         * @event collapse
+         * @alias Ext.data.NodeInterface#collapse
+         */
+        "collapse",
+
+        /**
+         * @event beforeexpand
+         * @alias Ext.data.NodeInterface#beforeexpand
+         */
+        "beforeexpand",
+
+        /**
+         * @event beforecollapse
+         * @alias Ext.data.NodeInterface#beforecollapse
+         */
+        "beforecollapse" ,
+
+        /**
+         * @event rootchange
+         * Fires whenever the root node is changed in the tree.
+         * @param {Ext.data.Model} root The new root
+         */
+        "rootchange"
+    ],
 
     /**
      * Creates new Tree object.
      * @param {Ext.data.NodeInterface} root (optional) The root node
      */
     constructor: function(root) {
-        var me = this;
-
-        me.nodeHash = {};
-
-        me.mixins.observable.constructor.call(me);
-
+        var config = {};
         if (root) {
-            me.setRootNode(root);
-        }
-    },
-
-    /**
-     * Returns the root node for this tree.
-     * @return {Ext.data.NodeInterface}
-     */
-    getRootNode : function() {
-        return this.root;
-    },
-
-    /**
-     * Sets the root node for this tree.
-     * @param {Ext.data.NodeInterface} node
-     * @return {Ext.data.NodeInterface} The root node
-     */
-    setRootNode : function(node) {
-        var me = this;
-
-        me.root = node;
-        Ext.data.NodeInterface.decorate(node);
-
-        if (me.fireEvent('beforeappend', null, node) !== false) {
-            node.set('root', true);
-            node.updateInfo();
-
-            me.relayEvents(node, [
-                /**
-                 * @event append
-                 * @alias Ext.data.NodeInterface#append
-                 */
-                "append",
-
-                /**
-                 * @event remove
-                 * @alias Ext.data.NodeInterface#remove
-                 */
-                "remove",
-
-                /**
-                 * @event move
-                 * @alias Ext.data.NodeInterface#move
-                 */
-                "move",
-
-                /**
-                 * @event insert
-                 * @alias Ext.data.NodeInterface#insert
-                 */
-                "insert",
-
-                /**
-                 * @event beforeappend
-                 * @alias Ext.data.NodeInterface#beforeappend
-                 */
-                "beforeappend",
-
-                /**
-                 * @event beforeremove
-                 * @alias Ext.data.NodeInterface#beforeremove
-                 */
-                "beforeremove",
-
-                /**
-                 * @event beforemove
-                 * @alias Ext.data.NodeInterface#beforemove
-                 */
-                "beforemove",
-
-                /**
-                 * @event beforeinsert
-                 * @alias Ext.data.NodeInterface#beforeinsert
-                 */
-                "beforeinsert",
-
-                 /**
-                  * @event expand
-                  * @alias Ext.data.NodeInterface#expand
-                  */
-                 "expand",
-
-                 /**
-                  * @event collapse
-                  * @alias Ext.data.NodeInterface#collapse
-                  */
-                 "collapse",
-
-                 /**
-                  * @event beforeexpand
-                  * @alias Ext.data.NodeInterface#beforeexpand
-                  */
-                 "beforeexpand",
-
-                 /**
-                  * @event beforecollapse
-                  * @alias Ext.data.NodeInterface#beforecollapse
-                  */
-                 "beforecollapse" ,
-
-                 /**
-                  * @event rootchange
-                  * Fires whenever the root node is changed in the tree.
-                  * @param {Ext.data.Model} root The new root
-                  */
-                 "rootchange"
-            ]);
-
-            node.on({
-                scope: me,
-                insert: me.onNodeInsert,
-                append: me.onNodeAppend,
-                remove: me.onNodeRemove
-            });
-
-            me.registerNode(node);
-            me.fireEvent('append', null, node);
-            me.fireEvent('rootchange', node);
+            config.rootNode = root;
         }
 
+        this.nodeHash = {};
+
+        this.initConfig(config);
+    },
+
+    applyRootNode: function(node) {
+        if (node) {
+            node = Ext.data.NodeInterface.decorate(node);
+        }
         return node;
+    },
+
+    updateRootNode: function(node, oldNode) {
+        if (oldNode) {
+            node.un(this.nodeEventListeners);
+        }
+
+        if (node) {
+            if (this.fireEvent('beforeappend', null, node) !== false) {
+                node.set('root', true);
+                node.updateInfo();
+
+                this.relayEvents(node, this.relayNodeEvents);
+                node.on({
+                    scope: this,
+                    insert: 'onNodeInsert',
+                    append: 'onNodeAppend',
+                    remove: 'onNodeRemove'
+                });
+
+                this.registerNode(node);
+
+                this.fireEvent('append', null, node);
+            }
+        }
+        
+        this.fireEvent('rootchange', node, oldNode);
     },
 
     /**
@@ -221,7 +218,7 @@ Ext.define('Ext.data.Tree', {
      * @param {Ext.data.NodeInterface} The node to register
      */
     registerNode : function(node) {
-        this.nodeHash[node.getId() || node.internalId] = node;
+        this.nodeHash[node.getId()] = node;
     },
 
     /**
@@ -230,7 +227,7 @@ Ext.define('Ext.data.Tree', {
      * @param {Ext.data.NodeInterface} The node to unregister
      */
     unregisterNode : function(node) {
-        delete this.nodeHash[node.getId() || node.internalId];
+        delete this.nodeHash[node.getId()];
     },
 
     /**
@@ -246,10 +243,10 @@ Ext.define('Ext.data.Tree', {
      /**
      * Filters this tree
      * @private
-     * @param {Function} sorterFn The function to use for filtering
+     * @param {Function} filterFn The function to use for filtering
      * @param {Boolean} recursive True to perform recursive filtering
      */
-    filter: function(filters, recursive) {
-        this.getRootNode().filter(filters, recursive);
+    filter: function(filterFn, recursive) {
+        this.getRootNode().filter(filterFn, recursive);
     }
 });

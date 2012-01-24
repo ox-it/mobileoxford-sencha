@@ -33,8 +33,8 @@ $list-color: #000 !default;
  */
 $list-bg-color: #f7f7f7 !default;
 
-<span id='Ext-dataview-List-css_var-S-list-pressed-color'>/**
-</span> * @var {color} $list-pressed-color
+<span id='Ext-dataview-List-css_var-S-include-list-highlights'>/**
+</span> * @var {color} $include-list-highlights
  * Background-color for pressed list rows.
  */
 $include-list-highlights: $include-highlights !default;
@@ -82,11 +82,12 @@ $list-disclosure-size: 1.7em;
  */
 @mixin sencha-list {
   .x-list {
-    background-color: $list-bg-color;
-  }
-
-  .x-list {
     position: relative;
+    background-color: $list-bg-color;
+
+    .x-list-inner {
+      width: 100%;
+    }
 
     .x-list-disclosure {
       position: absolute;

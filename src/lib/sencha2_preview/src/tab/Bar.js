@@ -29,9 +29,8 @@ Ext.define('Ext.tab.Bar', {
 
         // @private
         layout: {
-            type : 'hbox',
-            align: 'middle',
-            pack : 'left'
+            type: 'hbox',
+            align: 'middle'
         }
     },
 

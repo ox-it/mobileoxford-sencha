@@ -12,17 +12,29 @@ Ext.define('Ext.viewport.Default', {
 
     /**
      * @event ready
-     * Fires when the ViewPort is in the DOM and ready
+     * Fires when the Viewport is in the DOM and ready
+     * @param {Ext.viewport.Viewport} this
      */
 
     /**
      * @event maximize
-     * Fires when the ViewPort is maximized
+     * Fires when the Viewport is maximized
+     * @param {Ext.viewport.Viewport} this
+     */
+
+    /**
+     * @event orientationchange
+     * Fires when the Viewport orientation has changed
+     * @param {Ext.viewport.Viewport} this
+     * @param {String} newOrientation The new orientation
+     * @param {Number} width The width of the Viewport
+     * @param {Number} height The height of the Viewport
      */
 
     /**
      * @event resize
-     * Fires when the ViewPort is resized
+     * Fires when the Viewport is resized
+     * @param {Ext.viewport.Viewport} this
      * @param {Number} width The width of the Viewport
      * @param {Number} height The height of the Viewport
      */
@@ -50,7 +62,7 @@ Ext.define('Ext.viewport.Default', {
          * browser's viewport via finger gestures such as pinching and / or double-tapping
          * @accessor
          */
-        preventZooming: true,
+        preventZooming: false,
 
         autoRender: true,
 
@@ -118,7 +130,7 @@ Ext.define('Ext.viewport.Default', {
 
     onDomReady: function() {
         this.isReady = true;
-        this.fireEvent('ready');
+        this.fireEvent('ready', this);
     },
 
     onReady: function() {
@@ -223,7 +235,7 @@ Ext.define('Ext.viewport.Default', {
 
             controller.resume();
 
-            this.fireEvent('ready');
+            this.fireEvent('ready', this);
         }, this, { single: true });
 
         this.maximize();
@@ -303,7 +315,7 @@ Ext.define('Ext.viewport.Default', {
 
     fireResizeEvent: function(width, height) {
         this.updateSize(width, height);
-        this.fireEvent('resize', width, height);
+        this.fireEvent('resize', this, width, height);
     },
 
     onOrientationChange: function() {
@@ -323,7 +335,7 @@ Ext.define('Ext.viewport.Default', {
         this.orientation = newOrientation;
 
         this.updateSize();
-        this.fireEvent('orientationchange', newOrientation, this.windowWidth, this.windowHeight);
+        this.fireEvent('orientationchange', this, newOrientation, this.windowWidth, this.windowHeight);
     },
 
     updateSize: function(width, height) {
@@ -372,7 +384,7 @@ Ext.define('Ext.viewport.Default', {
 
     fireMaximizeEvent: function() {
         this.updateSize();
-        this.fireEvent('maximize');
+        this.fireEvent('maximize', this);
     },
 
     doSetHeight: function(height) {
@@ -442,7 +454,7 @@ Ext.define('Ext.viewport.Default', {
         item.addCls(this.fullscreenItemCls);
         this.add(item);
     },
-    
+
     keyboardHideField: null,
 
     hideKeyboard: function() {
@@ -450,7 +462,7 @@ Ext.define('Ext.viewport.Default', {
 
         if (Ext.os.is.iOS) {
             document.activeElement.blur();
-            
+
             setTimeout(function() {
                 Ext.Viewport.scrollToTop();
             }, 50);

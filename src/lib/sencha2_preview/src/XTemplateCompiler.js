@@ -1,7 +1,7 @@
 /**
  * This class compiles the XTemplate syntax into a function object. The function is used
  * like so:
- * 
+ *
  *      function (out, values, parent, xindex, xcount) {
  *          // out is the output array to store results
  *          // values, parent, xindex and xcount have their historical meaning
@@ -20,12 +20,17 @@ Ext.define('Ext.XTemplateCompiler', {
 
     useFormat: true,
 
+    propNameRe: /^[\w\d\$]*$/,
+
     compile: function (tpl) {
         var me = this,
-            code = me.generate(tpl),
-            fm = Ext.util.Format;
+            code = me.generate(tpl);
 
-        return me.useEval ? me.evalTpl(fm, code) : (new Function('fm', code))(fm);
+        // When using "new Function", we have to pass our "Ext" variable to it in order to
+        // support sandboxing. If we did not, the generated function would use the global
+        // "Ext", not the "Ext" from our sandbox (scope chain).
+        //
+        return me.useEval ? me.evalTpl(code) : (new Function('Ext', code))(Ext);
     },
 
     generate: function (tpl) {
@@ -34,13 +39,15 @@ Ext.define('Ext.XTemplateCompiler', {
         me.body = [
             'var c0=values, p0=parent, n0=xcount, i0=xindex;\n'
         ];
-        me.funcs = [];
+        me.funcs = [
+            'var fm=Ext.util.Format;' // note: Ext here is properly sandboxed
+        ];
         me.switches = [];
 
         me.parse(tpl);
 
         me.funcs.push(
-            (me.useEval ? 'var $=' : 'return') + ' function (' + me.fnArgs + ') {',
+            (me.useEval ? '$=' : 'return') + ' function (' + me.fnArgs + ') {',
                 me.body.join(''),
             '}'
         );
@@ -54,7 +61,9 @@ Ext.define('Ext.XTemplateCompiler', {
     // XTemplateParser callouts
 
     doText: function (text) {
-        this.body.push('out.push(\'', text.replace(this.aposRe, "\\'"), '\')\n');
+        text = text.replace(this.aposRe, "\\'");
+        text = text.replace(this.newLineRe, '\\n');
+        this.body.push('out.push(\'', text, '\')\n');
     },
 
     doExpr: function (expr) {
@@ -74,30 +83,48 @@ Ext.define('Ext.XTemplateCompiler', {
     },
 
     doIf: function (action, actions) {
-        var me = this,
-            s = me.addFn(action);
+        var me = this;
 
-        me.body.push('if (', s, me.callFn, ') {\n');
+        // If it's just a propName, use it directly in the if
+        if (me.propNameRe.test(action)) {
+            me.body.push('if (', me.parseTag(action), ') {\n');
+        }
+        // Otherwise, it must be an expression, and needs to be returned from an fn which uses with(values)
+        else {
+            me.body.push('if (', me.addFn(action), me.callFn, ') {\n');
+        }
         if (actions.exec) {
             me.doExec(actions.exec);
         }
     },
 
     doElseIf: function (action, actions) {
-        var me = this,
-            s = me.addFn(action);
+        var me = this;
 
-        me.body.push('} else if (', s, me.callFn, ') {\n');
+        // If it's just a propName, use it directly in the else if
+        if (me.propNameRe.test(action)) {
+            me.body.push('} else if (', me.parseTag(action), ') {\n');
+        }
+        // Otherwise, it must be an expression, and needs to be returned from an fn which uses with(values)
+        else {
+            me.body.push('} else if (', me.addFn(action), me.callFn, ') {\n');
+        }
         if (actions.exec) {
             me.doExec(actions.exec);
         }
     },
 
     doSwitch: function (action) {
-        var me = this,
-            s = me.addFn(action);
+        var me = this;
 
-        me.body.push('switch (', s, me.callFn, ') {\n');
+        // If it's just a propName, use it directly in the switch
+        if (me.propNameRe.test(action)) {
+            me.body.push('switch (', me.parseTag(action), ') {\n');
+        }
+        // Otherwise, it must be an expression, and needs to be returned from an fn which uses with(values)
+        else {
+            me.body.push('switch (', me.addFn(action), me.callFn, ') {\n');
+        }
         me.switches.push(0);
     },
 
@@ -181,7 +208,7 @@ Ext.define('Ext.XTemplateCompiler', {
                 p2 = (parent=c1),
                     // p2 is the parent context (of the outer for loop)
                 r2 = values
-                    // r2 is the values object to 
+                    // r2 is the values object to
 
             // i2 is the loop index and n2 is the number (xcount) of this for loop
             for (var i2 = 0, n2 = a2 ? c2.length : (c2 ? 1 : 0), xcount = n2; i2 < n2; ++i2) {
@@ -258,7 +285,8 @@ Ext.define('Ext.XTemplateCompiler', {
             v = name;
         }
         // name has a . in it - Use object literal notation, starting from values
-        else if (name.indexOf('.') != -1) {
+        else if ((name.indexOf('.') !== -1) && (name.indexOf('-') === -1)) {
+
             v = "values." + name;
         }
         // name is a property of values
@@ -275,7 +303,7 @@ Ext.define('Ext.XTemplateCompiler', {
             if (format.substr(0, 5) != "this.") {
                 format = "fm." + format + '(';
             } else {
-                format = 'this.' + format.substr(5) + '(';
+                format += '(';
             }
         } else {
             args = '';
@@ -286,17 +314,17 @@ Ext.define('Ext.XTemplateCompiler', {
     },
 
     // @private
-    evalTpl: function (fm) { // note: don't name other args to keep the name out of scope!
+    evalTpl: function ($) {
 
-        // we have to use eval to realize the code block and capture the inner func
-        // we also don't want a deep scope chain. We only do this in Firefox and it is
-        // also unhappy with eval containing a return statement, so instead we assign
-        // to "$" and return that.
-        var $;
-        eval(arguments[1]);
+        // We have to use eval to realize the code block and capture the inner func we also
+        // don't want a deep scope chain. We only do this in Firefox and it is also unhappy
+        // with eval containing a return statement, so instead we assign to "$" and return
+        // that. Because we use "eval", we are automatically sandboxed properly.
+        eval($);
         return $;
     },
 
+    newLineRe: /\r\n|\r|\n/g,
     aposRe: /[']/g,
     intRe:  /^\s*(\d+)\s*$/,
     tagRe:  /([\w-\.\#]+)(?:\:([\w\.]*)(?:\((.*?)?\))?)?(\s?[\+\-\*\/]\s?[\d\.\+\-\*\/\(\)]+)?/

@@ -81,6 +81,8 @@ Ext.define('Ext.picker.Picker', {
     alternateClassName: 'Ext.Picker',
     requires: ['Ext.picker.Slot', 'Ext.Toolbar', 'Ext.data.Model'],
 
+    isPicker: true,
+
     /**
      * @event pick
      * Fired when a slot has been picked
@@ -115,7 +117,7 @@ Ext.define('Ext.picker.Picker', {
          * <li>false or null to hide it</li></ul>
          * @accessor
          */
-        doneButton: 'Done',
+        doneButton: true,
 
         /**
          * @cfg {String/Mixed} cancelButton
@@ -125,7 +127,7 @@ Ext.define('Ext.picker.Picker', {
          * <li>false or null to hide it</li></ul>
          * @accessor
          */
-        cancelButton: 'Cancel',
+        cancelButton: true,
 
         /**
          * @cfg {Boolean} useTitles
@@ -184,8 +186,44 @@ Ext.define('Ext.picker.Picker', {
         defaultType: 'pickerslot',
 
         /**
-         * @cfg {Ext.Toolbar} toolbar
+         * @cfg {Ext.TitleBar/Ext.Toolbar/Object} toolbar
          * The toolbar which contains the {@link #doneButton} and {@link #cancelButton} buttons.
+         * You can override this if you wish, and add your own configurations. Just ensure that you take into account
+         * the {@link #doneButton} and {@link #cancelButton} configurations.
+         *
+         * The default xtype is a {@link Ext.TitleBar}:
+         *
+         *     toolbar: {
+         *         items: [
+         *             {
+         *                 xtype: 'button',
+         *                 text: 'Left',
+         *                 align: 'left'
+         *             },
+         *             {
+         *                 xtype: 'button',
+         *                 text: 'Right',
+         *                 align: 'left'
+         *             }
+         *         ]
+         *     }
+         *
+         * Or to use a {@link Ext.Toolbar instead}:
+         *
+         *     toolbar: {
+         *         xtype: 'toolbar',
+         *         items: [
+         *             {
+         *                 xtype: 'button',
+         *                 text: 'Left'
+         *             },
+         *             {
+         *                 xtype: 'button',
+         *                 text: 'Left Two'
+         *             }
+         *         ]
+         *     }
+         *
          * @accessor
          */
         toolbar: true
@@ -210,8 +248,7 @@ Ext.define('Ext.picker.Picker', {
         me.on({
             scope   : this,
             delegate: 'pickerslot',
-
-            slotpick    : 'onSlotPick'
+            slotpick: 'onSlotPick'
         });
 
         me.on({
@@ -233,7 +270,7 @@ Ext.define('Ext.picker.Picker', {
             docked: 'top'
         });
 
-        return Ext.factory(config, 'Ext.Toolbar', this.getToolbar());
+        return Ext.factory(config, 'Ext.TitleBar', this.getToolbar());
     },
 
     /**
@@ -253,30 +290,32 @@ Ext.define('Ext.picker.Picker', {
      * Updates the {@link #doneButton} configuration. Will change it into a button when appropriate, or just update the text if needed.
      */
     applyDoneButton: function(config) {
-        if (typeof config == "string") {
-            config = {
-                text: config
-            };
-        }
+        if (config) {
+            if (Ext.isBoolean(config)) {
+                config = {};
+            }
+            
+            if (typeof config == "string") {
+                config = {
+                    text: config
+                };
+            }
 
-        Ext.applyIf(config, {
-            ui: 'action'
-        });
+            Ext.applyIf(config, {
+                ui: 'action',
+                align: 'right',
+                text: 'Done'
+            });
+        }
 
         return Ext.factory(config, 'Ext.Button', this.getDoneButton());
     },
 
     updateDoneButton: function(newDoneButton, oldDoneButton) {
-        var toolbar = this.getToolbar(),
-            //done to make sure it is inserted at the left
-            //@todo remove this when toolbarlayout is fixed
-            cancelButton = this.getCancelButton();
+        var toolbar = this.getToolbar();
 
         if (newDoneButton) {
-            toolbar.add([
-                { xtype: 'spacer' },
-                newDoneButton
-            ]);
+            toolbar.add(newDoneButton);
             newDoneButton.on('tap', this.onDoneButtonTap, this);
         } else if (oldDoneButton) {
             toolbar.remove(oldDoneButton);
@@ -287,10 +326,21 @@ Ext.define('Ext.picker.Picker', {
      * Updates the {@link #cancelButton} configuration. Will change it into a button when appropriate, or just update the text if needed.
      */
     applyCancelButton: function(config) {
-        if (typeof config == "string") {
-            config = {
-                text: config
-            };
+        if (config) {
+            if (Ext.isBoolean(config)) {
+                config = {};
+            }
+
+            if (typeof config == "string") {
+                config = {
+                    text: config
+                };
+            }
+
+            Ext.applyIf(config, {
+                align: 'left',
+                text: 'Cancel'
+            });
         }
 
         return Ext.factory(config, 'Ext.Button', this.getCancelButton());
@@ -478,6 +528,8 @@ Ext.define('Ext.picker.Picker', {
 }, function() {
     Ext.define('x-textvalue', {
         extend: 'Ext.data.Model',
-        fields: ['text', 'value']
+        config: {
+            fields: ['text', 'value']
+        }
     });
 });

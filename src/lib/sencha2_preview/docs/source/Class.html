@@ -294,54 +294,48 @@
          */
         process: function(Class, data, onCreated) {
             var preprocessorStack = data.preprocessors || ExtClass.defaultPreprocessors,
-                registeredPreprocessors = this.preprocessors,
+                preprocessors = this.preprocessors,
                 hooks = {
-                    onBeforeCreated: this.onBeforeCreated
+                    onBeforeCreated: this.onBeforeCreated,
+                    onCreated: onCreated || Ext.emptyFn
                 },
                 index = 0,
-                preprocessors = [],
-                preprocessor, preprocessorsProperties,
-                i, ln, j, subLn, preprocessorProperty, process;
+                name, preprocessor, properties,
+                i, ln, fn, property, process;
 
             delete data.preprocessors;
 
-            for (i = 0,ln = preprocessorStack.length; i &lt; ln; i++) {
-                preprocessor = preprocessorStack[i];
+            process = function(Class, data, hooks) {
+                fn = null;
 
-                if (typeof preprocessor == 'string') {
-                    preprocessor = registeredPreprocessors[preprocessor];
-                    preprocessorsProperties = preprocessor.properties;
+                while (fn === null) {
+                    name = preprocessorStack[index++];
 
-                    if (preprocessorsProperties === true) {
-                        preprocessors.push(preprocessor.fn);
-                    }
-                    else if (preprocessorsProperties) {
-                        for (j = 0,subLn = preprocessorsProperties.length; j &lt; subLn; j++) {
-                            preprocessorProperty = preprocessorsProperties[j];
+                    if (name) {
+                        preprocessor = preprocessors[name];
+                        properties = preprocessor.properties;
 
-                            if (data.hasOwnProperty(preprocessorProperty)) {
-                                preprocessors.push(preprocessor.fn);
-                                break;
+                        if (properties === true) {
+                            fn = preprocessor.fn;
+                        }
+                        else {
+                            for (i = 0,ln = properties.length; i &lt; ln; i++) {
+                                property = properties[i];
+
+                                if (data.hasOwnProperty(property)) {
+                                    fn = preprocessor.fn;
+                                    break;
+                                }
                             }
                         }
                     }
-                }
-                else {
-                    preprocessors.push(preprocessor);
-                }
-            }
-
-            hooks.onCreated = onCreated ? onCreated : Ext.emptyFn;
-
-            process = function(Class, data, hooks) {
-                preprocessor = preprocessors[index++];
-
-                if (!preprocessor) {
-                    hooks.onBeforeCreated.apply(this, arguments);
-                    return;
+                    else {
+                        hooks.onBeforeCreated.apply(this, arguments);
+                        return;
+                    }
                 }
 
-                if (preprocessor.call(this, Class, data, hooks, process) !== false) {
+                if (fn.call(this, Class, data, hooks, process) !== false) {
                     process.apply(this, arguments);
                 }
             };
@@ -505,8 +499,8 @@
                 capitalizedName = name.charAt(0).toUpperCase() + name.substr(1);
 
                 map = cache[name] = {
+                    name: name,
                     internal: '_' + name,
-                    initialized: '_is' + capitalizedName + 'Initialized',
                     initializing: 'is' + capitalizedName + 'Initializing',
                     apply: 'apply' + capitalizedName,
                     update: 'update' + capitalizedName,
@@ -519,6 +513,65 @@
             }
 
             return map;
+        },
+
+        generateSetter: function(nameMap) {
+            var internalName = nameMap.internal,
+                getName = nameMap.get,
+                applyName = nameMap.apply,
+                updateName = nameMap.update,
+                setter;
+
+            setter = function(value) {
+                var oldValue = this[internalName],
+                    applier = this[applyName],
+                    updater = this[updateName];
+
+                delete this[getName];
+
+                if (applier) {
+                    value = applier.call(this, value, oldValue);
+                }
+
+                if (typeof value != 'undefined') {
+                    this[internalName] = value;
+
+                    if (updater &amp;&amp; value !== oldValue) {
+                        updater.call(this, value, oldValue);
+                    }
+                }
+
+                return this;
+            };
+
+            setter.$isDefault = true;
+
+            return setter;
+        },
+
+        generateInitGetter: function(nameMap) {
+            var name = nameMap.name,
+                setName = nameMap.set,
+                getName = nameMap.get,
+                initializingName = nameMap.initializing;
+
+            return function() {
+                this[initializingName] = true;
+                delete this[getName];
+
+                this[setName].call(this, this.config[name]);
+                delete this[initializingName];
+
+                return this[getName].apply(this, arguments);
+            }
+        },
+
+        generateGetter: function(nameMap) {
+            var internalName = nameMap.internal;
+
+            return function() {
+                return this[internalName];
+            }
         }
     });
 
@@ -539,7 +592,7 @@
         var Base = Ext.Base,
             basePrototype = Base.prototype,
             extend = data.extend,
-            Parent, parentPrototype, i;
+            Parent, parentPrototype, name;
 
         delete data.extend;
 
@@ -553,9 +606,9 @@
         parentPrototype = Parent.prototype;
 
         if (!Parent.$isClass) {
-            for (i in basePrototype) {
-                if (!parentPrototype[i]) {
-                    parentPrototype[i] = basePrototype[i];
+            for (name in basePrototype) {
+                if (!parentPrototype[name]) {
+                    parentPrototype[name] = basePrototype[name];
                 }
             }
         }
@@ -565,7 +618,7 @@
         Class.triggerExtended.apply(Class, arguments);
 
         if (data.onClassExtended) {
-            Class.onExtended(data.onClassExtended);
+            Class.onExtended(data.onClassExtended, Class);
             delete data.onClassExtended;
         }
 
@@ -638,96 +691,37 @@
      */
     ExtClass.registerPreprocessor('config', function(Class, data) {
         var config = data.config,
-            prototype = Class.prototype;
+            prototype = Class.prototype,
+            defaultConfig = prototype.config,
+            nameMap, name, setName, getName, initGetName, internalName, value;
 
         delete data.config;
 
-        Ext.Object.each(config, function(name, value) {
-            var nameMap = ExtClass.getConfigNameMap(name),
-                internalName = nameMap.internal,
-                initializedName = nameMap.initialized,
-                applyName = nameMap.apply,
-                updateName = nameMap.update,
-                setName = nameMap.set,
-                getName = nameMap.get,
-                initGetName = nameMap.initGet,
-                initializingName = nameMap.initializing,
-                hasOwnSetter = (setName in prototype) || data.hasOwnProperty(setName),
-                hasOwnApplier = (applyName in prototype) || data.hasOwnProperty(applyName),
-                hasOwnUpdater = (updateName in prototype) || data.hasOwnProperty(updateName),
-                optimizedGetter, customGetter;
+        for (name in config) {
+            // Once per config item, per class hierachy
+            if (config.hasOwnProperty(name) &amp;&amp; !(name in defaultConfig)) {
+                value = config[name];
+                nameMap = this.getConfigNameMap(name);
+                setName = nameMap.set;
+                getName = nameMap.get;
+                initGetName = nameMap.initGet;
+                internalName = nameMap.internal;
 
-            if (value === null || (!hasOwnSetter &amp;&amp; !hasOwnApplier &amp;&amp; !hasOwnUpdater)) {
-                prototype[internalName] = value;
-                prototype[initializedName] = true;
-            }
-            else {
-                prototype[initializedName] = false;
-            }
+                data[initGetName] = this.generateInitGetter(nameMap);
 
-            if (!hasOwnSetter) {
-                data[setName] = function(value) {
-                    var oldValue = this[internalName],
-                        applier = this[applyName],
-                        updater = this[updateName];
-
-                    if (!this[initializedName]) {
-                        this[initializedName] = true;
-                    }
-
-                    if (applier) {
-                        value = applier.call(this, value, oldValue);
-                    }
-
-                    if (typeof value != 'undefined') {
-                        this[internalName] = value;
-
-                        if (updater &amp;&amp; value !== oldValue) {
-                            updater.call(this, value, oldValue);
-                        }
-                    }
-
-                    return this;
-                }
-            }
-
-            if (!(getName in prototype) || data.hasOwnProperty(getName)) {
-                customGetter = data[getName] || false;
-
-                if (customGetter) {
-                    optimizedGetter = function() {
-                        return customGetter.apply(this, arguments);
-                    };
-                }
-                else {
-                    optimizedGetter = function() {
-                        return this[internalName];
-                    };
+                if (value === null &amp;&amp; !data.hasOwnProperty(internalName)) {
+                    data[internalName] = null;
                 }
 
-                data[getName] = prototype[initGetName] = function() {
-                    var currentGetter;
+                if (!data.hasOwnProperty(getName)) {
+                    data[getName] = this.generateGetter(nameMap);
+                }
 
-                    if (!this[initializedName]) {
-                        this[initializedName] = true;
-                        this[initializingName] = true;
-                        this[setName](this.config[name]);
-                        this[initializingName] = false;
-                    }
-
-                    currentGetter = this[getName];
-
-                    if ('$previous' in currentGetter) {
-                        currentGetter.$previous = optimizedGetter;
-                    }
-                    else {
-                        this[getName] = optimizedGetter;
-                    }
-
-                    return optimizedGetter.apply(this, arguments);
-                };
+                if (!data.hasOwnProperty(setName)) {
+                    data[setName] = this.generateSetter(nameMap);
+                }
             }
-        });
+        }
 
         Class.addConfig(config, true);
     });
@@ -828,7 +822,6 @@
         return cls;
     };
     //&lt;/feature&gt;
-
 })();
 </pre>
 </body>

@@ -1,3 +1,6 @@
+/**
+ * @private
+ */
 Ext.define('Ext.viewport.Ios', {
     extend: 'Ext.viewport.Default',
 

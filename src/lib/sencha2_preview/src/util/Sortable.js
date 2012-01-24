@@ -205,7 +205,6 @@ Ext.define("Ext.util.Sortable", {
                     direction: "ASC"
                 });
 
-                //support for 3.x style sorters where a function can be defined as 'fn'
                 if (config.fn) {
                     config.sorterFn = config.fn;
                 }

@@ -1,68 +1,96 @@
 /**
- * @class Ext.data.writer.Json
- * @extends Ext.data.writer.Writer
-
-This class is used to write {@link Ext.data.Model} data to the server in a JSON format.
-The {@link #allowSingle} configuration can be set to false to force the records to always be
-encoded in an array, even if there is only a single record being sent.
-
- * @markdown
+ * This class is used to write {@link Ext.data.Model} data to the server in a JSON format.
+ * The {@link #allowSingle} configuration can be set to false to force the records to always be
+ * encoded in an array, even if there is only a single record being sent.
  */
 Ext.define('Ext.data.writer.Json', {
     extend: 'Ext.data.writer.Writer',
     alternateClassName: 'Ext.data.JsonWriter',
     alias: 'writer.json',
-    
-    /**
-     * @cfg {String} root The key under which the records in this Writer will be placed. Defaults to <tt>undefined</tt>.
-     * Example generated request, using root: 'records':
-<pre><code>
-{'records': [{name: 'my record'}, {name: 'another record'}]}
-</code></pre>
-     */
-    root: undefined,
-    
-    /**
-     * @cfg {Boolean} encode True to use Ext.encode() on the data before sending. Defaults to <tt>false</tt>.
-     * The encode option should only be set to true when a {@link #root} is defined, because the values will be
-     * sent as part of the request parameters as opposed to a raw post. The root will be the name of the parameter
-     * sent to the server.
-     */
-    encode: false,
-    
-    /**
-     * @cfg {Boolean} allowSingle False to ensure that records are always wrapped in an array, even if there is only
-     * one record being sent. When there is more than one record, they will always be encoded into an array.
-     * Defaults to <tt>true</tt>. Example:
-     * <pre><code>
-// with allowSingle: true
-"root": {
-    "first": "Mark",
-    "last": "Corrigan"
-}
 
-// with allowSingle: false
-"root": [{
-    "first": "Mark",
-    "last": "Corrigan"
-}]
-     * </code></pre>
-     */
-    allowSingle: true,
-    
+    config: {
+        /**
+         * @cfg {String} root
+         * The key under which the records in this Writer will be placed. If you specify {@link #encode} to be true,
+         * we default this to 'records'.
+         *
+         * Example generated request, using root: 'records':
+         *
+         *     {'records': [{name: 'my record'}, {name: 'another record'}]}
+         *
+         */
+        root: undefined,
+
+        /**
+         * @cfg {Boolean} encode
+         * True to use Ext.encode() on the data before sending. The encode option should only be set to true when a
+         * {@link #root} is defined, because the values will be sent as part of the request parameters as opposed to
+         * a raw post. The root will be the name of the parameter sent to the server.
+         */
+        encode: false,
+
+        /**
+         * @cfg {Boolean} allowSingle
+         * False to ensure that records are always wrapped in an array, even if there is only one record being sent.
+         * When there is more than one record, they will always be encoded into an array.
+         *
+         * Example:
+         *
+         *     // with allowSingle: true
+         *     "root": {
+         *         "first": "Mark",
+         *         "last": "Corrigan"
+         *     }
+         *  
+         *     // with allowSingle: false
+         *     "root": [{
+         *         "first": "Mark",
+         *         "last": "Corrigan"
+         *     }]
+         */
+        allowSingle: true,
+
+        encodeRequest: false
+    },
+
+    applyRoot: function(root) {
+        if (!root && (this.getEncode() || this.getEncodeRequest())) {
+            root = 'data';
+        }
+        return root;
+    },
+
     //inherit docs
     writeRecords: function(request, data) {
-        var root = this.root;
-        
-        if (this.allowSingle && data.length == 1) {
+        var root = this.getRoot(),
+            params = request.getParams(),
+            headers = request.getHeaders(),
+            jsonData;
+
+        if (this.getAllowSingle() && data && data.length == 1) {
             // convert to single object format
             data = data[0];
         }
-        
-        if (this.encode) {
+
+        if (this.getEncodeRequest()) {
+            jsonData = request.getJsonData() || {};
+            if (data && data.length) {
+                jsonData[root] = data;
+            }
+            request.setJsonData(Ext.apply(jsonData, params || {}));
+            request.setParams(null);
+            request.setMethod('POST');
+            return request;
+        }
+
+        if (!data || !data.length) {
+            return request;
+        }
+
+        if (this.getEncode()) {
             if (root) {
                 // sending as a param, need to encode
-                request.params[root] = Ext.encode(data);
+                params[root] = Ext.encode(data);
             } else {
                 //<debug>
                 Ext.Error.raise('Must specify a root when using encode');
@@ -70,13 +98,68 @@ Ext.define('Ext.data.writer.Json', {
             }
         } else {
             // send as jsonData
-            request.jsonData = request.jsonData || {};
+            jsonData = request.getJsonData() || {};
             if (root) {
-                request.jsonData[root] = data;
+                jsonData[root] = data;
             } else {
-                request.jsonData = data;
+                jsonData = data;
             }
+            request.setJsonData(jsonData);
         }
         return request;
     }
 });
+
+
+/*
+ * @allowSingle: true
+ * @encodeRequest: false
+ * Url: update.json?param1=test
+ * {'field1': 'test': 'field2': 'test'}
+ *
+ * @allowSingle: false
+ * @encodeRequest: false
+ * Url: update.json?param1=test
+ * [{'field1': 'test', 'field2': 'test'}]
+ *
+ * @allowSingle: true
+ * @root: 'data'
+ * @encodeRequest: true
+ * Url: update.json
+ * {
+ *    'param1': 'test',
+ *    'data': {'field1': 'test', 'field2': 'test'}
+ * }
+ *
+ * @allowSingle: false
+ * @root: 'data'
+ * @encodeRequest: true
+ * Url: update.json
+ * {
+ *     'param1': 'test',
+ *     'data': [{'field1': 'test', 'field2': 'test'}]
+ * }
+ *
+ * @allowSingle: true
+ * @root: data
+ * @encodeRequest: false
+ * Url: update.json
+ * param1=test&data={'field1': 'test', 'field2': 'test'}
+ *
+ * @allowSingle: false
+ * @root: data
+ * @encodeRequest: false
+ * @ncode: true
+ * Url: update.json
+ * param1=test&data=[{'field1': 'test', 'field2': 'test'}]
+ *
+ * @allowSingle: true
+ * @root: data
+ * @encodeRequest: false
+ * Url: update.json?param1=test&data={'field1': 'test', 'field2': 'test'}
+ *
+ * @allowSingle: false
+ * @root: data
+ * @encodeRequest: false
+ * Url: update.json?param1=test&data=[{'field1': 'test', 'field2': 'test'}]
+ */

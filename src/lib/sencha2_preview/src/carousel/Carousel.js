@@ -79,8 +79,7 @@ Ext.define('Ext.carousel.Carousel', {
         'Ext.fx.Easing',
         'Ext.util.SizeMonitor',
         'Ext.carousel.Item',
-        'Ext.carousel.Indicator',
-        'Ext.layout.Carousel'
+        'Ext.carousel.Indicator'
     ],
 
     config: {
@@ -114,8 +113,6 @@ Ext.define('Ext.carousel.Carousel', {
          * @accessor
          */
         ui: 'dark',
-
-        layout: 'carousel',
 
         itemConfig: {},
 
@@ -204,7 +201,7 @@ Ext.define('Ext.carousel.Carousel', {
             innerElement.append(item.renderElement);
 
             if (isRendered && item.setRendered(true)) {
-                item.fireEvent('renderedchange', item, true);
+                item.fireEvent('renderedchange', this, item, true);
             }
         }
     },
@@ -265,43 +262,83 @@ Ext.define('Ext.carousel.Carousel', {
     onItemAdd: function(item, index) {
         this.callParent(arguments);
 
-        var indicator = this.getIndicator();
+        var innerIndex = this.getInnerItems().indexOf(item),
+            indicator = this.getIndicator();
 
-        if (indicator && item.isInnerItem(item)) {
+        if (indicator && item.isInnerItem()) {
             indicator.addIndicator();
         }
 
-        if (index <= this.getActiveIndex()) {
+        if (innerIndex <= this.getActiveIndex()) {
             this.refreshActiveIndex();
         }
 
-        if (this.painted && this.isIndexDirty(index)) {
+        if (this.painted && this.isIndexDirty(innerIndex)) {
             this.refreshActiveItem();
         }
+    },
+
+    doItemLayoutAdd: function(item) {
+        if (item.isInnerItem()) {
+            return;
+        }
+
+        this.callParent(arguments);
     },
 
     onItemRemove: function(item, index) {
         this.callParent(arguments);
 
-        var indicator = this.getIndicator();
+        var innerIndex = this.getInnerItems().indexOf(item),
+            indicator = this.getIndicator(),
+            carouselItems = this.carouselItems,
+            i, ln, carouselItem;
 
-        if (item.isInnerItem(item) && indicator) {
+        if (item.isInnerItem() && indicator) {
             indicator.removeIndicator();
         }
 
-        if (index <= this.getActiveIndex()) {
+        if (innerIndex <= this.getActiveIndex()) {
             this.refreshActiveIndex();
         }
 
-        if (this.painted && this.isIndexDirty(index)) {
+        if (this.isIndexDirty(innerIndex)) {
+            for (i = 0,ln = carouselItems.length; i < ln; i++) {
+                carouselItem = carouselItems[i];
+
+                if (carouselItem.getComponent() === item) {
+                    carouselItem.setComponent(null);
+                }
+            }
+
+            if (this.painted) {
+                this.refreshActiveItem();
+            }
+        }
+    },
+
+    doItemLayoutRemove: function(item) {
+        if (item.isInnerItem()) {
+            return;
+        }
+
+        this.callParent(arguments);
+    },
+
+    onItemMove: function(item, toIndex, fromIndex) {
+        this.callParent(arguments);
+
+        if (this.painted && (this.isIndexDirty(toIndex) || this.isIndexDirty(fromIndex))) {
             this.refreshActiveItem();
         }
     },
 
-    onItemMove: function(item, toIndex, fromIndex) {
-        if (this.painted && (this.isIndexDirty(toIndex) || this.isIndexDirty(fromIndex))) {
-            this.refreshActiveItem();
+    doItemLayoutMove: function(item) {
+        if (item.isInnerItem()) {
+            return;
         }
+
+        this.callParent(arguments);
     },
 
     isIndexDirty: function(index) {

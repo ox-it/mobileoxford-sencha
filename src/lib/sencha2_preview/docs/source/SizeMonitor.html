@@ -15,9 +15,12 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js">Ext.define('Ext.util.SizeMonitor', {
+  <pre class="prettyprint lang-js"><span id='Ext-util-SizeMonitor'>/**
+</span> * @private
+ */
+Ext.define('Ext.util.SizeMonitor', {
 
-    extend: 'Ext.EventedBase',
+    extend: 'Ext.Evented',
 
     config: {
         element: null,

@@ -10,7 +10,7 @@
  * # Useful Methods
  *
  * - {@link #pause}
- * - {@link #play}
+ * - {@link #method-play}
  * - {@link #toggle}
  *
  * # Example code:

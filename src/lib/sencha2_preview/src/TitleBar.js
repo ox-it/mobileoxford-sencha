@@ -106,9 +106,30 @@ Ext.define('Ext.TitleBar', {
     },
 
     initialize: function() {
+        this.applyItems = this.applyInitialItems;
+
+        this.callParent();
+
+        delete this.applyItems;
+
+        this.doAdd = this.doBoxAdd;
+        this.doInsert = this.doBoxInsert;
+
+        this.add(this.initialItems);
+        delete this.initialItems;
+
+        this.on({
+            painted: 'onPainted',
+            erased: 'onErased'
+        });
+    },
+
+    applyInitialItems: function(items) {
         var SizeMonitor = Ext.util.SizeMonitor,
             defaults = this.getDefaults() || {},
             leftBox, rightBox, spacer;
+
+        this.initialItems = items;
 
         this.leftBox = leftBox = this.add({
             xtype: 'container',
@@ -157,16 +178,6 @@ Ext.define('Ext.TitleBar', {
                 scope: this
             })
         };
-
-        this.doAdd = this.doBoxAdd;
-        this.doInsert = this.doBoxInsert;
-
-        this.on({
-            painted: 'onPainted',
-            erased: 'onErased'
-        });
-
-        this.callParent();
     },
 
     doBoxAdd: function(item) {
@@ -229,7 +240,7 @@ Ext.define('Ext.TitleBar', {
         var leftBox = this.leftBox,
             leftButton = leftBox.down('button'),
             leftBoxWidth, maxButtonWidth;
-        
+
         if (leftButton) {
             leftButton.renderElement.setWidth('auto');
 

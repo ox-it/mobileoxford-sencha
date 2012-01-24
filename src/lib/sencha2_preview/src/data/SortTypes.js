@@ -1,10 +1,10 @@
 /**
  * @class Ext.data.SortTypes
  * This class defines a series of static methods that are used on a
- * {@link Ext.data.Field} for performing sorting. The methods cast the 
+ * {@link Ext.data.Field} for performing sorting. The methods cast the
  * underlying values into a data type that is appropriate for sorting on
- * that particular field.  If a {@link Ext.data.Field#type} is specified, 
- * the sortType will be set to a sane default if the sortType is not 
+ * that particular field.  If a {@link Ext.data.Field#type} is specified,
+ * the sortType will be set to a sane default if the sortType is not
  * explicitly defined on the field. The sortType will make any necessary
  * modifications to the value and return it.
  * <ul>
@@ -23,7 +23,7 @@ Ext.apply(Ext.data.SortTypes, {
     asPerson: function(person){
         // expects an object with a first and last name property
         return person.lastName.toUpperCase() + person.firstName.toLowerCase();
-    }    
+    }
 });
 
 Ext.define('Employee', {
@@ -42,17 +42,7 @@ Ext.define('Employee', {
  * @docauthor Evan Trimboli <evan@sencha.com>
  */
 Ext.define('Ext.data.SortTypes', {
-    
     singleton: true,
-    
-    /**
-     * Default sort that does nothing
-     * @param {Object} s The value being converted
-     * @return {Object} The comparison value
-     */
-    none : function(s) {
-        return s;
-    },
 
     /**
      * The regular expression used to strip tags
@@ -62,64 +52,73 @@ Ext.define('Ext.data.SortTypes', {
     stripTagsRE : /<\/?[^>]+>/gi,
 
     /**
+     * Default sort that does nothing
+     * @param {Object} value The value being converted
+     * @return {Object} The comparison value
+     */
+    none : function(value) {
+        return value;
+    },
+
+    /**
      * Strips all HTML tags to sort on text only
-     * @param {Object} s The value being converted
+     * @param {Object} value The value being converted
      * @return {String} The comparison value
      */
-    asText : function(s) {
-        return String(s).replace(this.stripTagsRE, "");
+    asText : function(value) {
+        return String(value).replace(this.stripTagsRE, "");
     },
 
     /**
      * Strips all HTML tags to sort on text only - Case insensitive
-     * @param {Object} s The value being converted
+     * @param {Object} value The value being converted
      * @return {String} The comparison value
      */
-    asUCText : function(s) {
-        return String(s).toUpperCase().replace(this.stripTagsRE, "");
+    asUCText : function(value) {
+        return String(value).toUpperCase().replace(this.stripTagsRE, "");
     },
 
     /**
      * Case insensitive string
-     * @param {Object} s The value being converted
+     * @param {Object} value The value being converted
      * @return {String} The comparison value
      */
-    asUCString : function(s) {
-        return String(s).toUpperCase();
+    asUCString : function(value) {
+        return String(value).toUpperCase();
     },
 
     /**
      * Date sorting
-     * @param {Object} s The value being converted
+     * @param {Object} value The value being converted
      * @return {Number} The comparison value
      */
-    asDate : function(s) {
-        if(!s){
+    asDate : function(value) {
+        if (!value) {
             return 0;
         }
-        if(Ext.isDate(s)){
-            return s.getTime();
+        if (Ext.isDate(value)) {
+            return value.getTime();
         }
-        return Date.parse(String(s));
+        return Date.parse(String(value));
     },
 
     /**
      * Float sorting
-     * @param {Object} s The value being converted
+     * @param {Object} value The value being converted
      * @return {Number} The comparison value
      */
-    asFloat : function(s) {
-        var val = parseFloat(String(s).replace(/,/g, ""));
-        return isNaN(val) ? 0 : val;
+    asFloat : function(value) {
+        value = parseFloat(String(value).replace(/,/g, ""));
+        return isNaN(value) ? 0 : value;
     },
 
     /**
      * Integer sorting
-     * @param {Object} s The value being converted
+     * @param {Object} value The value being converted
      * @return {Number} The comparison value
      */
-    asInt : function(s) {
-        var val = parseInt(String(s).replace(/,/g, ""), 10);
-        return isNaN(val) ? 0 : val;
+    asInt : function(value) {
+        value = parseInt(String(value).replace(/,/g, ""), 10);
+        return isNaN(value) ? 0 : value;
     }
 });

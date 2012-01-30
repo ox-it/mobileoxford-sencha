@@ -1,17 +1,18 @@
 Ext.define('MobileOxford.controller.webcams', {
     extend: 'Ext.app.Controller',
     views: ['webcams', 'webcam'],
-
-    refs: [
-	{
-		ref: 'viewport',
-		selector: 'my-viewport'
-	},
-	{
-		ref: 'webcamsList',
-		selector: '#webcamsList'
-	},
-    ],
+    config: {
+        refs: [
+	    {
+		    ref: 'viewport',
+		    selector: 'my-viewport'
+	    },
+	    {
+		    ref: 'webcamsList',
+		    selector: '#webcamsList'
+	    },
+        ],
+    },
 
     init: function() {
         this.control({

@@ -1,13 +1,14 @@
 Ext.define('MobileOxford.controller.podcasts', {
     extend: 'Ext.app.Controller',
     views: ['podcasts'],
-
-    refs: [
-	{
-		ref: 'viewport',
-		selector: 'my-viewport'
-	},
-    ],
+    config: {
+        refs: [
+	    {
+		    ref: 'viewport',
+		    selector: 'my-viewport'
+	    },
+        ],
+    }
 /*
     init: function() {
         this.control({

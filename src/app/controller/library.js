@@ -1,21 +1,22 @@
 Ext.define('MobileOxford.controller.library', {
     extend: 'Ext.app.Controller',
     views: ['librarysearch', 'librarydetail'],
-
-    refs: [
-	{
-		ref: 'viewport',
-		selector: 'my-viewport'
-	},
-	{
-		ref: 'searchform',
-		selector: 'librarysearch'
-	},
-	{
-		ref: 'results',
-		selector: '#results'
-	}
-    ],
+    config: {
+        refs: [
+	    {
+		    ref: 'viewport',
+		    selector: 'my-viewport'
+	    },
+	    {
+		    ref: 'searchform',
+		    selector: 'librarysearch'
+	    },
+	    {
+		    ref: 'results',
+		    selector: '#results'
+	    }
+        ],
+    },
 
     init: function() {
         this.control({

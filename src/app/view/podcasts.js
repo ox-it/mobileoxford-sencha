@@ -1,7 +1,8 @@
 Ext.define('MobileOxford.view.podcasts', {
 	extend: 'Ext.Panel',
 	alias: 'widget.podcasts',
-	title: 'Podcasts',
+	xtype: 'podcasts',
+    title: 'Podcasts',
 	scrollable: 'vertical',
 	fullscreen: true,
 	layout: 'fit',

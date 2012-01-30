@@ -3,12 +3,11 @@ Ext.Loader.setConfig({
 	paths: { 'MobileOxford': 'app', }
 })
 
-/*
 Ext.require([
     'MobileOxford.store.webcams',
-    'MobileOxford.config'
+    'MobileOxford.config',
+    'MobileOxford.controller.home',
 ]);
-*/
 
 Ext.application({
     name: "MobileOxford",
@@ -17,6 +16,12 @@ Ext.application({
     tabletIcon: 'icon.png',
     controllers: ['home', 'webcams', 'places', 'library', 'podcasts'],
     stores: ['webcams'],
+    models: ['webcam'],
+    views: ['home', 'librarysearch', 'librarydetail', 'places', 'podcasts', 'webcam', 'webcams'],
     appFolder: 'app',
-    autoCreateViewport: true,
+    viewport: { xclass: 'MobileOxford.view.Viewport' },
+    launch: function() {
+        console.log('ext.application launch');
+        Ext.create('MobileOxford.view.Viewport');
+    }
 })

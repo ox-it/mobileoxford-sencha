@@ -1,7 +1,8 @@
 Ext.define('MobileOxford.view.webcams', {
 	extend: 'Ext.Panel',
 	alias: 'widget.webcams',
-	title: 'Webcams',
+    xtype: 'webcams',
+    title: 'Webcams',
 	requires: ['Ext.dataview.List'],
 //	scrollable: 'vertical',
 //	fullscreen: true,

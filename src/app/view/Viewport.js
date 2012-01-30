@@ -9,7 +9,7 @@ http://www.sencha.com/forum/showthread.php?150668-ExtJS4-to-ST2
 Ext.define('MobileOxford.view.Viewport', {
 	extend: 'Ext.NavigationView',
 	xtype: 'my-viewport',
-	requires: ['Ext.Toolbar'],
+	requires: ['Ext.Toolbar','MobileOxford.view.home'],
 	config: {
 		layout: 'card',
 		fullscreen: true,
@@ -39,6 +39,9 @@ Ext.define('MobileOxford.view.Viewport', {
 				xtype: 'home'
 			},
 		]
-	}
+	},
+    launch: function() {
+        console.log('viewport loaded');
+    }
 });
 

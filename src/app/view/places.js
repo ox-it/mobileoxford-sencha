@@ -1,7 +1,8 @@
 Ext.define('MobileOxford.view.places', {
 	extend: 'Ext.Container',
 	alias: 'widget.places',
-	title: 'Places',
+	xtype: 'places',
+    title: 'Places',
 	//layout: 'vbox',
 	requires: [
 		'Ext.Map'

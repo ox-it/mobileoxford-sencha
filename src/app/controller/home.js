@@ -11,8 +11,11 @@ Ext.define('MobileOxford.controller.home', {
     },
 
     init: function() {
+
+        console.log('Home controller init');
+
         this.control({
-		'button[go]': {
+		    'button[go]': {
 /* look for any button with the "go" parameter and setActiveItem() to that value, so you just have to tell the button to go to the xtype of your view; http://stackoverflow.com/questions/8065505/sencha-touch-2-0-cant-set-activeitem-on-viewport
 */
 			tap: function(btn) {
@@ -20,5 +23,5 @@ Ext.define('MobileOxford.controller.home', {
 			}
 		},
 		});
-    	},
+    },
 })

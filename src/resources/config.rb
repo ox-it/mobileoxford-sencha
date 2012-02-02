@@ -1,6 +1,6 @@
 dir = File.dirname(__FILE__)
 
-load File.join(dir, '..', 'lib', 'sencha2_preview', 'resources', 'themes')
+load File.join(dir, '..', 'lib', 'sencha-touch-2-b1', 'resources', 'themes')
 
 http_path = "/"
 css_dir = "css"

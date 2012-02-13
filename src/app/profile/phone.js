@@ -8,7 +8,8 @@ Ext.define('MobileOxford.profile.phone', {
     },
 
     isActive: function() {
-        return Ext.os.is.Phone;
+        //return Ext.os.is.Phone;
+        return true;
     },
 
     launch: function() {

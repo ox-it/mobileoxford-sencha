@@ -8,7 +8,8 @@ Ext.define('MobileOxford.profile.tablet', {
     },
 
     isActive: function() {
-        return Ext.os.is.Tablet || Ext.os.is.Desktop;
+        //return Ext.os.is.Tablet || Ext.os.is.Desktop;
+        return false;
     },
 
     launch: function() {

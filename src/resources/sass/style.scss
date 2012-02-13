@@ -1,6 +1,6 @@
-$base-color: #000;
-$base-gradient: 'glossy';
-$include-default-icons:false;
+$base-color: #002147;
+$base-gradient: 'flat';
+$include-default-icons:true;
 
 @import 'sencha-touch/default/all';
 
@@ -11,4 +11,5 @@ $include-default-icons:false;
 @include sencha-list;
 @include sencha-layout;
 @include sencha-loading-spinner;
+@include sencha-form;
 

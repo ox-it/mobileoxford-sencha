@@ -1,34 +1,23 @@
 Ext.define('MobileOxford.view.home', {
-    extend: 'Ext.Panel',
-    alias: 'widget.home',
-    xtype: 'home',
+    extend: 'Ext.Container',
     title: 'Mobile Oxford',
-    requires: ['Ext.Button'],
-    layout: 'vbox',
-    config: {
-        padding: 10,
-	    items: [
-               	{
-                    xtype: 'button',
-		            text: 'Places',
-		            go: 'places',
-                },
-                {
-                    xtype: 'button',
-		            text: 'Webcams',
-		            go: 'webcams',
-                },
-                {
-                    xtype: 'button',
-		            text: 'Library search',
-		            go: 'librarysearch',
-                },
-                {
-                    xtype: 'button',
-		            text: 'Podcasts',
-		            go: 'podcasts',
-                }
-            ],
-    },
-    
-})
+});
+
+/*
+if(Ext.os.is.Tablet || Ext.os.is.Desktop) {
+
+    Ext.define('MobileOxford.view.home', {
+        extend: 'Ext.Container', 
+        title: 'Mobile Oxford',
+        xtype: 'home',
+    });
+
+} else {
+
+    Ext.define('MobileOxford.view.home', {
+        extend: 'Ext.Container',
+        title: 'Mobile Oxford Phone',
+    });
+
+}
+*/

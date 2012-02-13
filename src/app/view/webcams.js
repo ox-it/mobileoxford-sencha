@@ -1,6 +1,5 @@
 Ext.define('MobileOxford.view.webcams', {
 	extend: 'Ext.Panel',
-	alias: 'widget.webcams',
     xtype: 'webcams',
     title: 'Webcams',
 	requires: ['Ext.dataview.List'],
@@ -17,7 +16,7 @@ Ext.define('MobileOxford.view.webcams', {
 				loadingText: 'Loading...',
 				store: 'webcams',
 //				layout: 'fit',
-//				itemTpl: '{title}',				
+				itemTpl: '{title}',				
 //				height: 500,	// TODO fix hard-coded height
 			}
 			]
